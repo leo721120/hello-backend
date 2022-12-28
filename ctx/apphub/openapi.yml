@@ -1,0 +1,269 @@
+openapi: 3.0.3
+
+info:
+  version: 1.0.0
+  title: "openapi for apphub"
+  description: |
+    welcome to apphub openapi document
+
+servers:
+  - url: http://dev.apphub.com
+    description: |
+      only for develop
+
+security:
+  - bearer: []
+
+tags:
+  - name: device
+    description: |
+      abstraction of real devices
+  - name: property
+    description: |
+      properties of real device
+  - name: token
+    description: |
+      credentials to authenticate a user agent with a server
+
+paths:
+  /api/devicemgr/{endpoint}/devname:
+    put:
+      summary: "edit device name"
+      description: |
+
+      tags:
+        - device
+      responses:
+        default:
+          description: "operation failed"
+        200:
+          description: "operation success"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/status"
+              example:
+                status: "CHANGED"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              maxProperties: 9
+              type: object
+              required:
+                - devname
+                - target
+              properties:
+                devname:
+                  $ref: "#/components/schemas/device/properties/devName"
+                target:
+                  type: string
+                  enum:
+                    - /40001/0/27009
+            example:
+              devname: "dev123"
+              target: "/40001/0/27009"
+      parameters:
+        - $ref: "#/components/parameters/endpoint"
+  /api/devicemgr/{endpoint}/3/0/21:
+    get:
+      summary: "total physical memory in KiB"
+      tags:
+        - property
+      responses:
+        default:
+          description: "operation failed"
+        200:
+          description: "operation success"
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - content
+                  - status
+                properties:
+                  status:
+                    $ref: "#/components/schemas/status"
+                  content:
+                    type: object
+                    required:
+                      - value
+                    properties:
+                      value:
+                        type: string
+                        minLength: 1
+                        maxLength: 99
+              example:
+                status: "CONTENT"
+                content:
+                  value: "66.66"
+      parameters:
+        - $ref: "#/components/parameters/endpoint"
+  /api/devicemgr/byunassigned:
+    get:
+      summary: "list unmanaged devices"
+      tags:
+        - device
+      responses:
+        default:
+          description: "operation failed"
+        200:
+          description: "operation success"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/devices"
+              example:
+                - endpoint: "C4:00:AD:31:1F:46"
+                  isOnline: "true"
+                  registrationDate: "2022-08-29 15:21:01.091"
+                  address: "/172.22.28.69"
+                  devName: "USM-110"
+                  boardName: "rk30sdk"
+  /api/devicemgr/alldevices:
+    get:
+      summary: "list managed devices"
+      tags:
+        - device
+      responses:
+        default:
+          description: "operation failed"
+        200:
+          description: "operation success"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/devices"
+              example:
+                - endpoint: "C4:00:AD:31:1F:46"
+                  isOnline: "true"
+                  registrationDate: "2022-08-29 15:21:01.091"
+                  address: "/172.22.28.69"
+                  devName: "USM-110"
+                  boardName: "rk30sdk"
+                  groupname: "gid:22"
+  /login:
+    post:
+      summary: "retrieve access token"
+      description: |
+
+      tags:
+        - token
+      security: []
+      responses:
+        default:
+          description: "operation failed"
+        200:
+          description: "operation success"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/token"
+              example:
+                status: "CHANGED"
+                token: "token123"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/login"
+            example:
+              username: "user123"
+              password: "pass456"
+
+components:
+  schemas:
+    devices:
+      minItems: 0
+      maxItems: 9999
+      type: array
+      items:
+        $ref: "#/components/schemas/device"
+    device:
+      maxProperties: 9
+      type: object
+      required:
+        - endpoint
+      properties:
+        endpoint:
+          type: string
+          minLength: 1
+          maxLength: 99
+        isOnline:
+          type: string
+          enum:
+            - "true"
+            - "false"
+        registrationDate:
+          type: string
+          minLength: 1
+          maxLength: 99
+        address:
+          type: string
+          minLength: 1
+          maxLength: 99
+        devName:
+          type: string
+          minLength: 0
+          maxLength: 99
+        boardName:
+          type: string
+          minLength: 0
+          maxLength: 99
+        groupname:
+          type: string
+          minLength: 0
+          maxLength: 99
+    login:
+      maxProperties: 9
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          minLength: 1
+          maxLength: 99
+        password:
+          type: string
+          minLength: 1
+          maxLength: 99
+    token:
+      maxProperties: 9
+      type: object
+      required:
+        - token
+      properties:
+        status:
+          $ref: "#/components/schemas/status"
+        token:
+          type: string
+          minLength: 1
+          maxLength: 999
+    status:
+      type: string
+      enum:
+        - CHANGED
+        - CONTENT
+  parameters:
+    endpoint:
+      name: endpoint
+      in: path
+      required: true
+      description: "identity of device"
+      schema:
+        $ref: "#/components/schemas/device/properties/endpoint"
+      example: "C4:00:AD:31:1F:46"
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        use /login to retrieve access token
+
+        ```http
+        accesstoken: <token>
+        ```

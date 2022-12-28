@@ -1,0 +1,26 @@
+upstream appsrv {
+    server ${APPSRV_HOST}:${APPSRV_PORT};
+}
+upstream websrv {
+    server ${WEBSRV_HOST}:${WEBSRV_PORT};
+}
+server {
+    server_name ${LISTEN_HOST};
+    listen [::]:${LISTEN_PORT};
+    listen ${LISTEN_PORT};
+    #
+    location /v1.0 {
+        # forward to backend service
+        proxy_pass http://appsrv/v1.0;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+    location / {
+        # forward to web service
+        proxy_pass http://websrv/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}

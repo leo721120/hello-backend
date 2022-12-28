@@ -1,0 +1,30 @@
+info:
+  version: 1.2.3
+  title: "testonly"
+
+paths:
+  /foo/{id}:
+    get:
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/data"
+  /foo:
+    post:
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/data"
+
+components:
+  schemas:
+    data:
+      additionalProperties: false
+      type: object
+      properties:
+        a:
+          type: string

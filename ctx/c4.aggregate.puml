@@ -1,0 +1,12 @@
+@startuml aggregate
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Deployment.puml
+HIDE_STEREOTYPE()
+
+Node(brand, Brand, , Used to hold everything under this brand) {
+  Node(licenses, Licenses, , List of applied licenses)
+  Node(pricing, Pricing, , Basis for charges)
+  Node(cost, Cost, , Used to describe the current charging situation)
+  Node(notify, Notify, external system, Notification rules to used)
+  Node(history, History, external system, Records of historical events)
+}
+@enduml

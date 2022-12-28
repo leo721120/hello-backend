@@ -1,0 +1,376 @@
+openapi: 3.0.3
+
+info:
+  version: 1.0.0
+  title: openapi for license server
+  description: |
+    welcome to license server openapi document
+
+servers:
+  - url: https://dev.license.com
+    description: |
+      only for develop
+  - url: https://app.license.com
+    description: |
+      only for production
+
+security: []
+
+paths:
+  /api/server/info:
+    get:
+      responses:
+        200:
+          description: |
+            operation done
+          content:
+            application/json:
+              examples:
+                成功:
+                  value:
+                    {
+                      "error_code": "0",
+                      "error_message": "",
+                      "version": "1.0.1",
+                    }
+              schema:
+                type: object
+                required:
+                  - error_code
+                  - version
+                properties:
+                  error_code:
+                    $ref: "#/components/schemas/error_code"
+                  error_message:
+                    $ref: "#/components/schemas/error_message"
+                  version:
+                    description: |
+                      server版本號
+                    type: string
+                    minLength: 0
+                    maxLength: 99
+  /api/op/vendor_code:
+    post:
+      responses:
+        200:
+          description: |
+            operation done
+          content:
+            application/json:
+              examples:
+                成功:
+                  value: { "error_code": "0", "error_message": "", "status": 1 }
+                失败(vendor_code不存在):
+                  value:
+                    {
+                      "error_code": "1",
+                      "error_message": "unknown vender_code",
+                    }
+                失败(IP地址不在白名单上):
+                  value: { "error_code": "4", "error_message": "illegal ip" }
+              schema:
+                type: object
+                required:
+                  - error_code
+                properties:
+                  error_code:
+                    $ref: "#/components/schemas/error_code"
+                  error_message:
+                    $ref: "#/components/schemas/error_message"
+                  status:
+                    description: |
+                      0 - 未启用
+                      1 - 已启用
+                      2 - 暂停
+                    type: integer
+                    enum:
+                      - 0
+                      - 1
+                      - 2
+  /api/op/point:
+    post:
+      parameters:
+        - in: query
+          name: vendor_code
+          description: |
+            采购厂家编码
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 999
+          example: AAAA
+      responses:
+        200:
+          description: |
+            operation done
+          content:
+            application/json:
+              examples:
+                成功:
+                  value:
+                    { "error_code": "0", "error_message": "", "point": 110 }
+                失败(vendor_code不存在):
+                  value:
+                    {
+                      "error_code": "1",
+                      "error_message": "unknown vender_code",
+                    }
+                失败(OP未启用或暂停):
+                  value:
+                    {
+                      "error_code": "2",
+                      "error_message": "op is not enable yet",
+                    }
+                失败(IP地址不在白名单上):
+                  value: { "error_code": "4", "error_message": "illegal ip" }
+              schema:
+                type: object
+                required:
+                  - error_code
+                properties:
+                  error_code:
+                    $ref: "#/components/schemas/error_code"
+                  error_message:
+                    $ref: "#/components/schemas/error_message"
+                  point:
+                    description: |
+                      运营商点数
+                    type: integer
+                    minimum: -99999999
+                    maximum: 99999999
+  /api/op/activation/enable:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/serial_number"
+      responses:
+        200:
+          description: |
+            operation done
+          content:
+            application/json:
+              examples:
+                成功:
+                  value:
+                    {
+                      "error_code": "0",
+                      "error_message": "",
+                      "device_type": "EIS-Lite",
+                    }
+                失败(serial_number不存在):
+                  value:
+                    {
+                      "error_code": "1",
+                      "error_message": "unknown serial_number",
+                    }
+                失败(serial_number已使用):
+                  value:
+                    { "error_code": "2", "error_message": "used serial_number" }
+                失败(serial_number不是给activation使用):
+                  value:
+                    {
+                      "error_code": "3",
+                      "error_message": " this serial_number is not for activation",
+                    }
+                失败(IP地址不在白名单上):
+                  value: { "error_code": "4", "error_message": "illegal ip" }
+              schema:
+                type: object
+                required:
+                  - error_code
+                properties:
+                  error_code:
+                    $ref: "#/components/schemas/error_code"
+                  error_message:
+                    $ref: "#/components/schemas/error_message"
+                  device_type:
+                    $ref: "#/components/schemas/device_type"
+  /api/op/activation/query:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/serial_number"
+      responses:
+        200:
+          description: |
+            operation done
+          content:
+            application/json:
+              examples:
+                成功:
+                  value:
+                    {
+                      "error_code": "0",
+                      "error_message": "",
+                      "device_type": "EIS-Lite",
+                    }
+                失败(serial_number不存在):
+                  value:
+                    {
+                      "error_code": "1",
+                      "error_message": "unknown serial_number",
+                    }
+                失败(serial_number已使用):
+                  value:
+                    { "error_code": "2", "error_message": "used serial_number" }
+                失败(serial_number不是给activation使用):
+                  value:
+                    {
+                      "error_code": "3",
+                      "error_message": " this serial_number is not for activation",
+                    }
+                失败(IP地址不在白名单上):
+                  value: { "error_code": "4", "error_message": "illegal ip" }
+              schema:
+                type: object
+                required:
+                  - error_code
+                properties:
+                  error_code:
+                    $ref: "#/components/schemas/error_code"
+                  error_message:
+                    $ref: "#/components/schemas/error_message"
+                  device_type:
+                    $ref: "#/components/schemas/device_type"
+  /api/op/serial_number/enable:
+    post:
+      requestBody:
+        content:
+          application/json:
+            example:
+              { "serial_number": "AAAA-BBBB-CCCC-DDDD", "active_number": "" }
+            schema:
+              additionalProperties: false
+              type: object
+              required:
+                - serial_number
+                - active_number
+              properties:
+                serial_number:
+                  $ref: "#/components/schemas/serial_number"
+                active_number:
+                  type: string
+                  minLength: 0
+                  maxLength: 99
+      responses:
+        200:
+          description: |
+            operation done
+          content:
+            application/json:
+              examples:
+                成功:
+                  value: { "error_code": "0", "error_message": "" }
+              schema:
+                type: object
+                required:
+                  - error_code
+                properties:
+                  error_code:
+                    $ref: "#/components/schemas/error_code"
+                  error_message:
+                    $ref: "#/components/schemas/error_message"
+  /api/op/serial_number/query:
+    post:
+      requestBody:
+        content:
+          application/json:
+            example: { "serial_number": "AAAA-BBBB-CCCC-DDDD" }
+            schema:
+              additionalProperties: false
+              type: object
+              required:
+                - serial_number
+              properties:
+                serial_number:
+                  $ref: "#/components/schemas/serial_number"
+      responses:
+        200:
+          description: |
+            operation done
+          content:
+            application/json:
+              examples:
+                成功:
+                  value:
+                    {
+                      "error_code": "0",
+                      "error_message": "",
+                      "device_type": "Lite",
+                      "product_name": "Custom_GW",
+                      "service":
+                        {
+                          "scope": "device",
+                          "deive_type": "v-pos",
+                          "channel_num": 4,
+                          "total_number": 30,
+                          "available_number": 29,
+                          "period": "3M",
+                        },
+                      "detail":
+                        {
+                          "PCS_CH": "3",
+                          "POSM_CH": "3",
+                          "FACE_CH": "1",
+                          "HEATMAP_CH": "3",
+                          "PU_NUM": "6",
+                          "IAQ_CH": "3",
+                        },
+                    }
+              schema:
+                type: object
+                required:
+                  - error_code
+                properties:
+                  error_code:
+                    $ref: "#/components/schemas/error_code"
+                  error_message:
+                    $ref: "#/components/schemas/error_message"
+                  device_type:
+                    $ref: "#/components/schemas/device_type"
+                  product_name:
+                    type: string
+                    minLength: 0
+                    maxLength: 99
+                  service:
+                    maxProperties: 99
+                    type: object
+                  detail:
+                    maxProperties: 99
+                    type: object
+  #/api/op/serial_number/reset:
+
+components:
+  schemas:
+    error_code:
+      description: |
+        0 if success, otherwise is fail
+      type: string
+      minLength: 0
+      maxLength: 9
+    error_message:
+      description: |
+        reason of error
+      type: string
+      minLength: 0
+      maxLength: 999
+    device_type:
+      description: |
+
+      type: string
+      minLength: 1
+      maxLength: 99
+    serial_number:
+      description: |
+        序列号
+      type: string
+      minLength: 1
+      maxLength: 99
+  parameters:
+    serial_number:
+      in: query
+      name: serial_number
+      description: |
+        序列号
+      example: AAAA-BBBB-CCCC-DDDD
+      schema:
+        $ref: "#/components/schemas/serial_number"

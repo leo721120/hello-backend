@@ -1,0 +1,15 @@
+apiVersion: dapr.io/v1alpha1
+kind: Configuration
+metadata:
+  namespace: backend
+  name: config
+spec:
+  tracing:
+    samplingRate: "1"
+    expandParams: true
+    includeBody: true
+    enabled: true
+    zipkin:
+      endpointAddress: http://host.docker.internal:9411/api/v2/spans
+  mtls:
+    enabled: false # not able to use now

@@ -1,0 +1,109 @@
+version: '3'
+
+networks:
+  backend: {}
+
+services:
+  #---------------------------------------
+  zipkin:
+    # used as Dapr component
+    image: "openzipkin/zipkin-slim:2.23"
+    #
+    networks:
+      - backend
+    ports:
+      - 59411:9411 # open for dashboard
+    environment:
+      # persist storage is not support Postgres, may cause too many container in production...
+      - STORAGE_TYPE=mem
+  #---------------------------------------
+  redis:
+    # used as Dapr component
+    image: "redis:6.2-alpine"
+    #
+    networks:
+      - backend
+  #---------------------------------------
+  postgresql:
+    # database (only for develop)
+    image: postgres:14.2-alpine
+    #
+    networks:
+      - backend
+    volumes:
+      - ./cnf/postgres:/docker-entrypoint-initdb.d
+    environment:
+      # password for database
+      - POSTGRES_PASSWORD=<replace it yourself>
+      # username for database
+      - POSTGRES_USER=e2e
+      # name of database
+      - POSTGRES_DB=e2e
+  #---------------------------------------
+  placement:
+    # dapr
+    image: "daprio/dapr:1.9.4"
+    #
+    networks:
+      - backend
+    depends_on:
+      # following is used as component
+      - zipkin
+      - redis
+    command: [ "./placement", "-port", "50006" ]
+  #---------------------------------------
+  devapp-dapr:
+    # sidecar
+    image: "daprio/daprd:1.9.4"
+    # this means that the app and the sidecars are able to communicate over their localhost interface.
+    network_mode: service:devapp
+    #
+    volumes:
+      # mount our components folder for the runtime to use.
+      - "./cnf/dapr/:/dapr"
+    depends_on:
+      - devapp
+    command:
+      [
+        "./daprd",
+        "-app-id",
+        "devapp", # the id for your application, used for service discovery
+        "-app-port",
+        "58088", # service listen port (not for outside)
+        "-placement-host-address",
+        "placement:50006",
+        "-dapr-http-port",
+        "3500", # open for outside, all traffics to service should through here
+        "-components-path",
+        "/dapr",
+        "-config",
+        "/dapr/config.yml",
+        "-log-level",
+        "info"
+      ]
+  #---------------------------------------
+  devapp:
+    # application service
+    build: '.'
+    #
+    networks:
+      - backend
+    depends_on:
+      - placement # depend placement for sidecar
+      - postgresql
+    environment:
+      - NODE_ENV=production
+      # default to 'info'
+      - LOG_LEVEL=info
+      # application needs to communicate externally through Dapr
+      - DAPR_HTTP_PORT=3500
+      # milliseconds before the request times out
+      - DAPR_TIMEOUT=3000
+      # port for listen HTTP request from Dapr sidecar
+      - APP_PORT=58088
+      # the id for your application, used for service discovery
+      - APP_ID=devapp
+      # key to read from secret store
+      - SEQUELIZE_SECRET=sequelize
+      # communicate with each other applications
+      - EVENT_PUBSUB=pubsub

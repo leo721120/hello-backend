@@ -1,0 +1,61 @@
+openapi: 3.0.3
+
+info:
+  version: 1.0.0
+  title: |
+
+paths:
+  /tags:
+    get:
+      parameters:
+        - name: field
+          in: query
+          examples:
+            1:
+              summary: multiple value
+              value: [id, resource]
+            2:
+              summary: with delimiter
+              value: "id,resource"
+          schema:
+            uniqueItems: true
+            type: array
+            items:
+              type: string
+              enum:
+                - id
+                - parents
+                - resource
+      responses:
+        default:
+          description: operation failed
+        200:
+          description: operation success
+          content:
+            application/json:
+              example:
+                [
+                  { id: "tag001", resource: { type: "device", id: "D001" } },
+                  { id: "tag002", parents: { id: "tag001" } },
+                ]
+              schema:
+                type: array
+                minItems: 0
+                maxItems: 9999
+                items:
+                  allOf:
+                    - $ref: "#/components/schemas/tag"
+                    - type: object
+                      required:
+                        - id
+
+components:
+  schemas:
+    tag:
+      additionalProperties: false
+      type: object
+      properties:
+        id:
+          type: string
+          minLength: 3
+          maxLength: 99
