@@ -13,6 +13,7 @@
     "clean": "tsc -b --clean",
     "cmake": "cmake-js",
     "start": "ts-node app/main",
+    "wasm": "asc --config ./lib/wasm/asconfig.json",
     "init": "dapr uninstall && dapr init",
     "dapr": "dapr run -a devapp -H 3500 -p 58088 -d ./cnf/dapr -- ts-node app/main",
     "test": "jest"
@@ -29,6 +30,7 @@
     "@types/supertest": "^2.0.11",
     "@types/traceparent": "^1.0.0",
     "@types/ws": "^8.5.3",
+    "assemblyscript": "^0.25.2",
     "autocannon": "^7.10.0",
     "cmake-js": "^7.1.1",
     "commitizen": "^4.2.5",

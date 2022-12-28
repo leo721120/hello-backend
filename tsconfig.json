@@ -27,5 +27,8 @@
     "lib": [
       "DOM"
     ]
-  }
+  },
+  "exclude": [
+    "./lib/wasm/*.ts"
+  ]
 }

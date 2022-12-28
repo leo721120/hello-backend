@@ -1,0 +1,15 @@
+{
+    "entries": [
+        "./main.ts"
+    ],
+    "targets": {
+        "release": {
+            "optimize": true,
+            "outFile": "main.wasm"
+        },
+        "debug": {
+            "debug": true,
+            "outFile": "main.wasm"
+        }
+    }
+}

@@ -2,7 +2,8 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "./tsconfig.json",
   "exclude": [
-    //"node_modules/**",
+    //"**/node_modules/",
+    "./lib/wasm/*.ts",
     "**/*.test.ts",
     "**/*.spec.ts"
   ]
