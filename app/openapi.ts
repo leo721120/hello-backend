@@ -1,5 +1,6 @@
 import express from '@io/lib/express'
 import path from 'node:path'
+import '@io/lib/node'
 import '@io/lib/json'
 export default express.setup(function (app) {
     const openapi = JSON.schema('openapi.json',

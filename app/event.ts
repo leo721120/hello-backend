@@ -11,7 +11,13 @@ export default express.setup(function (app) {
                 ...ce,
             });
         }).catch(function (e: Error) {
-            app.emit('error', e);
+            app.emit('error', {
+                name: ce.tracecontext?.traceparent(),
+                type: e.errno,
+                code: e.name,
+                text: e.message,
+                params: e.params,
+            });
         });
     });
     app.get('/dapr/subscribe', function (req, res) {
@@ -54,11 +60,11 @@ declare global {
         off<K extends keyof CloudEvents>(event: K, cb: (e: CloudEvent<K, CloudEvents[K]>) => void): this
         once<K extends keyof CloudEvents>(event: K, cb: (e: CloudEvent<K, CloudEvents[K]>) => void): this
         emit<K extends keyof CloudEvents>(event: K, e: CloudEvent<K, CloudEvents[K]>): boolean
-        on(event: 'event', cb: (e: CloudEvent<string, unknown>) => void): this
-        off(event: 'event', cb: (e: CloudEvent<string, unknown>) => void): this
-        once(event: 'event', cb: (e: CloudEvent<string, unknown>) => void): this
-        emit(event: 'event', e: CloudEvent<string, unknown>): boolean
+        on<A extends object>(event: 'event', cb: (e: A) => void): this
+        off<A extends object>(event: 'event', cb: (e: A) => void): this
+        once<A extends object>(event: 'event', cb: (e: A) => void): this
         emit<A extends object>(event: 'event', e: A): boolean
+        emit<A extends object>(event: 'error', e: A): boolean
     }
     interface CloudEvents {
         'License.BrandAdded': {

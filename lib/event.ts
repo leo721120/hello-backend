@@ -4,7 +4,12 @@ import '@io/lib/node'
 export function TraceContext(): TraceContext
 export function TraceContext(text: string): TraceContext
 export function TraceContext(text?: string): TraceContext {
-    const trace = TraceParent.fromString(text ?? '');
+    const trace = text?.length
+        ? TraceParent.fromString(text)
+        : TraceParent.startOrResume(null, {
+            transactionSampleRate: 1,
+        })
+        ;
     return <TraceContext>{
         traceparent() {
             return trace.toString();
@@ -20,6 +25,7 @@ export function CloudEvent<K extends keyof CloudEvents>(params: Editable<K, Clou
     return {
         datacontenttype: 'application/json',
         specversion: '1.0',
+        source: '/',
         id: params.id ?? String.nanoid(32),
         time: params.time ?? new Date().toISOString(),
         ...params,
@@ -50,7 +56,6 @@ declare global {
 type Editable<K extends string, V> = Partial<CloudEvent<K, V>> & Pick<CloudEvent<K, V>,
     | 'datacontenttype'
     | 'tracecontext'
-    | 'source'
     | 'type'
     | 'data'
 >;

@@ -4,6 +4,9 @@
   "version": "0.0.0",
   "license": "MIT",
   "description": "template for backend service",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "scripts": {
     "dockerbuild": "docker build . -t io/backend:%npm_package_version%",
     "release": "pkg -c ./package.json -o ./out/main app/main.js",
@@ -22,6 +25,7 @@
     "@types/autocannon": "^7.9.0",
     "@types/cors": "^2.8.12",
     "@types/express": "^4.17.13",
+    "@types/express-ws": "^3.0.1",
     "@types/fs-extra": "^9.0.13",
     "@types/jest": "^29.1.2",
     "@types/jsonwebtoken": "^8.5.8",
@@ -65,6 +69,7 @@
     "debug": "^4.3.4",
     "dotenv": "^16.0.3",
     "express": "^4.17.3",
+    "express-ws": "^5.0.2",
     "fs-extra": "^10.1.0",
     "helmet": "^5.1.1",
     "jsonwebtoken": "^8.5.1",

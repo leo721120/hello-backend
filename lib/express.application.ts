@@ -1,4 +1,5 @@
 import type { AxiosRequestConfig, AxiosResponse } from 'axios'
+import websockify from 'express-ws'
 import express from 'express'
 import '@io/lib/error'
 import '@io/lib/node'
@@ -122,13 +123,24 @@ export default <Application>Object.assign(express.application, <Application>{
     final(err, req, res, next) {
         res.error(err);
     },
+    ws(...a) {
+        this.websocket();
+        return this.ws(...a);
+    },
+    websocket() {
+        Object.assign(this, { ws: undefined });
+        const ws = websockify(this).getWss();
+        this.websocket = () => ws;
+        return ws;
+    },
 });
 declare global {
     namespace Express {
-        interface Application {
+        interface Application extends websockify.WithWebsocketMethod {
             readonly express: typeof express
             readonly handle: express.RequestHandler
             readonly final: express.ErrorRequestHandler
+            websocket(): ReturnType<websockify.Instance['getWss']>
             service<V>(name: string, factory: () => PromiseLike<V> | V): this
             service<V>(name: string): Promise<V>
             setup<V>(object: { default: Setup<V> }): Promise<V>
