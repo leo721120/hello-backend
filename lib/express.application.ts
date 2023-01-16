@@ -15,7 +15,15 @@ export default <Application>Object.assign(express.application, <Application>{
             return this.get(key);
         };
         const set = () => {
-            return this.set(key, Promise.defer(factory));
+            return this.set(key, Promise.defer(async () => {
+                try {
+                    return await factory();
+                } catch (e) {
+                    // auto retryable
+                    this.service(name, factory);
+                    throw e;
+                }
+            }));
         };
         return arguments.length > 1
             ? set()

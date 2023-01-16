@@ -4,13 +4,20 @@ import pino from 'pino'
 import '@io/lib/node'
 dotenv.config();
 Promise.try(async function () {
+    const app = express();
     const log = pino({
         level: process.env.LOG_LEVEL ?? 'info',
         base: { appid: process.env.APP_ID },
         messageKey: 'text',
     });
-    const app = express();
     {
+        app.once('close', function () {
+            log.info({ text: 'close' });
+        }).on('error', function (e) {// bind before setup to prevent [ERR_UNHANDLED_ERROR]
+            log.warn(e);
+        }).on('event', function (o) {
+            log.info(o);
+        });
         await app.setup(await import('@io/app/domain'));
     }
     const srv = app.listen(process.env.APP_PORT, function () {
@@ -21,13 +28,6 @@ Promise.try(async function () {
         app.emit('close');
     }).on('error', function (e) {
         app.emit('error', e);
-    });
-    app.once('close', function () {
-        log.info({ text: 'close' });
-    }).on('error', function (e) {
-        log.warn(e);
-    }).on('event', function (o) {
-        log.info(o);
     });
     process.once('exit', function (code) {
         log.info({ exit: code });

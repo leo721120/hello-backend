@@ -1,8 +1,7 @@
-import type { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios'
+import type { AxiosError, AxiosRequestConfig } from 'axios'
 import { TraceContext } from '@io/lib/event'
 import axios from 'axios'
 import mime from 'mime'
-import nock from 'nock'
 export function build(config?: Readonly<AxiosRequestConfig>) {
     const fetch = axios.create({
         baseURL: 'http://localhost',
@@ -68,9 +67,6 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
     });
 };
 export default Object.assign(build, {
-    mock(fetch: AxiosInstance) {
-        return nock(fetch.defaults.baseURL ?? '');
-    },
 });
 declare module 'axios' {
     interface AxiosRequestConfig {

@@ -16,6 +16,28 @@ describe('express/app', function () {
         const service = await app.service<Service>('testonly');
         expect(service.go()).toBe(true);
     });
+    it('.service, retryable', async function () {
+        interface Service {
+            good(): boolean
+        }
+        const app = express();
+        let count = 0;
+        app.service<Service>('testonly', function () {
+            if (++count < 3) {
+                throw Error('testfail');
+            }
+            return {
+                good() {
+                    return true;
+                },
+            };
+        });
+        await expect(app.service('testonly')).rejects.toThrow('testfail');
+        await expect(app.service('testonly')).rejects.toThrow('testfail');
+        const service = await app.service<Service>('testonly');
+        expect(service.good()).toBe(true);
+        expect(count).toBe(3);
+    });
     it('.fetch', async function () {
         const app = express();
         app.get('/abc', async function (req, res) {

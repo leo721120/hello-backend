@@ -143,6 +143,23 @@ describe('json', function () {
         expect(doc.info.version).toBe('1.2.3');
         expect(doc.info.title).toBe('testonly');
     });
+    it('.openapi, example with key `id`', async function () {
+        const doc = JSON.openapi(`${__dirname}/json.spec.yml`);
+        const schema = JSON.schema('abc.yml', doc);
+        const example = schema.child(
+            'paths',
+            JSON.pointer.escape('/foo/{id}'),
+            'get',
+            'responses',
+            '200',
+            'content',
+            JSON.pointer.escape('application/json'),
+            'example',
+        );
+        expect(example.schema).toEqual({
+            id: 'id-testonly',
+        });
+    });
     it('.pointer', async function () {
         expect(JSON.pointer.escape('/abc/{id}')).toBe('~1abc~1{id}');
     });

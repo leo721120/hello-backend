@@ -15,12 +15,12 @@ describe('sequelize', function () {
         };
         const Table = db.define<Table>('table', {
             id: {
-                type: sequelize.DataTypes.TEXT,
+                type: db.Sequelize.DataTypes.TEXT,
                 primaryKey: true,
                 allowNull: false,
             },
             name: {
-                type: sequelize.DataTypes.TEXT,
+                type: db.Sequelize.DataTypes.TEXT,
                 allowNull: false,
             },
         });

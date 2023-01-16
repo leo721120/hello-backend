@@ -19,6 +19,7 @@ export default cucumber.steps(function ({ step }) {
         });
         {
             await app.setup(await import('@io/app/domain'));
+            await app.setup(await import('@io/app/mock'));
         }
         cucumber.world<World>({
             req: {},

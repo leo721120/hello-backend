@@ -11,6 +11,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/data"
+              example: { id: "id-testonly" }
   /foo:
     post:
       responses:
@@ -26,5 +27,7 @@ components:
       additionalProperties: false
       type: object
       properties:
+        id:
+          type: string
         a:
           type: string

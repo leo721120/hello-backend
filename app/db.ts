@@ -1,35 +1,35 @@
+import type { Options } from '@io/lib/sequelize'
 import { Sequelize } from '@io/lib/sequelize'
 import sequelize from '@io/lib/sequelize'
 import express from '@io/lib/express'
-import 'pg'// force pkg to include this
-export interface Service extends ReturnType<typeof sequelize.instance> {
-}
+import '@io/lib/node'
+import 'pg'// force pkg to include
 export default express.setup(function (app) {
-    Sequelize.beforeInit('init-db', function (config) {
-        app.emit('event', {
-            ...config,
-            password: '****',
-        });
-    });
     app.service('db', async function () {
-        const options = async function () {
-            if (process.env.SEQUELIZE_SECRET?.length) {
-                const dapr = await app.service('dapr');
-                const secret = await dapr.secret<object>({
-                    secretstore: 'secretstore',
-                    key: process.env.SEQUELIZE_SECRET,
-                });
-                return secret.data;
-            }
+        const uri = new URL(process.env.SEQUELIZE_HREF ?? 'sqlite::memory:');
+        const options = await Promise.try<Options>(function () {
             return {
+                ...JSON.parse(process.env.SEQUELIZE_OPTIONS ?? '{}'),
+                schema: process.env.SEQUELIZE_SCHEMA,
             };
-        };
+        });
+        Sequelize.beforeInit('init-db', function () {
+            const info = new URL(uri.toString());
+            info.password = '';
+            app.emit('event', {
+                href: info.toString(),
+                ...options,
+            });
+        });
+        Sequelize.afterInit('init-db', function (db) {
+            app.once('close', function () {
+                // force close if application is going down
+                db.close();
+            });
+        });
         return sequelize.instance({
-            database: 'dev',
-            // default is memory mode for develop
-            dialect: 'sqlite',
-            schema: 'dev',
-            ...await options(),
+            ...options,
+            uri: uri.toString(),
             benchmark: true,
             logging(text, elapse) {
                 app.emit('event', {
@@ -63,14 +63,16 @@ declare global {
     namespace NodeJS {
         interface ProcessEnv {
             /**
-            key to read from secret store, omit if switch to sqlite for develop
+            @default sqlite::memory:
             */
-            readonly SEQUELIZE_SECRET?: string
+            readonly SEQUELIZE_HREF?: string
+            readonly SEQUELIZE_SCHEMA?: string
+            readonly SEQUELIZE_OPTIONS?: string
         }
     }
     namespace Express {
         interface Application {
-            service(name: 'db'): Promise<Service>
+            service(name: 'db'): Promise<ReturnType<typeof sequelize.instance>>
         }
     }
 }

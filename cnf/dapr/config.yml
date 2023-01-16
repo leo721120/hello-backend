@@ -4,6 +4,7 @@ metadata:
   namespace: backend
   name: config
 spec:
+  # https://docs.dapr.io/operations/configuration/configuration-overview
   tracing:
     samplingRate: "1"
     expandParams: true
@@ -13,3 +14,84 @@ spec:
       endpointAddress: http://host.docker.internal:9411/api/v2/spans
   mtls:
     enabled: false # not able to use now
+---
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  namespace: backend
+  name: secretstore
+spec:
+  # https://docs.dapr.io/reference/components-reference/supported-secret-stores/file-secret-store
+  type: secretstores.local.file
+  version: v1
+  metadata:
+    - name: secretsFile
+      value: ./cnf/secret.json
+---
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  namespace: backend
+  name: configstore
+spec:
+  # https://docs.dapr.io/reference/components-reference/supported-configuration-stores/redis-configuration-store
+  type: configuration.redis
+  version: v1
+  metadata:
+    - name: redisHost
+      value: host.docker.internal:6379
+    - name: redisPassword
+      secretKeyRef:
+        name: "redis:password"
+        key: "redis:password"
+---
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  namespace: backend
+  name: statestore
+auth:
+  secretStore: secretstore
+spec:
+  # https://docs.dapr.io/reference/components-reference/supported-state-stores/setup-redis/
+  type: state.redis
+  version: v1
+  metadata:
+    - name: redisHost
+      value: host.docker.internal:6379
+    - name: redisPassword
+      secretKeyRef:
+        name: "redis:password"
+        key: "redis:password"
+---
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  namespace: backend
+  name: pubsub
+auth:
+  secretStore: secretstore
+spec:
+  # https://docs.dapr.io/reference/components-reference/supported-pubsub/setup-redis-pubsub
+  type: pubsub.redis
+  version: v1
+  metadata:
+    - name: redisHost
+      value: host.docker.internal:6379
+    - name: redisPassword
+      secretKeyRef:
+        name: "redis:password"
+        key: "redis:password"
+---
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  namespace: backend
+  name: license
+spec:
+  # https://docs.dapr.io/reference/components-reference/supported-bindings/http
+  type: bindings.http
+  version: v1
+  metadata:
+    - name: url
+      value: https://dev.license.com

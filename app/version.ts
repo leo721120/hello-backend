@@ -3,8 +3,8 @@ export default express.setup(function (app) {
     const service = {
         async manifest() {
             const path = require.resolve('../package.json');
-            const data = require(path);
-            return data as Manifest;
+            const data = require(path) as Manifest;
+            return data;
         },
     };
     app.get('/version', async function (req, res) {

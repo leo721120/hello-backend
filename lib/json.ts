@@ -1,3 +1,11 @@
+{// workaround for openapi
+    const v = require('ajv/dist/vocabularies/core/id') as {
+        readonly default: ajv.CodeKeywordDefinition
+    };
+    v.default.code = function () {
+        // to prevent throw error when read openapi example with 'id' field
+    };
+}
 import type { OpenAPIV3_1 as OpenAPI } from 'openapi-types'
 import * as formats from 'ajv-formats'
 import * as fs from 'node:fs'
@@ -162,7 +170,7 @@ type Validator<V> = ajv.ValidateFunction<V> & {
     /**
     find sub-node by given paths
     */
-    child<U extends object>(...paths: readonly string[]): Validator<U>
+    child<U extends unknown>(...paths: readonly string[]): Validator<U>
     /**
     throw error if invalid
     */

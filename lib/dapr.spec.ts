@@ -1,4 +1,4 @@
-import dapr from '@io/lib/dapr'
+import dapr from '@io/lib/dapr.mock'
 //
 describe('dapr', function () {
     const fetch = dapr();
@@ -19,6 +19,10 @@ describe('dapr', function () {
         mock.secret('testonly').get('test-key').reply(200, {
             key: 'pass',
         });
+        mock.config('testonly').get('test-key').reply(200, [{
+            key: 'test-key',
+            value: '123',
+        }]);
     }
     it('.invoke', async function () {
         const res = await fetch.invoke({
@@ -72,5 +76,16 @@ describe('dapr', function () {
         expect(res.data).toEqual({
             key: 'pass',
         });
+    });
+    it('.config', async function () {
+        const res = await fetch.config({
+            configstore: 'testonly',
+            key: 'test-key',
+        });
+        expect(res.status).toBe(200);
+        expect(res.data).toEqual([{
+            key: 'test-key',
+            value: '123',
+        }]);
     });
 });

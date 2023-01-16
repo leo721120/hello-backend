@@ -1,9 +1,13 @@
 import * as sequelize from 'sequelize'
 export * from 'sequelize'
 export default {
-    instance(options: sequelize.Options) {
-        return new sequelize.Sequelize({
-            dialect: 'sqlite',
+    instance(options: sequelize.Options & {
+        /**
+        @default sqlite:
+        */
+        readonly uri?: string
+    }) {
+        const db = new sequelize.Sequelize(options.uri ?? 'sqlite:', {
             host: 'localhost',
             port: 5432,
             ...options,
@@ -14,7 +18,7 @@ export default {
                         job?: Promise<unknown>
                     };
                     autosync.job ??= Promise.resolve().then(async function () {
-                        if (options.schema) {
+                        if (options?.schema) {
                             // sequelize use 'create schema if not exist' after got database version
                             await Model.sequelize?.databaseVersion();
                             await Model.sequelize?.createSchema(options.schema, {
@@ -63,6 +67,9 @@ export default {
                     },
                 });
             });
+        });
+        return Object.assign(db, {
+            Sequelize: sequelize,
         });
     },
 }

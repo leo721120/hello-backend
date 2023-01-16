@@ -4,6 +4,27 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
     const fetch = axios(config);
     //
     return Object.assign(fetch, {
+        config(req: Omit<AxiosRequestConfig<never>, 'baseURL' | 'url' | 'method' | 'data' | 'params'> & {
+            /**
+            name of config store
+            */
+            readonly configstore: string
+            /**
+            key to config
+            */
+            readonly key: string
+        }) {
+            interface KeyValue {
+                readonly key: typeof req['key']
+                readonly value: string
+            }
+            return fetch.request<readonly KeyValue[] & Fail>({
+                ...req,
+                url: `/v1.0-alpha1/configuration/${req.configstore}`,
+                method: 'GET',
+                params: { key: req.key },
+            });
+        },
         secret<V = unknown, A = unknown>(req: Omit<AxiosRequestConfig<A>, 'baseURL' | 'url' | 'method' | 'data'> & {
             /**
             name of secret store
@@ -99,105 +120,6 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
     });
 }
 export default Object.assign(build, {
-    mock(dapr: ReturnType<typeof build>) {
-        const mock = axios.mock(dapr);
-        return Object.assign(mock, {
-            secret(store: string) {
-                return {
-                    get(key: string) {
-                        return mock.get(`/v1.0/secrets/${store}/${key}`);
-                    },
-                };
-            },
-            invoke(appid: string) {
-                return {
-                    delete(url: string) {
-                        return mock.delete('/' +
-                            `/v1.0/invoke/${appid}/method/${url}`
-                                .split('/')
-                                .filter(Boolean)
-                                .join('/')
-                        );
-                    },
-                    patch(url: string) {
-                        return mock.patch('/' +
-                            `/v1.0/invoke/${appid}/method/${url}`
-                                .split('/')
-                                .filter(Boolean)
-                                .join('/')
-                        );
-                    },
-                    post(url: string) {
-                        return mock.post('/' +
-                            `/v1.0/invoke/${appid}/method/${url}`
-                                .split('/')
-                                .filter(Boolean)
-                                .join('/')
-                        );
-                    },
-                    put(url: string) {
-                        return mock.put('/' +
-                            `/v1.0/invoke/${appid}/method/${url}`
-                                .split('/')
-                                .filter(Boolean)
-                                .join('/')
-                        );
-                    },
-                    get(url: string) {
-                        return mock.get('/' +
-                            `/v1.0/invoke/${appid}/method/${url}`
-                                .split('/')
-                                .filter(Boolean)
-                                .join('/')
-                        );
-                    },
-                };
-            },
-            publish(pubsubname: string) {
-                return {
-                    post(topic: string) {
-                        return mock.post('/' +
-                            `/v1.0/publish/${pubsubname}/${topic}`
-                                .split('/')
-                                .filter(Boolean)
-                                .join('/')
-                        ).query(true)
-                    },
-                };
-            },
-            bindings: {
-                fetch(binding: string) {
-                    return {
-                        post(url: string) {
-                            return mock.post('/' + `/v1.0/bindings/${binding}`
-                                .split('/')
-                                .filter(Boolean)
-                                .join('/'), function (body?: Fetch) {
-                                    return body?.metadata?.path === url
-                                        &&
-                                        body?.operation?.toLowerCase() === 'post'
-                                        ;
-                                });
-                        },
-                        get(url: string) {
-                            return mock.post('/' + `/v1.0/bindings/${binding}`
-                                .split('/')
-                                .filter(Boolean)
-                                .join('/'), function (body?: Fetch) {
-                                    return body?.metadata?.path === url
-                                        &&
-                                        body?.operation?.toLowerCase() === 'get'
-                                        ;
-                                });
-                        },
-                    };
-                },
-            },
-            metadata() {
-                return mock.get('/v1.0/metadata')
-            },
-        });
-    },
 });
 interface Metadata {
     readonly id: string
@@ -207,14 +129,13 @@ interface Metadata {
         readonly daprRuntimeVersion?: string
     }
 }
-interface Fetch {
-    readonly operation?: string
-    readonly metadata?: {
-        readonly path?: string
-    }
-}
 interface Fail {
     readonly message?: string
     readonly errorCode?:
     | 'ERR_INVOKE_OUTPUT_BINDING'
+    // 400, error configuration stores {name} not found
+    | 'ERR_CONFIGURATION_STORE_NOT_FOUND'
+    // 500, fail to get {key} from Configuration store configstore
+    | 'ERR_CONFIGURATION_GET'
+    | 'ERR_SECRET_GET'
 }

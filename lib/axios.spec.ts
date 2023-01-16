@@ -1,4 +1,4 @@
-import axios from '@io/lib/axios'
+import axios from '@io/lib/axios.mock'
 //
 describe('axios', function () {
     const fetch = axios();
