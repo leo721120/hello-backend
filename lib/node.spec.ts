@@ -35,6 +35,25 @@ describe('Object', function () {
             obj: { a: 13 },
         });
     });
+    it('.pick', async function () {
+        const o = {
+            txt: 'abc',
+            num: 123,
+            arr: [1],
+            obj: { a: 13 },
+        };
+        const a = Object.pick(o, 'txt', 'arr');
+        expect(a).toEqual({
+            txt: 'abc',
+            arr: [1],
+        });
+        expect(o).toEqual({
+            txt: 'abc',
+            num: 123,
+            arr: [1],
+            obj: { a: 13 },
+        });
+    });
 });
 describe('Promise', function () {
     it('.try', async function () {

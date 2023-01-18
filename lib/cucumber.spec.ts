@@ -1,10 +1,11 @@
-import type { AxiosRequestConfig, AxiosResponse } from 'axios'
 import cucumber from '@io/lib/cucumber'
-import express from '@io/lib/express'
+import e from '@io/lib/express.fetch'
+export type Test = ReturnType<ReturnType<typeof e.fetch>['get']>
 export interface World {
-    app?: ReturnType<typeof express>
-    res?: AxiosResponse
-    req?: AxiosRequestConfig
+    readonly res?: Test
+    readonly req: Array<(req: Test) => void>
+    readonly app: ReturnType<typeof e>
+    readonly url: string
 }
 export default cucumber.steps(function ({ step }) {
     interface Header {
@@ -12,7 +13,7 @@ export default cucumber.steps(function ({ step }) {
         readonly value: string
     }
     step(/^new environment$/, async function () {
-        const app = express().on('error', function (e) {
+        const app = e().on('error', function (e) {
             if (process.env.DEBUG) {
                 console.error(e);
             }
@@ -22,59 +23,78 @@ export default cucumber.steps(function ({ step }) {
             await app.setup(await import('@io/app/mock'));
         }
         cucumber.world<World>({
-            req: {},
+            res: undefined,
+            url: '/',
+            req: [],
             app,
         });
     });
-    step(/^login$/, async function (list: readonly []) {
-        const w = cucumber.world<World>();
-        const req = w.req ?? {};
-        for (const auth of list) {
-            Object.assign(req, { auth });
-        }
+    step(/^setup \/echo$/, function () {
+        const { app } = cucumber.world<World>();
+        app.all('/echo', app.express.json(), function (req, res) {
+            res.header(req.headers);
+            res.status(200);
+            res.json(req.body);
+        });
+    });
+    step(/^login$/, async function (list: readonly Dict<string>[]) {
+        const { req } = cucumber.world<World>();
+        req.push(function (req) {
+            for (const auth of list) {
+                req.auth(auth.username, auth.password);
+            }
+        });
     });
     step(/^url (.+)$/, function (url: string) {
         const w = cucumber.world<World>();
-        const req = w.req ?? {};
-        Object.assign(req, { url });
+        Object.assign(w, { url });
     });
     step(/^headers$/, function (list: readonly Header[]) {
-        const w = cucumber.world<World>();
-        const req = w.req ?? {};
-        for (const item of list) {
-            req.headers = {
-                ...req.headers,
-                [item.name]: item.value,
-            };
-        }
+        const { req } = cucumber.world<World>();
+        req.push(function (req) {
+            for (const item of list) {
+                req.set(item.name, item.value);
+            }
+        });
     });
     step(/^json$/, function (text: string) {
-        const w = cucumber.world<World>();
-        const req = w.req ?? {};
-        Object.assign(req, { data: JSON.parse(text) });
+        const { req } = cucumber.world<World>();
+        req.push(function (req) {
+            switch (req.method.toLowerCase()) {
+                case 'get':
+                case 'head':
+                    return console.assert(`cannot send body with ${req.method}`);
+                default:
+                    return req.send(JSON.parse(text));
+            }
+        });
     });
-    step(/^method (\w+)$/, async function (method: string) {
+    step(/^method (\w+)$/, function (method: string) {
         const w = cucumber.world<World>();
-        const req = w.req ?? {};
-        Object.assign(req, { method });
-        const res = await w.app?.fetch(req);
-        Object.assign(w, { res });
-    });
-    step(/^expect status should be (\d+)$/, function (status: string) {
-        const w = cucumber.world<World>();
-        expect(w.res?.status).toBe(+status);
-    });
-    step(/^expect headers should contain$/, function (list: readonly Header[]) {
-        const w = cucumber.world<World>();
-
-        for (const item of list) {
-            expect(w.res?.headers?.[item.name]).toContain(item.value);
+        const app = e.fetch(w.app);
+        const res = app[method.toLowerCase() as 'get'](w.url);
+        for (const req of w.req) {
+            req(res);
         }
+        Object.assign(w, {
+            res,
+        });
     });
-    step(/^expect body should be json$/, function (text: string) {
+    step(/^expect status should be (\d+)$/, async function (status: string) {
         const w = cucumber.world<World>();
-        expect(w.res?.headers?.['content-type']).toContain('json');
-        expect(w.res?.data).toEqual(JSON.parse(text));
+        await w.res?.expect(+status);
+    });
+    step(/^expect headers should contain$/, async function (list: readonly Header[]) {
+        const w = cucumber.world<World>();
+        for (const item of list) {
+            w.res?.expect(item.name, RegExp(item.value));
+        }
+        await w.res;
+    });
+    step(/^expect body should be json$/, async function (text: string) {
+        const w = cucumber.world<World>();
+        const res = await w.res?.expect('Content-Type', /json/);
+        expect(res?.body).toEqual(JSON.parse(text));
     });
 });
 if (!require.main) cucumber.launch(`${__dirname}/cucumber.spec.feature`, [

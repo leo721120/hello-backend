@@ -1,4 +1,4 @@
-import { TraceContext, CloudEvent } from '@io/lib/event'
+import '@io/lib/event'
 //
 describe('event', function () {
     it('.cloudevent', async function () {

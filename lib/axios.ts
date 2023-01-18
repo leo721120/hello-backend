@@ -1,7 +1,7 @@
 import type { AxiosError, AxiosRequestConfig } from 'axios'
-import { TraceContext } from '@io/lib/event'
 import axios from 'axios'
 import mime from 'mime'
+import '@io/lib/event'
 export function build(config?: Readonly<AxiosRequestConfig>) {
     const fetch = axios.create({
         baseURL: 'http://localhost',

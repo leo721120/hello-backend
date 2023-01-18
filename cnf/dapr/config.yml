@@ -95,3 +95,16 @@ spec:
   metadata:
     - name: url
       value: https://dev.license.com
+---
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  namespace: backend
+  name: engine
+spec:
+  # https://docs.dapr.io/reference/components-reference/supported-bindings/http
+  type: bindings.http
+  version: v1
+  metadata:
+    - name: url
+      value: http://localhost:8088

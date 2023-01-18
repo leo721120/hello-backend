@@ -1,10 +1,10 @@
-import express from '@io/lib/express'
+import express from '@io/lib/express.fetch'
 //
 describe('express/app', function () {
+    interface Service {
+        go(): boolean
+    }
     it('.service', async function () {
-        interface Service {
-            go(): boolean
-        }
         const app = express();
         app.service<Service>('testonly', function () {
             return {
@@ -17,9 +17,6 @@ describe('express/app', function () {
         expect(service.go()).toBe(true);
     });
     it('.service, retryable', async function () {
-        interface Service {
-            good(): boolean
-        }
         const app = express();
         let count = 0;
         app.service<Service>('testonly', function () {
@@ -27,7 +24,7 @@ describe('express/app', function () {
                 throw Error('testfail');
             }
             return {
-                good() {
+                go() {
                     return true;
                 },
             };
@@ -35,30 +32,24 @@ describe('express/app', function () {
         await expect(app.service('testonly')).rejects.toThrow('testfail');
         await expect(app.service('testonly')).rejects.toThrow('testfail');
         const service = await app.service<Service>('testonly');
-        expect(service.good()).toBe(true);
+        expect(service.go()).toBe(true);
         expect(count).toBe(3);
     });
-    it('.fetch', async function () {
-        const app = express();
-        app.get('/abc', async function (req, res) {
-            res.status(200).json({ abc: '123' });
-        });
-        const res = await app.fetch({
-            url: '/abc',
-        });
-        expect(res.status).toBe(200);
-        expect(res.data).toEqual({ abc: '123' });
-    });
     it('.final, rfc7807', async function () {
-        const app = express().once('error', function() {
+        const app = express().use(function (req, res, next) {
+            // force mixin express req/res prototypes
+            next();
+        }).once('error', function () {
         });
-        const res = await app.fetch({
-            url: '/not-exist',
-        });
+        const res = await express
+            .fetch(app)
+            .get('/not-exist')
+            ;
         //expect(res.headers['content-type']).toEqual('application/problem+json');
-        expect(res.data).toEqual({
-            code: 'BadRequest',
-            //type: 'none',// no used for now
+        expect(res.status).toBe(400);
+        expect(res.body).toEqual({
+            code: 'SyntaxError',
+            //type: 'none',
             detail: 'method not found',
             instance: '/not-exist',
         });
@@ -74,13 +65,11 @@ describe('express/app', function () {
             await req.authenticate();
             res.status(200).end();
         });
-        await app.fetch({
-            url: '/test',
-            auth: {
-                username: 'a',
-                password: 'b',
-            },
-        });
+        await express
+            .fetch(app)
+            .get('/test')
+            .auth('a', 'b')
+            ;
         expect(ans).toEqual([
             'basic',
             'a:b'.base64enc(),

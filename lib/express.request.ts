@@ -1,5 +1,5 @@
-import { TraceContext } from '@io/lib/event'
 import express from 'express'
+import '@io/lib/event'
 import '@io/lib/error'
 import '@io/lib/node'
 export default Object.assign(express.request, <typeof express.request>{

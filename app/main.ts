@@ -10,14 +10,14 @@ Promise.try(async function () {
         base: { appid: process.env.APP_ID },
         messageKey: 'text',
     });
+    app.once('close', function () {
+        log.info({ text: 'close' });
+    }).on('error', function (e) {// bind before setup to prevent [ERR_UNHANDLED_ERROR]
+        log.warn(e);
+    }).on('event', function (o) {
+        log.info(o);
+    });
     {
-        app.once('close', function () {
-            log.info({ text: 'close' });
-        }).on('error', function (e) {// bind before setup to prevent [ERR_UNHANDLED_ERROR]
-            log.warn(e);
-        }).on('event', function (o) {
-            log.info(o);
-        });
         await app.setup(await import('@io/app/domain'));
     }
     const srv = app.listen(process.env.APP_PORT, function () {

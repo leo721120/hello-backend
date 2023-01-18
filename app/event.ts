@@ -1,25 +1,21 @@
-import type { Brand } from '@io/app/model'
 import express from '@io/lib/express'
+import '@io/lib/node'
 export default express.setup(function (app) {
     const pubsubname = process.env.EVENT_PUBSUB ?? 'pubsub';
-    app.on('License.BrandAdded', function (ce) {
-        Promise.try(async function () {
-            const dapr = await app.service('dapr');
-            await dapr.publish({
-                topic: 'license',
-                pubsubname,
-                ...ce,
-            });
-        }).catch(function (e: Error) {
-            app.emit('error', {
-                name: ce.tracecontext?.traceparent(),
-                type: e.errno,
-                code: e.name,
-                text: e.message,
-                params: e.params,
-            });
-        });
-    });
+    const enum status {// https://docs.dapr.io/reference/api/pubsub_api/#expected-http-response
+        /**
+        Message is processed successfully
+        */
+        SUCCESS = 'SUCCESS',
+        /**
+        Message to be retried by Dapr
+        */
+        RETRY = 'RETRY',
+        /**
+        Warning is logged and message is dropped
+        */
+        DROP = 'DROP',
+    };
     app.get('/dapr/subscribe', function (req, res) {
         res.status(200).json([{
             routes: { default: '/events' },
@@ -27,23 +23,45 @@ export default express.setup(function (app) {
             pubsubname,
         }]);
     }).post(`/events`, app.express.json({
-        type: 'application/cloudevents+json',
+        type: [
+            'application/cloudevents+json',
+            'application/json',
+        ],
     }), function (req, res) {
-        const ce = req.content<CloudEvent<string, unknown>>('application/cloudevents+json');
-
-        if (!ce.source.includes(`/${process.env.APP_ID}`)) {// prevent loopback
+        Promise.try(function () {
             const tracecontext = req.tracecontext();
-            app.emit('event', {
+            const ce = req.content<CloudEvent<never, unknown>>(
+                'application/cloudevents+json'
+            );
+            res.status(200).json({
+                status: status.SUCCESS,
+            });
+            {
+                //TODO: loopback detect
+            }
+            req.app.emit('event', {
                 name: tracecontext.traceparent(),
                 source: ce.source,
                 type: ce.type,
                 time: ce.time,
             });
-            app.emit(ce.type as never, Object.assign(ce, <typeof ce>{
+            req.app.emit(ce.type, Object.assign(ce, <typeof ce>{
                 tracecontext,
             }));
-        }
-        res.status(200).json({ status: 'SUCCESS' });
+        }).catch(function (e: Error) {
+            res.status(299).json({
+                status: e.retrydelay
+                    ? status.RETRY
+                    : status.DROP,
+            });
+            req.app.emit('error', {
+                name: req.tracecontext().traceparent(),
+                type: e.errno,
+                code: e.name,
+                text: e.message,
+                params: e.params,
+            });
+        });
     });
 });
 declare global {
@@ -51,6 +69,8 @@ declare global {
         interface ProcessEnv {
             /**
             name of broker to publish/subscribe event
+            
+            @default pubsub
             */
             readonly EVENT_PUBSUB?: string
         }
@@ -65,34 +85,5 @@ declare global {
         once<A extends object>(event: 'event', cb: (e: A) => void): this
         emit<A extends object>(event: 'event', e: A): boolean
         emit<A extends object>(event: 'error', e: A): boolean
-    }
-    interface CloudEvents {
-        'License.BrandAdded': {
-            readonly id: Brand['id']
-        }
-        'License.BrandRemoved': {
-            readonly id: Brand['id']
-        }
-        'License.DevicesRegistered': {
-            readonly id: Brand['id']
-        }
-        'License.DevicesRemoved': {
-            readonly id: Brand['id']
-        }
-        'License.LicensesApplied': {
-            readonly id: Brand['id']
-        }
-        'License.PricingChanged': {
-            readonly id: Brand['id']
-        }
-        'License.QuotaIsLow': {
-            readonly id: Brand['id']
-        }
-        'License.OutOfQuota': {
-            readonly id: Brand['id']
-        }
-        'License.QuotaRestored': {
-            readonly id: Brand['id']
-        }
     }
 }

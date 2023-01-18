@@ -26,6 +26,7 @@ declare global {
     interface ObjectConstructor {
         copy<V>(o: V): V
         omit<V extends {}>(o: V, ...a: readonly (keyof V)[]): V
+        pick<V extends object, K extends keyof V>(o: V, ...a: readonly K[]): { readonly [P in K]: V[K] }
     }
     interface PromiseConstructor {
         /**
@@ -140,6 +141,14 @@ Object.assign(Object, <ObjectConstructor>{
             ? c
             : this.omit(c as typeof o, ...a)
             ;
+    },
+    pick(o, ...k: []) {
+        const c = {} as typeof o;
+
+        for (const a of k) {
+            c[a] = o[a];
+        }
+        return c;
     },
 });
 Object.assign(Promise, <PromiseConstructor>{

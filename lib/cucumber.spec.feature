@@ -3,21 +3,28 @@ Feature: HTTP example
     Background:
 
         Given new environment
+        Given setup /echo
 
-    Scenario: GET /foo, 400
+    Scenario: POST /echo, 200
 
-        Given url /foo
-        When method GET
-        Then expect status should be 400
-
-    Scenario: POST /foo, 400
-
-        Given url /foo
+        Given url /echo
+        Given headers
+            | name        | value   |
+            | x-any-value | test123 |
         Given json
             """
             {
-                "example": "data"
+                "abc": 123
             }
             """
         When method POST
-        Then expect status should be 400
+        Then expect status should be 200
+        Then expect headers should contain
+            | name        | value   |
+            | x-any-value | test123 |
+        Then expect body should be json
+            """
+            {
+                "abc": 123
+            }
+            """

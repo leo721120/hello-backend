@@ -22,14 +22,26 @@ Feature: POST
             """
         When method POST
         Then expect status should be 200
+        Then expect body should be json
+            """
+            {
+                "status": "SUCCESS"
+            }
+            """
 
-    Scenario: /events, 400 body is empty
+    Scenario: /events, 299 body is empty
 
         Given url /events
         When method POST
-        Then expect status should be 400
+        Then expect status should be 299
+        Then expect body should be json
+            """
+            {
+                "status": "DROP"
+            }
+            """
 
-    Scenario Outline: /events, 400 if body is malformed
+    Scenario Outline: /events, 299 if body is malformed
 
         Given url /events
         Given json
@@ -46,7 +58,13 @@ Feature: POST
             }
             """
         When method POST
-        Then expect status should be 400
+        Then expect status should be 299
+        Then expect body should be json
+            """
+            {
+                "status": "DROP"
+            }
+            """
         Examples:
             | id     | specversion | source     | type      | time                 |
             |        | 1.0         | /test/only | Test.Only | 2022-11-25T14:06:53Z |
