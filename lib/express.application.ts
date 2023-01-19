@@ -1,11 +1,10 @@
-import websockify from 'express-ws'
 import express from 'express'
 import '@io/lib/error'
 import '@io/lib/node'
 const prototype = {
     ...express.application,
 };
-export default <Application>Object.assign(express.application, <Application>{
+export default Object.assign(express.application, <Application>{
     express,
     //
     service(name, factory) {
@@ -62,24 +61,13 @@ export default <Application>Object.assign(express.application, <Application>{
     final(err, req, res, next) {
         res.error(err);
     },
-    websocket() {
-        Object.assign(this, { ws: undefined });
-        const ws = websockify(this).getWss();
-        this.websocket = () => ws;
-        return ws;
-    },
-    ws(...a) {
-        this.websocket();
-        return this.ws(...a);
-    },
 });
 declare global {
     namespace Express {
-        interface Application extends websockify.WithWebsocketMethod {
+        interface Application {
             readonly express: typeof express
             readonly handle: express.RequestHandler
             readonly final: express.ErrorRequestHandler
-            websocket(): ReturnType<websockify.Instance['getWss']>
             service<V>(name: string, factory: () => PromiseLike<V> | V): this
             service<V>(name: string): Promise<V>
             setup<V>(object: { default: Setup<V> }): Promise<V>

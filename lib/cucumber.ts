@@ -1,21 +1,22 @@
 import * as cucumber from 'jest-cucumber'
-import * as autocannon from 'autocannon'
-import * as express from 'express'
-import * as event from 'events'
 import * as fs from 'fs'
+export interface Fixture {
+    readonly definitions: cucumber.StepDefinitions[]
+    define(cb: (context: Fixture, options: Definition) => void): this
+    launch(file: string): void
+}
 export default <Fixture>{
-    async benchmark(options) {
-        const namepipe = `//?/pipe/${process.cwd()}/.pipe`;
-        const srv = options.app.listen(namepipe);
-        await event.default.once(srv, 'listening');
-        return autocannon.default({
-            ...options,
-            socketPath: namepipe,
-        }).finally(function () {
-            return event.default.once(srv.close(), 'close');
+    definitions: [] as cucumber.StepDefinitions[],
+    //
+    define(cb) {
+        this.definitions.push((options) => {
+            cb(this, Object.assign(options, {
+                step: options.defineStep,
+            }));
         });
+        return this;
     },
-    launch(file, steps) {
+    launch(file) {
         const text = fs.readFileSync(file).toString();
         const only = text.includes('@only');
         {
@@ -37,50 +38,13 @@ export default <Fixture>{
                 }
                 feature.scenarioOutlines = outlines;
             }
-            cucumber.autoBindSteps([feature], steps as []);
+            cucumber.autoBindSteps([feature], this.definitions);
         }
-        return this;
     },
-    steps(cb) {
-        return function ({ defineStep, given, when, then }) {
-            cb({
-                given,
-                when,
-                then,
-                step: defineStep,
-            });
-        };
-    },
-    world(this: { ctx: typeof ctx }, ctx) {
-        const get = () => {
-            return this.ctx ?? {
-            };
-        };
-        const set = () => {
-            Object.assign(this, { ctx });
-            return this;
-        };
-        return arguments.length === 0
-            ? get()
-            : set()
-            ;
-    },
-}
-interface Fixture {
-    /**
-    benchmarking tool for express service
-    */
-    benchmark(options: Partial<autocannon.Options> & {
-        readonly app: express.Application
-        readonly url: string
-    }): Promise<autocannon.Result>
-    launch(file: string, steps: readonly cucumber.StepDefinitions[]): this
-    steps(cb: (options: {
-        readonly given: cucumber.DefineStepFunction
-        readonly when: cucumber.DefineStepFunction
-        readonly then: cucumber.DefineStepFunction
-        readonly step: cucumber.DefineStepFunction
-    }) => void): cucumber.StepDefinitions
-    world<V extends {}>(ctx: V): this
-    world<V extends {}>(): V
+};
+interface Definition {
+    readonly given: cucumber.DefineStepFunction
+    readonly when: cucumber.DefineStepFunction
+    readonly then: cucumber.DefineStepFunction
+    readonly step: cucumber.DefineStepFunction
 }

@@ -1,8 +1,6 @@
-import scenraio from '@io/lib/cucumber.spec'
-import cucumber from '@io/lib/cucumber'
-export default cucumber.steps(function () {
+import cucumber from '@io/lib/cucumber.spec'
+export default cucumber.define(function () {
 });
-if (!require.main) cucumber.launch(`${__dirname}/health.spec.feature`, [
-    exports.default,
-    scenraio,
-]);
+if (!require.main) {
+    cucumber.launch(`${__dirname}/health.spec.feature`);
+}

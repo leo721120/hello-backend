@@ -2,7 +2,7 @@ import type { Tag } from '@io/ctx/tag/model'
 import express from '@io/lib/express'
 export default express.setup(function (app) {
     app.use('/tags', async function (req, res, next) {
-        await req.authenticate();
+        //await req.authenticate();
         //req.authorize();
         next();
     }).get('/tags', async function (req, res) {

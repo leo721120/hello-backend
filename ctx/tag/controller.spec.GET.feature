@@ -8,9 +8,6 @@ Feature: GET
             | T-1 |
             | T-2 |
             | P-3 |
-        Given login
-            | username | password |
-            | root     | p@ss     |
 
     Scenario: /tags
 

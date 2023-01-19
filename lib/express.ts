@@ -1,4 +1,5 @@
 import '@io/lib/express.application'
+import '@io/lib/express.websocket'
 import '@io/lib/express.response'
 import '@io/lib/express.request'
 import express from 'express'
