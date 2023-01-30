@@ -58,7 +58,7 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
                 url,
             });
         },
-        publish(ev: CloudEvent<string, unknown> & {
+        publish(ev: CloudEvent<string> & {
             readonly pubsubname: string
             /**
             event topic

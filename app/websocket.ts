@@ -59,7 +59,7 @@ export default express.setup(function (app) {
         });
     }).on('WebSocket.Message', function (ce) {
         Promise.try(function () {
-            const ev = JSON.parse(ce.data.toString()) as CloudEvent<string, unknown>;
+            const ev = JSON.parse(ce.data.toString()) as CloudEvent<string>;
 
             Object.assign(ev, <typeof ev>{
                 tracecontext: ce.tracecontext,

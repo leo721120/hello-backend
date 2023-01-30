@@ -1,40 +1,7 @@
 import { CloudEventV1 } from 'cloudevents'
 import TraceParent from 'traceparent'
 import '@io/lib/node'
-//
-declare global {
-    interface TraceContext {
-        /**
-        @return traceparent as string
-        */
-        traceparent(): string
-    }
-    interface CloudEvents {
-        // use declare to append event
-    }
-    interface CloudEvent<K extends string, V extends unknown> extends CloudEventV1<V> {
-        readonly tracecontext?: TraceContext
-        readonly datacontenttype?:
-        | 'application/json'
-        readonly data: V
-        readonly type: K
-    }
-    var TraceContext: {
-        (text: string): TraceContext
-        (): TraceContext
-    }
-    var CloudEvent: {
-        <K extends keyof CloudEvents, V extends CloudEvents[K]>(params: Editable<K, V>): CloudEvent<K, V>
-        <K extends string, V extends unknown>(params: Editable<K, V>): CloudEvent<K, V>
-    }
-}
-type Editable<K extends string, V> = Partial<CloudEvent<K, V>> & Pick<CloudEvent<K, V>,
-    | 'datacontenttype'
-    | 'tracecontext'
-    | 'type'
-    | 'data'
->;
-Object.assign(globalThis, <typeof globalThis>{
+export default Object.assign(globalThis, <typeof globalThis>{
     TraceContext(text) {
         const trace = text?.length
             ? TraceParent.fromString(text)
@@ -48,7 +15,7 @@ Object.assign(globalThis, <typeof globalThis>{
             },
         };
     },
-    CloudEvent(params: Editable<string, unknown>) {
+    CloudEvent(params) {
         return {
             datacontenttype: 'application/json',
             specversion: '1.0',
@@ -59,3 +26,36 @@ Object.assign(globalThis, <typeof globalThis>{
         };
     },
 });
+declare global {
+    interface TraceContext {
+        /**
+        @return traceparent as string
+        */
+        traceparent(): string
+    }
+    interface CloudEvents {
+        // use declare to append event
+    }
+    interface CloudEvent<K extends string> extends CloudEventV1<unknown> {
+        readonly tracecontext?: TraceContext
+        readonly datacontenttype?:
+        | 'application/json'
+        readonly type: K
+        readonly data: K extends keyof CloudEvents
+        ? CloudEvents[K]
+        : unknown
+    }
+    var TraceContext: {
+        (text: string): TraceContext
+        (): TraceContext
+    }
+    var CloudEvent: {
+        <K extends string>(params: Editable<K>): CloudEvent<K>
+    }
+}
+type Editable<K extends string> = Partial<CloudEvent<K>> & Pick<CloudEvent<K>,
+    | 'datacontenttype'
+    | 'tracecontext'
+    | 'type'
+    | 'data'
+>;

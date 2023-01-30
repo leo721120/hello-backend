@@ -30,7 +30,7 @@ export default express.setup(function (app) {
     }), function (req, res) {
         Promise.try(function () {
             const tracecontext = req.tracecontext();
-            const ce = req.content<CloudEvent<never, unknown>>(
+            const ce = req.content<CloudEvent<never>>(
                 'application/cloudevents+json'
             );
             res.status(200).json({
@@ -76,10 +76,10 @@ declare global {
         }
     }
     interface Application {
-        on<K extends keyof CloudEvents>(event: K, cb: (e: CloudEvent<K, CloudEvents[K]>) => void): this
-        off<K extends keyof CloudEvents>(event: K, cb: (e: CloudEvent<K, CloudEvents[K]>) => void): this
-        once<K extends keyof CloudEvents>(event: K, cb: (e: CloudEvent<K, CloudEvents[K]>) => void): this
-        emit<K extends keyof CloudEvents>(event: K, e: CloudEvent<K, CloudEvents[K]>): boolean
+        on<K extends keyof CloudEvents>(event: K, cb: (e: CloudEvent<K>) => void): this
+        off<K extends keyof CloudEvents>(event: K, cb: (e: CloudEvent<K>) => void): this
+        once<K extends keyof CloudEvents>(event: K, cb: (e: CloudEvent<K>) => void): this
+        emit<K extends keyof CloudEvents>(event: K, e: CloudEvent<K>): boolean
         on<A extends object>(event: 'event', cb: (e: A) => void): this
         off<A extends object>(event: 'event', cb: (e: A) => void): this
         once<A extends object>(event: 'event', cb: (e: A) => void): this
