@@ -1,16 +1,24 @@
 import express from '@io/lib/express.fetch'
 //
 describe('express/req', function () {
-    it('.tracecontext', async function () {
+    it('.cloudevent', async function () {
         const app = express().get('/abc', async function (req, res) {
-            const text = req.tracecontext().traceparent();
-            res.status(200).json({ text });
+            const e = req.cloudevent();
+            res.status(200).json({ e });
         });
         const res = await express
             .fetch(app)
-            .get('/abc')
+            .get('/abc?q=124')
             ;
-        expect(res.body.text).toEqual(expect.any(String));
+        expect(res.body.e).toEqual({
+            datacontenttype: 'application/json',
+            //data: undefined,
+            id: expect.any(String),
+            source: '/abc?q=124',
+            specversion: '1.0',
+            time: expect.any(String),
+            type: 'GET',
+        });
     });
     it('.querystrings', async function () {
         const app = express().get('/abc', async function (req, res) {

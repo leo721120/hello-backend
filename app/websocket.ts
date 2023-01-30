@@ -3,16 +3,26 @@ import '@io/lib/event'
 import '@io/lib/node'
 export default express.setup(function (app) {
     app.ws('/ws', function (ws, req) {
-        const tracecontext = req.tracecontext();
-
-        ws.on('message', function (byte) {
-            const ce = CloudEvent({
-                tracecontext,
-                source: '/ws',
+        const e = req.cloudevent();
+        //
+        ws.on('error', function (e) {
+            app.emit('error', e, req.cloudevent());
+        }).on('close', function () {
+            app.emit('event', CloudEvent({
+                source: e.source,
+                id: e.id,
+                type: e.type,
+                data: undefined,
+                text: 'close',
+            }));
+        }).on('message', function (byte) {
+            const ce = CloudEvent<'WebSocket.Message'>({
                 type: 'WebSocket.Message',
-                data: <CloudEvents['WebSocket.Message']>{
+                source: e.source,
+                id: e.id,
+                data: {
                     byte() {
-                        return byte;
+                        return byte as Buffer;
                     },
                     text() {
                         return this.byte().toString();
@@ -22,7 +32,6 @@ export default express.setup(function (app) {
                     },
                     error(e) {
                         return this.reply(<rfc7807>{
-                            name: tracecontext.traceparent(),
                             type: e.help,
                             code: e.name,
                             status: e.errno,
@@ -36,29 +45,11 @@ export default express.setup(function (app) {
                     },
                 },
             });
-            app.emit('event', {
-                name: tracecontext.traceparent(),
-                source: ce.source,
-                type: ce.type,
-                time: ce.time,
-            });
+            app.emit('event', ce);
             app.emit(ce.type, ce);
-        }).on('error', function (e) {
-            app.emit('error', {
-                name: tracecontext.traceparent(),
-                type: e.errno,
-                code: e.name,
-                text: e.message,
-                params: e.params,
-            });
-        }).on('close', function () {
-            app.emit('event', {
-                name: tracecontext.traceparent(),
-                text: 'close',
-            });
         });
     }).on('WebSocket.Message', function (ce) {
-        Promise.try(function () {
+        /*Promise.try(function () {
             const ev = JSON.parse(ce.data.toString()) as CloudEvent<string>;
 
             Object.assign(ev, <typeof ev>{
@@ -75,7 +66,7 @@ export default express.setup(function (app) {
                 text: e.message,
                 params: e.params,
             });
-        });
+        });*/
     });
 });
 declare global {

@@ -7,32 +7,24 @@ export default express.setup(function (app) {
         JSON.openapi(path.join(__dirname, 'openapi.yml'))
     );
     Object.assign(app, <typeof app>{
-        final(err: Error, req, res, next) {
-            res.error(err).app.emit('error', {
-                name: req.tracecontext().traceparent(),
-                type: err.errno,
-                code: err.name,
-                text: err.message,
-                params: err.params,
-            });
+        final(err: Error, req, res, _) {
+            res.error(err);
+            app.emit('error', err, req.cloudevent());
         },
     });
     app.get('/openapi', function (req, res) {
-        res.type('html').sendFile(path.join(__dirname, './openapi.html'), {
+        res.format({
+            json() {
+                res.json(openapi.schema);
+            },
+            html() {
+                res.sendFile(path.join(__dirname, './openapi.html'));
+            },
         });
     }).use(function (req, res, next) {
-        app.emit('event', {
-            name: req.tracecontext().traceparent(),
-            method: req.method,
-            url: req.path,
-            query: req.query,
-        });
+        app.emit('event', req.cloudevent());
         res.once('finish', function () {
-            app.emit('event', {
-                name: req.tracecontext().traceparent(),
-                elapse: res.elapse(),
-                status: res.statusCode,
-            });
+            app.emit('event', res.cloudevent());
         });
         Object.assign(req, <typeof req>{
             content(type: string = 'application/json') {

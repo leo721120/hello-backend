@@ -1,10 +1,21 @@
 import express from 'express'
 import '@io/lib/node'
 export default Object.assign(express.response, <typeof express.response>{
+    cloudevent() {
+        const e = {
+            ...this.req.cloudevent(),
+        };
+        Object.assign(e, {
+            status: this.statusCode,
+            elapse: this.elapse(),
+        });
+        this.cloudevent = () => {
+            return e;
+        };
+        return e;
+    },
     elapse() {
-        const now = Date.now();
-        const elapse = now - this.req.now.getTime();
-        return elapse;
+        return Date.now() - this.req.now.getTime();
     },
     error(e) {
         if (e.retrydelay) {
@@ -27,6 +38,10 @@ export default Object.assign(express.response, <typeof express.response>{
 declare global {
     namespace Express {
         interface Response {
+            /**
+            extract tracecontext from header
+            */
+            cloudevent(): CloudEvent<string>
             /**
             how much time has elapsed since receiving the request
             */

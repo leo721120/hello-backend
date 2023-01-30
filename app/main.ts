@@ -12,10 +12,23 @@ Promise.try(async function () {
     });
     app.once('close', function () {
         log.info({ text: 'close' });
-    }).on('error', function (e) {// bind before setup to prevent [ERR_UNHANDLED_ERROR]
-        log.warn(e);
-    }).on('event', function (o) {
-        log.info(o);
+    }).on('event', function (e) {
+        log.info({
+            name: e.id,
+            type: e.type,
+            source: e.source,
+            status: e.status,
+            elapse: e.elapse,
+            at: e.time,
+            text: e.text,
+        });
+    }).on<string>('error', function (e, a) {// bind before setup to prevent [ERR_UNHANDLED_ERROR]
+        log.warn({
+            name: a?.id,
+            type: e.errno,
+            code: e.name,
+            text: e.message,
+        });
     });
     {
         await app.setup(await import('@io/app/domain'));

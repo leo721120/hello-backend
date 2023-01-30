@@ -17,20 +17,13 @@ export default express.setup(function (app) {
         httpAgent,
     });
     fetch.interceptors.response.use(function (res) {
-        app.emit('event', {
-            name: res.tracecontext().traceparent(),
-            elapse: res.elapse,
-            status: res.status,
-        });
+        app.emit('event', res.cloudevent());
         return res;
     });
     fetch.interceptors.request.use(function (req) {
-        app.emit('event', {
-            name: req.tracecontext?.traceparent(),
-            method: req.method,
-            url: req.url,
-            query: req.params,
-        });
+        if (req.cloudevent) {
+            app.emit('event', req.cloudevent);
+        }
         return req;
     });
     app.service('dapr', function () {

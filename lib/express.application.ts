@@ -1,9 +1,7 @@
 import express from 'express'
 import '@io/lib/error'
 import '@io/lib/node'
-const prototype = {
-    ...express.application,
-};
+export const handle = express.application.handle;
 export default Object.assign(express.application, <Application>{
     express,
     //
@@ -56,7 +54,7 @@ export default Object.assign(express.application, <Application>{
         Object.assign(req, <typeof req>{
             now: new Date(),
         });
-        return prototype.handle.call(this, req, res, next ?? done);
+        return handle.call(this, req, res, next ?? done);
     },
     final(err, req, res, next) {
         res.error(err);

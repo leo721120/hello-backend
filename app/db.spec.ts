@@ -46,4 +46,15 @@ describe('db', function () {
             name: 'abc2',
         }]);
     });
+    it('.on', async function () {
+        const events = await import('node:events');
+        const done = events.default.once(app, 'event');
+        const db = await app.service('db');
+        await db.authenticate();
+        const [e] = await done;
+        expect(e).toEqual({
+            elapse: expect.any(Number),
+            text: 'Executed (default): SELECT 1+1 AS result',
+        });
+    });
 });

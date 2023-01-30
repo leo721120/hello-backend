@@ -3,10 +3,18 @@ import '@io/lib/event'
 import '@io/lib/error'
 import '@io/lib/node'
 export default Object.assign(express.request, <typeof express.request>{
-    tracecontext() {
-        const tracecontext = TraceContext(this.header('traceparent') ?? '');
-        this.tracecontext = () => tracecontext;
-        return tracecontext;
+    cloudevent() {
+        const e = CloudEvent({
+            id: this.header('traceparent'),
+            type: this.method.toUpperCase(),
+            time: this.now.toISOString(),
+            data: undefined,
+            source: this.url,
+        });
+        this.cloudevent = () => {
+            return e;
+        };
+        return e;
     },
     querystrings(name) {
         const values = this.query[name] as undefined | string | string[] ?? [];
@@ -46,7 +54,7 @@ declare global {
             /**
             extract tracecontext from header
             */
-            tracecontext(): TraceContext
+            cloudevent(): CloudEvent<string>
             /**
             empty array if not found
             */

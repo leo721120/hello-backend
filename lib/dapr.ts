@@ -48,14 +48,14 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
             */
             readonly url: string
         }) {
-            const url = `/v1.0/invoke/${req.appid}/method/${req.url}`
+            const url = req.url
                 .split('/')
                 .filter(Boolean)
                 .join('/')
                 ;
             return fetch.request<V>({
                 ...req,
-                url,
+                url: `/v1.0/invoke/${req.appid}/method/${url}`,
             });
         },
         publish(ev: CloudEvent<string> & {
@@ -69,8 +69,8 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
                 readonly status: 'SUCCESS'
             }>({
                 url: `/v1.0/publish/${ev.pubsubname}/${ev.topic}`,
-                tracecontext: ev.tracecontext,
                 validateStatus: null,
+                cloudevent: ev,
                 method: 'POST',
                 data: ev,
                 params: {// just for log, not for function

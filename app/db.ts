@@ -13,13 +13,17 @@ export default express.setup(function (app) {
                 schema: process.env.SEQUELIZE_SCHEMA,
             };
         });
-        Sequelize.beforeInit('init-db', function () {
-            const info = new URL(uri.toString());
-            info.password = '';
-            app.emit('event', {
-                href: info.toString(),
-                ...options,
+        Sequelize.beforeInit('init-db', function (config, options) {
+            Object.assign(uri, <typeof uri>{// omit sensitive information
+                password: '',
             });
+            app.emit('event', CloudEvent({
+                id: CloudEvent.EMPTY_ID,
+                source: uri.toString(),
+                data: undefined,
+                type: 'db',
+                text: 'connect',
+            }));
         });
         Sequelize.afterInit('init-db', function (db) {
             app.once('close', function () {
@@ -33,7 +37,7 @@ export default express.setup(function (app) {
             benchmark: true,
             logging(text, elapse) {
                 app.emit('event', {
-                    name: this.tracecontext?.traceparent(),
+                    ...this.cloudevent as CloudEvent<never>,
                     elapse,
                     text,
                 });
@@ -56,7 +60,7 @@ declare module 'sequelize' {
         /**
         context for tracking
         */
-        readonly tracecontext?: TraceContext
+        readonly cloudevent?: CloudEvent<string>
     }
 }
 declare global {

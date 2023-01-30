@@ -8,13 +8,23 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
         ...config,
     });
     fetch.interceptors.response.use(function (res) {
-        const now = Date.now();
+        const now = new Date();
         const req = res.config;
         return Object.assign(res, <typeof res>{
-            tracecontext() {
-                const tracecontext = TraceContext(this.headers?.['traceparent']);
-                this.tracecontext = () => tracecontext;
-                return tracecontext;
+            cloudevent() {
+                const e = CloudEvent({
+                    id: this.headers?.['traceparent'] ?? req.cloudevent?.id,
+                    type: req.method ?? 'GET',
+                    time: now.toISOString(),
+                    data: undefined,
+                    source: req.url,
+                    status: this.status,
+                    elapse: this.elapse(),
+                });
+                this.cloudevent = () => {
+                    return e;
+                };
+                return e;
             },
             mimetype() {
                 const type = this.headers?.['content-type'];
@@ -22,7 +32,9 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
                 return mime.getType(ext) ?? 'application/json';
             },
             elapse() {
-                return now - (req.now ?? now);
+                return req.now
+                    ? now.getTime() - req.now
+                    : -1;
             },
         });
     }, function (e: AxiosError) {
@@ -32,7 +44,7 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
             name: res?.statusText ?? e.name,
             errno: res?.status ?? e.errno ?? 504,
             params: e.params ?? {
-                method: req.method?.toUpperCase() ?? 'GET',
+                method: req.method,
                 url: req.url,
                 query: req.params,
             },
@@ -40,13 +52,16 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
     });
     fetch.interceptors.request.use(function (req) {
         const now = Date.now();
-        const tracecontext = req.tracecontext ?? TraceContext();
-        const traceparent = tracecontext.traceparent();
         const headers = {
             ...req.headers,
-            traceparent,
+            traceparent: req.cloudevent?.id ?? CloudEvent({
+                data: undefined,
+                type: '',
+                time: '',
+            }).id,
         };
         return Object.assign(req, <typeof req>{
+            method: req.method?.toUpperCase() ?? 'GET',
             headers,
             now,
         });
@@ -57,7 +72,7 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
             name: res?.statusText ?? e.name,
             errno: res?.status ?? e.errno ?? 504,
             params: e.params ?? {
-                method: req.method?.toUpperCase() ?? 'GET',
+                method: req.method,
                 url: req.url,
                 query: req.params,
             },
@@ -73,7 +88,7 @@ declare module 'axios' {
         /**
         inject tracecontext to header
         */
-        readonly tracecontext?: TraceContext
+        readonly cloudevent?: CloudEvent<string>
         /**
         datetime to send this request
 
@@ -85,7 +100,7 @@ declare module 'axios' {
         /**
         extract tracecontext from header
         */
-        tracecontext(): TraceContext
+        cloudevent(): CloudEvent<string>
         /**
         @return mime type of content
         */

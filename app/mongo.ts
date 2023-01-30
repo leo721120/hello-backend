@@ -14,45 +14,55 @@ export default express.setup(function (app) {
             ...options,
             appName: process.env.APP_ID,
         });
+        Object.assign(uri, <typeof uri>{// omit sensitive information
+            password: '',
+        });
         app.once('close', function () {
             // force close if application is going down
             db.close();
         }).emit('event', await Promise.try(function () {
-            const info = new URL(uri.toString());
-            info.password = '';
-            return {
-                href: info.toString(),
-                ...options,
-            };
+            return CloudEvent({
+                id: CloudEvent.EMPTY_ID,
+                source: uri.toString(),
+                data: undefined,
+                type: 'mongo',
+                text: 'connect',
+            });
         }));
         db.on('close', function () {
-            app.emit('event', {
-                name: 'mongo',
-                text: 'close',
-            });
+            app.emit('event', CloudEvent({
+                id: CloudEvent.EMPTY_ID,
+                source: uri.toString(),
+                data: undefined,
+                type: 'mongo',
+                text: 'connect',
+            }));
         }).on('timeout', function () {
-            app.emit('event', {
-                name: 'mongo',
+            app.emit('event', CloudEvent({
+                id: CloudEvent.EMPTY_ID,
+                source: uri.toString(),
+                data: undefined,
+                type: 'mongo',
                 text: 'timeout',
-            });
+            }));
         }).on('commandFailed', function (e) {
-            app.emit('error', {
+            /*app.emit('error', {
                 name: e.requestId,
                 text: e.commandName,
                 elapse: e.duration,
                 reason: e.failure.message,
-            });
+            });*/
         }).on('commandStarted', function (e) {
-            app.emit('event', {
+            /*app.emit('event', {
                 name: e.requestId,
                 text: e.commandName,
-            });
+            });*/
         }).on('commandSucceeded', function (e) {
-            app.emit('event', {
+            /*app.emit('event', {
                 name: e.requestId,
                 text: e.commandName,
                 elapse: e.duration,
-            });
+            });*/
         });
         return db;
     });
