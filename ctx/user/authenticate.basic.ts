@@ -13,7 +13,7 @@ export default {
     }),
     decrypt(text: string) {
         const [username, password] = this.schema.attempt(
-            text.base64dec().split(':')
+            text.decode('base64').split(':')
         );
         return {
             username,

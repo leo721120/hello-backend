@@ -5,10 +5,16 @@ describe('String', function () {
         const id = String.nanoid(8);
         expect(id.length).toBe(8);
     });
+    it('.encode', async function () {
+        const id = String.nanoid(8);
+        expect(id.encode('base64').encode('utf8', 'base64')).toBe(id);
+        expect(id.encode('base64').decode('base64')).toBe(id);
+    });
     it('.base64', async function () {
         const id = String.nanoid(8);
-        expect(id.base64enc()).toBe(Buffer.from(id).toString('base64'));
-        expect(id.base64enc().base64dec()).toBe(id);
+        expect(id.base64()).toBe(Buffer.from(id).toString('base64'));
+        expect(id.base64()).toBe(id.encode('base64'));
+        expect(id.base64().decode('base64')).toBe(id);
     });
 });
 describe('Object', function () {
@@ -29,6 +35,25 @@ describe('Object', function () {
             obj: { a: 13 },
         });
         expect(c).toEqual({
+            txt: 'abc',
+            num: 123,
+            arr: [1],
+            obj: { a: 13 },
+        });
+    });
+    it('.omit', async function () {
+        const o = {
+            txt: 'abc',
+            num: 123,
+            arr: [1],
+            obj: { a: 13 },
+        };
+        const a = Object.omit(o, 'txt', 'arr');
+        expect(a).toEqual({
+            num: 123,
+            obj: { a: 13 },
+        });
+        expect(o).toEqual({
             txt: 'abc',
             num: 123,
             arr: [1],
@@ -62,11 +87,12 @@ describe('Promise', function () {
         });
         expect(a).toBe(20);
     });
-    it('.try, will execute if set', async function () {
+    it('.try', async function () {
         const a = [] as number[];
         const j = Promise.try(async function () {
             a.push(1);
         });
+        expect(a.length).toBe(0);
         await Promise.sleep(100);
         expect(a.length).toBe(1);
         await j;
@@ -83,6 +109,7 @@ describe('Promise', function () {
         const j = Promise.defer(async function () {
             a.push(1);
         });
+        expect(a.length).toBe(0);
         await Promise.sleep(100);
         expect(a.length).toBe(0);
         await j;
@@ -104,49 +131,6 @@ describe('Promise', function () {
         j.abort();
         await expect(j).rejects.toThrow('The operation was aborted');
         expect(array.length).toBe(0);
-    });
-    it('.job, promise', async function () {
-        Promise.job('testonly', Promise.resolve(1));
-        const a = await Promise.job('testonly');
-        expect(a).toBe(1);
-    });
-    it('.job, promise rejected', async function () {
-        let a = 1;
-        Promise.job('testonly', Promise.reject(a));
-        {
-            const a = await Promise.job('testonly')?.catch(e => e);
-            expect(a).toBe(1);
-        }
-        {
-            const a = await Promise.job('testonly')?.catch(e => e);
-            expect(a).toBe(1);
-        }
-    });
-    it('.job, function', async function () {
-        Promise.job('testonly/2', function () {
-            return 1;
-        });
-        const a = await Promise.job('testonly/2');
-        expect(a).toBe(1);
-    });
-    it('.job, function rejected', async function () {
-        let a = 0;
-        Promise.job('testonly/2', function () {
-            if (a > 1) return 'A';
-            throw ++a;
-        });
-        {
-            const a = await Promise.job('testonly/2')?.catch(e => e);
-            expect(a).toBe(1);
-        }
-        {
-            const a = await Promise.job('testonly/2')?.catch(e => e);
-            expect(a).toBe(2);
-        }
-        {
-            const a = await Promise.job('testonly/2')?.catch(e => e);
-            expect(a).toBe('A');
-        }
     });
 });
 describe('Array', function () {

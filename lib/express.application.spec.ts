@@ -72,7 +72,7 @@ describe('express/app', function () {
             ;
         expect(ans).toEqual([
             'basic',
-            'a:b'.base64enc(),
+            'a:b'.base64(),
         ]);
     });
 });

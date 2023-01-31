@@ -18,15 +18,18 @@ declare global {
         random(size: number): Buffer
     }
     interface NumberConstructor {
-        numberify(maybe: unknown, defaultvalue?: number): number;
+        /**
+        @returns converted number or default value if NaN
+        */
+        numberify(maybe: unknown, defaultvalue: number): number;
     }
     interface StringConstructor {
         nanoid(size: number): string
     }
     interface ObjectConstructor {
-        copy<V>(o: V): V
-        omit<V extends {}>(o: V, ...a: readonly (keyof V)[]): V
-        pick<V extends object, K extends keyof V>(o: V, ...a: readonly K[]): { readonly [P in K]: V[K] }
+        copy<V extends object>(o: V): V
+        omit<V extends object, K extends keyof V>(o: V, ...a: readonly K[]): Pick<V, K>
+        pick<V extends object, K extends keyof V>(o: V, ...a: readonly K[]): Omit<V, K>
     }
     interface PromiseConstructor {
         /**
@@ -43,18 +46,6 @@ declare global {
         /**
         */
         sleep(ms: number): Promise<void> & AbortController
-        /**
-        find registered job
-        */
-        job<R>(name: string): Promise<R> | undefined
-        /**
-        register a named job
-        */
-        job<R>(name: string, job: Promise<R>): Promise<R>
-        /**
-        register a named job and auto reset if rejected, useful to auto retry
-        */
-        job<R>(name: string, job: () => PromiseLike<R> | R): Promise<R>
     }
     interface DateConstructor {
         timezone(): {
@@ -73,13 +64,28 @@ declare global {
     }
     interface String {
         /**
-        @param encoding which encoding is coming from
+        convert to buffer
+
+        @param encoding default to utf8
         */
-        base64enc(encoding?: BufferEncoding): string
+        buffer(encoding?: BufferEncoding): Buffer
         /**
-        @param encoding which encoding should convert to
+        convert encoding to
+
+        @param to default to utf8
         */
-        base64dec(encoding?: BufferEncoding): string
+        decode(from: BufferEncoding, to?: BufferEncoding): string
+        /**
+        convert encoding to
+
+        @param from default to utf8
+        */
+        encode(to: BufferEncoding, from?: BufferEncoding): string
+        /**
+        convert encoding to base64
+        @param from default to utf8
+        */
+        base64(from?: BufferEncoding): string
     }
     interface Array<T> {
         /**
@@ -124,11 +130,17 @@ Object.assign(String, <StringConstructor>{
     nanoid: nanoid.customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'),
 });
 Object.assign(String.prototype, <String>{
-    base64enc(encoding) {
-        return Buffer.from(this, encoding).toString('base64');
+    buffer(encoding) {
+        return Buffer.from(this, encoding);
     },
-    base64dec(encoding) {
-        return Buffer.from(this, 'base64').toString(encoding);
+    decode(from, to = 'utf8') {
+        return this.buffer(from).toString(to);
+    },
+    encode(to, from = 'utf8') {
+        return this.buffer(from).toString(to);
+    },
+    base64(from) {
+        return this.encode('base64', from);
     },
 });
 Object.assign(Object, <ObjectConstructor>{
@@ -152,20 +164,6 @@ Object.assign(Object, <ObjectConstructor>{
     },
 });
 Object.assign(Promise, <PromiseConstructor>{
-    defer(cb) {
-        const lazy = Object.create(Promise.prototype) as Promise<unknown> & {
-            value?: Promise<unknown>
-        };
-        return Object.assign(lazy, <typeof lazy>{
-            then(done, fail) {
-                this.value ??= Promise.try(cb);
-                return this.value.then(done, fail);
-            },
-        });
-    },
-    try(cb) {
-        return Promise.resolve().then(cb);
-    },
     timeout(ms, cb) {
         const ac = new AbortController();
         const p = timer.setTimeout(ms, Promise.defer(cb), {
@@ -187,39 +185,21 @@ Object.assign(Promise, <PromiseConstructor>{
         return Promise.timeout(ms, function () {
         });
     },
-    job(name, obj) {
-        const get = function () {
-            return job.map.get(name);
+    defer(cb) {
+        const lazy = Object.create(Promise.prototype) as Promise<unknown> & {
+            value?: Promise<unknown>
         };
-        const put = function () {
-            job.map.set(name, obj);
-            return obj;
-        };
-        const set = function () {
-            const cb = obj as () => unknown;
-
-            return Promise.job(name,
-                Promise.defer(async function () {
-                    try {
-                        return await cb();
-                    } catch (e) {
-                        Promise.job(name, cb);
-                        throw e;
-                    }
-                })
-            );
-        };
-        return arguments.length === 1
-            ? get()
-            : 'then' in obj// PromiseLike
-                ? put()
-                : set()
-            ;
+        return Object.assign(lazy, <typeof lazy>{
+            then(done, fail) {
+                this.value ??= Promise.try(cb);
+                return this.value.then(done, fail);
+            },
+        });
+    },
+    try(cb) {
+        return Promise.resolve().then(cb);
     },
 });
-const job = {
-    map: new Map<string, unknown>(),
-};
 Object.assign(Array.prototype, <typeof Array.prototype>{
     unique() {
         return [...new Set(this)];
