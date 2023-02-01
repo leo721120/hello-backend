@@ -1,6 +1,22 @@
 import express from '@io/lib/express.fetch'
 //
 describe('express/res', function () {
+    it('.robotstag, noindex', async function () {
+        const app = express().get('/abc', async function (req, res) {
+            res.robotstag('noindex')
+                .status(200)
+                .end();
+        });
+        const res = await express
+            .fetch(app)
+            .get('/abc')
+            ;
+        expect(res.headers).toEqual(
+            expect.objectContaining({
+                'x-robots-tag': 'noindex',
+            })
+        );
+    });
     it('.cloudevent', async function () {
         const app = express().get('/abc', async function (req, res) {
             const e = res.cloudevent();

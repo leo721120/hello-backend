@@ -1,6 +1,9 @@
 import express from 'express'
 import '@io/lib/node'
 export default Object.assign(express.response, <typeof express.response>{
+    robotstag(value) {
+        return this.setHeader('X-Robots-Tag', value);
+    },
     cloudevent() {
         const e = {
             ...this.req.cloudevent(),
@@ -38,6 +41,10 @@ export default Object.assign(express.response, <typeof express.response>{
 declare global {
     namespace Express {
         interface Response {
+            /**
+            https://developers.google.com/search/docs/advanced/robots/robots_meta_tag?hl=zh-tw#xrobotstag
+            */
+            robotstag(value: 'noindex' | 'none'): this
             /**
             extract tracecontext from header
             */

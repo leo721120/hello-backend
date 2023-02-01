@@ -67,6 +67,7 @@ export default Object.assign(JSON, <typeof JSON>{
             });
         };
         const set = function () {
+            console.assert(def, 'schema should not be null or undefined');
             Ajv.removeSchema($id).addSchema(def, $id);
             return get();
         };
