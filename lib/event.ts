@@ -2,19 +2,6 @@ import { CloudEventV1 } from 'cloudevents'
 import TraceParent from 'traceparent'
 import '@io/lib/node'
 export default Object.assign(globalThis, <typeof globalThis>{
-    TraceContext(text) {
-        const trace = text?.length
-            ? TraceParent.fromString(text)
-            : TraceParent.startOrResume(null, {
-                transactionSampleRate: 1,
-            })
-            ;
-        return <TraceContext>{
-            traceparent() {
-                return trace.toString();
-            },
-        };
-    },
     CloudEvent(params) {
         const tracecontext = params.id?.length
             ? TraceParent.fromString(params.id)
@@ -33,12 +20,6 @@ export default Object.assign(globalThis, <typeof globalThis>{
     },
 });
 declare global {
-    interface TraceContext {
-        /**
-        @return traceparent as string
-        */
-        traceparent(): string
-    }
     interface CloudEvents {
         // use declare to append event
     }
@@ -49,10 +30,6 @@ declare global {
         readonly data: K extends keyof CloudEvents
         ? CloudEvents[K]
         : unknown
-    }
-    var TraceContext: {
-        (text: string): TraceContext
-        (): TraceContext
     }
     var CloudEvent: {
         <K extends string>(params: Editable<K>): CloudEvent<K>

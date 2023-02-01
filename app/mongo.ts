@@ -2,7 +2,7 @@ import type { MongoClientOptions } from 'mongodb'
 import { MongoClient } from 'mongodb'
 import express from '@io/lib/express'
 import '@io/lib/node'
-export default express.setup(function (app) {
+export default express.service(function (app) {
     app.service('mongo', async function () {
         const uri = new URL(process.env.MONGODB_HREF ?? 'mongodb://localhost:27017');
         const options = await Promise.try<MongoClientOptions>(function () {

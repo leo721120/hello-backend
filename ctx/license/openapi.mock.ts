@@ -1,6 +1,6 @@
 import { binding, openapi } from './openapi'
 import express from '@io/lib/express'
-export default express.setup(async function (app) {
+export default express.service(async function (app) {
     const mock = await app.service('mock');
     Object.assign(mock, <typeof mock>{
         license: {

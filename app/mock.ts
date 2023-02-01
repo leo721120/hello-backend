@@ -5,7 +5,7 @@ import dapr from '@io/lib/dapr.mock'
 import '@io/lib/node'
 export interface Mock extends ReturnType<typeof dapr.mock> {
 }
-export default express.setup(function (app) {
+export default express.service(function (app) {
     console.assert(process.env.NODE_ENV !== 'production',
         'should not use mock objects in production'
     );

@@ -5,7 +5,10 @@ export default Object.assign(express.application, <Application>{
         Object.assign(this, { ws: undefined });
         const ws = websockify(this).getWss();
         this.websocket = () => ws;
-        return ws;
+        return ws.once('close', function () {
+            // also close socket to prevent hanging
+            ws.options.server?.close();
+        });
     },
     ws(...a) {
         this.websocket();

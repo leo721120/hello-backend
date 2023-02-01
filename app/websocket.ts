@@ -1,7 +1,7 @@
 import express from '@io/lib/express'
 import '@io/lib/event'
 import '@io/lib/node'
-export default express.setup(function (app) {
+export default express.service(function (app) {
     app.ws('/ws', function (ws, req) {
         const e = req.cloudevent();
         //

@@ -1,4 +1,4 @@
-import express from '@io/lib/express.fetch'
+import express from '@io/lib/express'
 //
 describe('express/res', function () {
     it('.robotstag, noindex', async function () {

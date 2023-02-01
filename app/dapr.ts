@@ -3,7 +3,7 @@ import dapr from '@io/lib/dapr'
 import http from 'node:http'
 export interface Dapr extends ReturnType<typeof dapr> {
 }
-export default express.setup(function (app) {
+export default express.service(function (app) {
     const timeout = Number.numberify(process.env.DAPR_TIMEOUT, 3_000);
     const port = Number.numberify(process.env.DAPR_HTTP_PORT, 3500);
     const httpAgent = new http.Agent({

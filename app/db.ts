@@ -4,7 +4,7 @@ import sequelize from '@io/lib/sequelize'
 import express from '@io/lib/express'
 import '@io/lib/node'
 import 'pg'// force pkg to include
-export default express.setup(function (app) {
+export default express.service(function (app) {
     app.service('db', async function () {
         const uri = new URL(process.env.SEQUELIZE_HREF ?? 'sqlite::memory:');
         const options = await Promise.try<Options>(function () {

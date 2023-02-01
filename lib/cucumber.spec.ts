@@ -1,5 +1,5 @@
 import cucumber from '@io/lib/cucumber'
-import e from '@io/lib/express.fetch'
+import e from '@io/lib/express'
 import autocannon from 'autocannon'
 export default cucumber.define(function (environment, { step }) {
     interface Header {
@@ -120,7 +120,7 @@ declare module '@io/lib/cucumber' {
     interface Fixture {
         readonly app: ReturnType<typeof e>
         readonly req: import('axios').AxiosRequestConfig
-        readonly res?: import('@io/lib/express.fetch').Fetch
+        readonly res?: import('supertest').Test
         readonly benchmark?: autocannon.Result
     }
 }

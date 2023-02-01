@@ -1,6 +1,6 @@
 import express from '@io/lib/express'
 import '@io/lib/node'
-export default express.setup(function (app) {
+export default express.service(function (app) {
     app.service('manifest', function () {
         const path = require.resolve('../package.json');
         const data = require(path) as Dict<unknown>;

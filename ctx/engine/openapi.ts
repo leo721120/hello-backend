@@ -7,7 +7,7 @@ export const binding = process.env.ENGINE_APPNAME ?? 'engine';
 export const openapi = JSON.schema('engine/openapi.json',
     JSON.openapi(path.join(__dirname, 'openapi.yml'))
 );
-export default express.setup(function (app) {
+export default express.service(function (app) {
     app.service('engine/openapi', function () {
         return <Engine>{
             async addCamera(camera) {

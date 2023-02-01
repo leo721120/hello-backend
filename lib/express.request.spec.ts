@@ -1,4 +1,4 @@
-import express from '@io/lib/express.fetch'
+import express from '@io/lib/express'
 //
 describe('express/req', function () {
     it('.cloudevent', async function () {

@@ -1,6 +1,6 @@
 import express from '@io/lib/express'
 import '@io/lib/node'
-export default express.setup(function (app) {
+export default express.service(function (app) {
     const pubsubname = process.env.EVENT_PUBSUB ?? 'pubsub';
     const enum status {// https://docs.dapr.io/reference/api/pubsub_api/#expected-http-response
         /**

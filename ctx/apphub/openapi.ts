@@ -6,7 +6,7 @@ export const binding = process.env.APPHUB_APPNAME ?? 'apphub';
 export const openapi = JSON.schema('apphub/openapi.json',
     JSON.openapi(path.join(__dirname, 'openapi.yml'))
 );
-export default express.setup(function (app) {
+export default express.service(function (app) {
     app.service('apphub/openapi', function () {
         return <Service>{
             async login() {

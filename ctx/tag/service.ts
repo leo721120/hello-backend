@@ -9,7 +9,7 @@ export interface Service extends Collection {
     model(): Promise<ReturnType<typeof tag.model>>
     query(find: Find<object>): Collection
 }
-export default express.setup(function (app) {
+export default express.service(function (app) {
     app.service('tag', function () {
         return Service(app, {
         });
