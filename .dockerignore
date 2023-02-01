@@ -4,4 +4,5 @@
 !lib/
 !*.ts
 !*.json
+!logo.ico
 !openapi.yml

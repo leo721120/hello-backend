@@ -96,8 +96,6 @@ services:
         "placement:50006",
         "-dapr-http-port",
         "3500", # open for outside, all traffics to service should through here
-        "-components-path",
-        "/dapr",
         "-config",
         "/dapr/config.yml",
         "-log-level",
@@ -115,6 +113,9 @@ services:
       - placement
       - postgres
       - mongo
+    ports:
+      # open for external access
+      - 3500:3500
     environment:
       NODE_ENV: production
       # default to 'info'

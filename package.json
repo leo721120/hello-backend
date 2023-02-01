@@ -18,7 +18,7 @@
     "start": "ts-node app/main",
     "wasm": "asc --config ./lib/wasm/asconfig.json",
     "init": "dapr uninstall && dapr init",
-    "dapr": "dapr run -a devapp -H 3500 -p 58088 -d ./cnf/dapr -- ts-node app/main",
+    "dapr": "dapr run -a devapp -H 3500 -p 58088 -c ./cnf/dapr/config.yml -- ts-node app/main",
     "test": "jest"
   },
   "devDependencies": {
