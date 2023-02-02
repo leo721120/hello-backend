@@ -28,9 +28,6 @@ npm i
 # setup self-host Dapr environment
 npm run init
 
-# (only for Windows) compile c++ addon to VS2019
-npm config set msvs_version 2019
-
 # compile WASM
 npm run wasm
 
@@ -46,7 +43,7 @@ There are 2 way to launch **Dapr** environment.
 * ### Self-Host (for develop)
 
 ```sh
-# dependent services
+# dependent services (db, ...etc)
 docker-compose -f docker-compose.dev.yml up -d
 
 # launch self-host mode
@@ -56,15 +53,26 @@ npm run dapr
 * ### Docker-Compose (for e2e)
 
 ```sh
-# launch
+# launch containers
 docker-compose -f docker-compose.e2e.yml up
 ```
 
 ## Release
 
-### Docker Image
+* ### Executable Binary
 
 ```sh
-# build image
+# compile TS to JS
+npm run build
+# (for Windows) pack assets into exe file
+npm run release -- -t win
+# (for Linux) pack assets into elf file
+npm run release -- -t linux
+```
+
+* ### Docker Image
+
+```sh
+# build image with version tag
 npm run dockerbuild
 ```

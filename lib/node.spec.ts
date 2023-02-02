@@ -132,6 +132,15 @@ describe('Promise', function () {
         await expect(j).rejects.toThrow('The operation was aborted');
         expect(array.length).toBe(0);
     });
+    it('.result', async function () {
+        const r = Promise.result(1);
+        expect(await r).toBe(1);
+    });
+    it('.result', async function () {
+        const r = Promise.result(1);
+        r.ok(3);
+        expect(await r).toBe(3);
+    });
 });
 describe('Array', function () {
     it('.unique', async function () {

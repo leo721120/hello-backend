@@ -18,6 +18,10 @@ declare global {
         indicate the direction of the user
         */
         readonly help?: string
+        /**
+        more description about this error, may contain technical details
+        */
+        readonly reason?: unknown
     }
     interface rfc7807 {
         /**

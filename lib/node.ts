@@ -28,8 +28,8 @@ declare global {
     }
     interface ObjectConstructor {
         copy<V extends object>(o: V): V
-        omit<V extends object, K extends keyof V>(o: V, ...a: readonly K[]): Pick<V, K>
-        pick<V extends object, K extends keyof V>(o: V, ...a: readonly K[]): Omit<V, K>
+        omit<V extends object, K extends keyof V>(o: V, ...a: readonly K[]): Omit<V, K>
+        pick<V extends object, K extends keyof V>(o: V, ...a: readonly K[]): Pick<V, K>
     }
     interface PromiseConstructor {
         /**
@@ -46,6 +46,19 @@ declare global {
         /**
         */
         sleep(ms: number): Promise<void> & AbortController
+        /**
+        a promise can be resolve/reject later by pass value/error to
+        */
+        result<T>(defaultvalue?: T): Promise<T> & {
+            /**
+            set promise as rejected with error
+            */
+            err<E extends Error>(e: E): void
+            /**
+            set promise as resolved with value
+            */
+            ok<A extends T>(a: A): void
+        }
     }
     interface DateConstructor {
         timezone(): {
@@ -198,6 +211,38 @@ Object.assign(Promise, <PromiseConstructor>{
     },
     try(cb) {
         return Promise.resolve().then(cb);
+    },
+    result(defaultvalue) {
+        const result = {} as PromiseSettledResult<unknown>;
+        const future = Promise.defer(function () {
+            if (!result.status) {
+                Object.assign(result, <PromiseFulfilledResult<typeof defaultvalue>>{
+                    status: 'fulfilled',
+                    value: defaultvalue,
+                });
+            }
+            if (result.status === 'fulfilled') {
+                return result.value;
+            } else {
+                throw result.reason;
+            }
+        });
+        return Object.assign(future, {
+            err(e: Error) {
+                console.assert(!result.status, 'already resolved or rejected');
+                Object.assign(result, <PromiseRejectedResult>{
+                    status: 'rejected',
+                    reason: e,
+                });
+            },
+            ok(v: unknown) {
+                console.assert(!result.status, 'already resolved or rejected');
+                Object.assign(result, <PromiseFulfilledResult<typeof v>>{
+                    status: 'fulfilled',
+                    value: v,
+                });
+            },
+        });
     },
 });
 Object.assign(Array.prototype, <typeof Array.prototype>{
