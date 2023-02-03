@@ -125,5 +125,5 @@ declare module '@io/lib/cucumber' {
     }
 }
 if (!require.main) {
-    cucumber.launch(`${__dirname}/cucumber.spec.feature`);
+    cucumber.launch(`${__dirname}/cucumber.feature`);
 }

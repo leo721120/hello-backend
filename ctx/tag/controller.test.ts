@@ -1,4 +1,4 @@
-import cucumber from '@io/lib/cucumber.spec'
+import cucumber from '@io/lib/cucumber.test'
 export default cucumber.define(function (environment, { step }) {
     step(/^new tags$/, async function (list: readonly []) {
         const service = await environment.app.service('tag');
@@ -8,5 +8,5 @@ export default cucumber.define(function (environment, { step }) {
     });
 });
 if (!require.main) {
-    cucumber.launch(`${__dirname}/controller.spec.GET.feature`);
+    cucumber.launch(`${__dirname}/controller.GET.feature`);
 }
