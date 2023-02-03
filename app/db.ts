@@ -1,6 +1,5 @@
+import sequelize, { Sequelize } from '@io/lib/sequelize'
 import type { Options } from '@io/lib/sequelize'
-import { Sequelize } from '@io/lib/sequelize'
-import sequelize from '@io/lib/sequelize'
 import express from '@io/lib/express'
 import '@io/lib/node'
 import 'pg'// force pkg to include
@@ -31,7 +30,7 @@ export default express.service(function (app) {
                 db.close();
             });
         });
-        return sequelize.instance({
+        return sequelize({
             ...options,
             uri: uri.toString(),
             benchmark: true,
@@ -76,7 +75,7 @@ declare global {
     }
     namespace Express {
         interface Application {
-            service(name: 'db'): Promise<ReturnType<typeof sequelize.instance>>
+            service(name: 'db'): Promise<ReturnType<typeof sequelize>>
         }
     }
 }

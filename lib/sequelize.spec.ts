@@ -1,8 +1,8 @@
-import * as sequelize from '@io/lib/sequelize'
+import sequelize, { Model } from '@io/lib/sequelize'
 //
 describe('sequelize', function () {
     it('.instance', async function () {
-        const db = sequelize.default.instance({
+        const db = sequelize({
             define: { underscored: true },
             database: 'testonly',
             logging: false,
@@ -11,7 +11,7 @@ describe('sequelize', function () {
             readonly id: string
             readonly name: string
         }
-        interface Table extends sequelize.Model<Record> {
+        interface Table extends Model<Record> {
         };
         const Table = db.define<Table>('table', {
             id: {

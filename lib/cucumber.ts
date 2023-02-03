@@ -6,7 +6,7 @@ export interface Fixture {
     launch(file: string): void
 }
 export default <Fixture>{
-    definitions: [] as cucumber.StepDefinitions[],
+    definitions: [] as Fixture['definitions'],
     //
     define(cb) {
         this.definitions.push((options) => {

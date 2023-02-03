@@ -76,3 +76,7 @@ npm run release -- -t linux
 # build image with version tag
 npm run dockerbuild
 ```
+
+* ### Mock Server
+
+maybe this is useful `@stoplight/prism-cli`

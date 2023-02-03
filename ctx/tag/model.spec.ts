@@ -3,7 +3,7 @@ import tag from '@io/ctx/tag/model'
 import '@io/lib/node'
 //
 describe('tag', function () {
-    const db = sequelize.instance({
+    const db = sequelize({
         benchmark: true,
         logging: false,
         database: 'e2e',
