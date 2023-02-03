@@ -1,5 +1,8 @@
 import express from '@io/lib/express'
+import compress from 'compression'
 import dotenv from 'dotenv'
+import helmet from 'helmet'
+import cors from 'cors'
 import pino from 'pino'
 import '@io/lib/node'
 dotenv.config();
@@ -31,6 +34,9 @@ Promise.try(async function () {
         });
     });
     {
+        app.use(compress());
+        app.use(helmet());
+        app.use(cors());
         await app.setup(await import('@io/app/domain'));
     }
     const srv = app.listen(process.env.APP_PORT, function () {
