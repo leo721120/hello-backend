@@ -4,9 +4,6 @@
   "version": "0.0.0",
   "license": "MIT",
   "description": "template for backend service",
-  "engines": {
-    "node": ">=16.0.0"
-  },
   "scripts": {
     "dockerbuild": "docker build . -t io/backend:%npm_package_version%",
     "release": "pkg -C gzip -c ./package.json -o ./out/main app/main.js",

@@ -1,4 +1,4 @@
-FROM node:16.13-alpine AS BUILDER
+FROM node:16.16-alpine AS BUILDER
 WORKDIR /app
 COPY . .
 RUN apk update
@@ -7,8 +7,7 @@ RUN npm ci
 RUN npm run build
 RUN npm run redoc
 RUN npm run release -- -t node16-alpine
-FROM node:16.13-alpine AS RUNNER
+FROM alpine:3.16 AS RUNNER
 WORKDIR /app
 COPY --from=BUILDER /app/out .
-USER node
 CMD ["/app/main"]
