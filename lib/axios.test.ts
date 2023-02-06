@@ -1,4 +1,4 @@
-import axios from '@io/lib/axios.mock'
+import axios from '@io/lib/axios'
 //
 describe('axios', function () {
     const fetch = axios();
@@ -9,7 +9,7 @@ describe('axios', function () {
                 abc: 'test',
             });
     }
-    it('.fetch', async function () {
+    it('.request', async function () {
         const res = await fetch.request({
             url: '/testcase/abc',
         });

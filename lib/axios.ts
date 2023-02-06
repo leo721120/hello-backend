@@ -51,19 +51,22 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
         });
     });
     fetch.interceptors.request.use(function (req) {
-        const now = Date.now();
+        const now = new Date();
+        const ce = req.cloudevent ?? CloudEvent({
+            time: now.toISOString(),
+            data: undefined,
+            type: req.method ?? 'GET',
+            source: req.url,
+        });
         const headers = {
             ...req.headers,
-            traceparent: req.cloudevent?.id ?? CloudEvent({
-                data: undefined,
-                type: '',
-                time: '',
-            }).id,
+            traceparent: ce.id,
         };
         return Object.assign(req, <typeof req>{
             method: req.method?.toUpperCase() ?? 'GET',
             headers,
-            now,
+            now: now.getTime(),
+            cloudevent: ce,
         });
     }, function (e: AxiosError) {
         const res = e.response;
@@ -82,6 +85,11 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
     });
 };
 export default Object.assign(build, {
+    mock(fetch: ReturnType<typeof build>) {
+        const name = 'nock';// use variable to prevent pkg include this
+        const nock = require(name) as typeof import('nock');
+        return nock(fetch.defaults.baseURL ?? '');
+    },
 });
 declare module 'axios' {
     interface AxiosRequestConfig {

@@ -1,7 +1,7 @@
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import { MongoClient } from 'mongodb'
 import express from '@io/lib/express'
-import dapr from '@io/lib/dapr.mock'
+import dapr from '@io/lib/dapr'
 import '@io/lib/node'
 export interface Mock extends ReturnType<typeof dapr.mock> {
 }

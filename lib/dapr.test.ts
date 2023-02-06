@@ -1,4 +1,4 @@
-import dapr from '@io/lib/dapr.mock'
+import dapr from '@io/lib/dapr'
 //
 describe('dapr', function () {
     const fetch = dapr();

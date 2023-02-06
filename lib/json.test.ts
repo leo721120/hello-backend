@@ -29,7 +29,7 @@ describe('json', function () {
         expect(schema.errors?.length).toBe(undefined);
     });
     it('.schema, openapi definition', async function () {
-        const openapi = JSON.openapi(`${__dirname}/json.spec.yml`);
+        const openapi = JSON.openapi(`${__dirname}/json.test.yml`);
         JSON.schema('testonly/openapi', openapi);
         {
             const schema = JSON.schema('testonly/openapi#/paths/~1foo/post/responses/200/content/application~1json/schema');
@@ -130,13 +130,13 @@ describe('json', function () {
         expect(doc.info.title).toBe('testonly');
     });
     it('.openapi, read from file', async function () {
-        const doc = JSON.openapi(`${__dirname}/json.spec.yml`);
+        const doc = JSON.openapi(`${__dirname}/json.test.yml`);
         expect(doc.info.version).toBe('1.2.3');
         expect(doc.info.title).toBe('testonly');
     });
     it('.openapi, find by id', async function () {
         {
-            const doc = JSON.openapi(`${__dirname}/json.spec.yml`);
+            const doc = JSON.openapi(`${__dirname}/json.test.yml`);
             JSON.schema('abc.yml', doc);
         }
         const doc = JSON.openapi(`abc.yml`);
@@ -144,7 +144,7 @@ describe('json', function () {
         expect(doc.info.title).toBe('testonly');
     });
     it('.openapi, example with key `id`', async function () {
-        const doc = JSON.openapi(`${__dirname}/json.spec.yml`);
+        const doc = JSON.openapi(`${__dirname}/json.test.yml`);
         const schema = JSON.schema('abc.yml', doc);
         const example = schema.child(
             'paths',
