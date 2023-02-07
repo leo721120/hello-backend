@@ -21,7 +21,7 @@ declare global {
         /**
         @returns converted number or default value if NaN
         */
-        numberify(maybe: unknown, defaultvalue: number): number;
+        numberify(maybe: unknown, defaultvalue: number): number
     }
     interface StringConstructor {
         nanoid(size: number): string
@@ -76,6 +76,14 @@ declare global {
         toJSON?<R>(): R
     }
     interface String {
+        /**
+        @returns convert as number or default value if NaN
+        */
+        numberify(defaultvalue: number): number
+        /**
+        @returns convert as number or 0 if NaN
+        */
+        numberify(): number
         /**
         convert to buffer
 
@@ -143,6 +151,9 @@ Object.assign(String, <StringConstructor>{
     nanoid: nanoid.customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'),
 });
 Object.assign(String.prototype, <String>{
+    numberify(defaultvalue = 0) {
+        return Number.numberify(this, defaultvalue as number);
+    },
     buffer(encoding) {
         return Buffer.from(this, encoding);
     },

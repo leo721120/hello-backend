@@ -5,7 +5,7 @@ describe('mongo', function () {
     //
     beforeAll(async function () {
         await app.setup(await import('@io/app/domain'));
-        await app.setup(await import('@io/app/mock'));
+        await app.setup(await import('@io/app/domain.mock'));
     });
     afterAll(async function () {
         app.emit('close');// stop internal services

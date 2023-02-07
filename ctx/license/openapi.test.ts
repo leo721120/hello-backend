@@ -5,7 +5,7 @@ describe('license/openapi', function () {
 
     beforeAll(async function () {
         await app.setup(await import('@io/app/domain'));
-        await app.setup(await import('@io/app/mock'));
+        await app.setup(await import('@io/app/domain.mock'));
         await app.setup(await import('@io/ctx/license/openapi.mock'));
         const mock = await app.service('mock');
         mock.license.version(200, '成功');

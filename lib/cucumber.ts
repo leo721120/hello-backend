@@ -1,16 +1,17 @@
 import * as cucumber from 'jest-cucumber'
 import * as fs from 'fs'
+export interface Definition {
+    readonly step: cucumber.DefineStepFunction
+}
 export interface Fixture {
-    readonly definitions: cucumber.StepDefinitions[]
-    define(cb: (context: Fixture, options: Definition) => void): this
+    define(cb: (options: Definition) => void): this
     launch(file: string): void
 }
+export const definitions = [] as cucumber.StepDefinitions[];
 export default <Fixture>{
-    definitions: [] as Fixture['definitions'],
-    //
     define(cb) {
-        this.definitions.push((options) => {
-            cb(this, Object.assign(options, {
+        definitions.push((options) => {
+            cb(Object.assign(options, {
                 step: options.defineStep,
             }));
         });
@@ -38,13 +39,7 @@ export default <Fixture>{
                 }
                 feature.scenarioOutlines = outlines;
             }
-            cucumber.autoBindSteps([feature], this.definitions);
+            cucumber.autoBindSteps([feature], definitions);
         }
     },
 };
-interface Definition {
-    readonly given: cucumber.DefineStepFunction
-    readonly when: cucumber.DefineStepFunction
-    readonly then: cucumber.DefineStepFunction
-    readonly step: cucumber.DefineStepFunction
-}

@@ -1,6 +1,15 @@
 import '@io/lib/node'
 //
 describe('String', function () {
+    it('.numberify', async function () {
+        expect('129'.numberify()).toBe(129);
+    });
+    it('.numberify, default', async function () {
+        expect('a'.numberify(13)).toBe(13);
+    });
+    it('.numberify, default to 0 if NaN', async function () {
+        expect('a'.numberify()).toBe(0);
+    });
     it('.nanoid', async function () {
         const id = String.nanoid(8);
         expect(id.length).toBe(8);

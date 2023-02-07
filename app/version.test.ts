@@ -1,6 +1,6 @@
-import cucumber from '@io/lib/cucumber.test'
-export default cucumber.define(function () {
+import environment from '@io/app/domain.test'
+export default environment.define(function () {
 });
 if (!require.main) {
-    cucumber.launch(`${__dirname}/version.feature`);
+    environment.launch(`${__dirname}/version.GET.feature`);
 }

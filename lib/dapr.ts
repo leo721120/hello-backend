@@ -224,17 +224,25 @@ export default Object.assign(build, {
                 },
             },
             metadata() {
-                return mock.get('/v1.0/metadata')
+                return mock.get('/v1.0/metadata');
             },
         });
     },
 });
+interface Component {
+    readonly name: string | 'pubsub' | 'statestore'
+    readonly type: string | 'pubsub.redis' | 'state.redis'
+    readonly version: string | 'v1'
+    readonly capabilities?: readonly string[]
+}
 interface Metadata {
-    readonly id: string
-    readonly components?: readonly []
+    readonly id: string | 'devapp'
+    readonly components?: readonly Component[]
     readonly actors?: readonly []
     readonly extended?: {
-        readonly daprRuntimeVersion?: string
+        readonly daprRuntimeVersion?: string | '1.9.5'
+        readonly appCommand?: string | 'ts-node app/main'
+        readonly cliPID?: string | '20096'
     }
 }
 interface Fetch<V> {

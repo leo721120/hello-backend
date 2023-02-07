@@ -21,10 +21,23 @@ export default express.service(function (app) {
         return res;
     });
     fetch.interceptors.request.use(function (req) {
-        if (req.cloudevent) {
-            app.emit('event', req.cloudevent);
+        const now = new Date();
+        const method = req.method?.toUpperCase() ?? 'GET';
+        const cloudevent = CloudEvent({
+            ...req.cloudevent,
+            time: now.toISOString(),
+            data: undefined,
+            type: method,
+            source: req.url,
+        });
+        {
+            app.emit('event', cloudevent);
         }
-        return req;
+        return Object.assign(req, <typeof req>{
+            now: now.getTime(),
+            cloudevent,
+            method,
+        });
     });
     app.service('dapr', function () {
         return fetch;
@@ -33,6 +46,11 @@ export default express.service(function (app) {
         httpAgent.destroy();
     }).get('/dapr/config', function (req, res) {
         res.status(200).json({});
+    }).get('/dapr/metadata', async function (req, res) {
+        const cloudevent = req.cloudevent();
+        const dapr = await app.service('dapr');
+        const metadata = await dapr.metadata({ cloudevent });
+        res.status(200).json(metadata.data);
     });
 });
 declare global {

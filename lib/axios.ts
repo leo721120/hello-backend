@@ -51,22 +51,16 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
         });
     });
     fetch.interceptors.request.use(function (req) {
-        const now = new Date();
-        const ce = req.cloudevent ?? CloudEvent({
-            time: now.toISOString(),
-            data: undefined,
-            type: req.method ?? 'GET',
-            source: req.url,
-        });
+        const now = req.now ?? Date.now();
+        const method = req.method?.toUpperCase() ?? 'GET';
         const headers = {
             ...req.headers,
-            traceparent: ce.id,
+            traceparent: req.cloudevent?.id ?? CloudEvent.EMPTY_ID,
         };
         return Object.assign(req, <typeof req>{
-            method: req.method?.toUpperCase() ?? 'GET',
             headers,
-            now: now.getTime(),
-            cloudevent: ce,
+            method,
+            now,
         });
     }, function (e: AxiosError) {
         const res = e.response;

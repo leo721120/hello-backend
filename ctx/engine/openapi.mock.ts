@@ -61,7 +61,7 @@ export default express.service(async function (app) {
         },
     });
 });
-declare module '@io/app/mock' {
+declare module '@io/app/domain.mock' {
     interface Mock {
         readonly engine: {
             addCamera(status: number, example?: string): Mock
