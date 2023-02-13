@@ -146,7 +146,7 @@ describe('json', function () {
     it('.openapi, example with key `id`', async function () {
         const doc = JSON.openapi(`${__dirname}/json.test.yml`);
         const schema = JSON.schema('abc.yml', doc);
-        const example = schema.child(
+        const example = schema.node(
             'paths',
             JSON.pointer.escape('/foo/{id}'),
             'get',
@@ -158,6 +158,19 @@ describe('json', function () {
         );
         expect(example.schema).toEqual({
             id: 'id-testonly',
+        });
+    });
+    it('.openapi, foreach parameters', async function () {
+        const doc = JSON.openapi(`${__dirname}/json.test.yml`);
+        const openapi = JSON.schema('testonly.ppp.yml', doc);
+        const op = openapi.node(
+            'paths',
+            JSON.pointer.escape('/foo/{id}'),
+            'get',
+        );
+        op.foreach('parameters', function (item) {
+            const param = item.as('openapi.parameter');
+            expect(param.schema.in).toBe('query');
         });
     });
     it('.pointer', async function () {

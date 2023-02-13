@@ -14,12 +14,12 @@ export default express.service(async function (app) {
                     'content',
                     JSON.pointer.escape('application/json'),
                 ];
-                const exam = example ? openapi.child(
+                const exam = example ? openapi.node(
                     ...path,
                     'examples',
                     JSON.pointer.escape(example),
                     'value',
-                ) : openapi.child(
+                ) : openapi.node(
                     ...path,
                     'example',
                 );
@@ -41,12 +41,12 @@ export default express.service(async function (app) {
                     'content',
                     JSON.pointer.escape('application/json'),
                 ];
-                const exam = example ? openapi.child(
+                const exam = example ? openapi.node(
                     ...path,
                     'examples',
                     JSON.pointer.escape(example),
                     'value',
-                ) : openapi.child(
+                ) : openapi.node(
                     ...path,
                     'example',
                 );

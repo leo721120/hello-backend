@@ -16,7 +16,7 @@ export default express.service(function (app) {
                     url: '/login',
                     binding,
                 });
-                openapi.child(
+                openapi.node(
                     'paths',
                     JSON.pointer.escape('/login'),
                     'post',

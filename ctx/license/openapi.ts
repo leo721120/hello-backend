@@ -15,7 +15,7 @@ export default express.service(function (app) {
                     url: '/api/server/info',
                     binding,
                 });
-                openapi.child(
+                openapi.node(
                     'paths',
                     JSON.pointer.escape('/api/server/info'),
                     'get',

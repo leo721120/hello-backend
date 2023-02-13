@@ -124,9 +124,6 @@ declare global {
         */
         invalid(): boolean
     }
-    interface Dict<T> {
-        readonly [name: string]: T
-    }
 }
 Object.assign(Function, <FunctionConstructor>{
     monkeypatch(fn, cb) {

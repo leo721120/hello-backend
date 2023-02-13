@@ -1,3 +1,5 @@
+openapi: 3.0.3
+
 info:
   version: 1.2.3
   title: "testonly"
@@ -7,15 +9,31 @@ paths:
     get:
       responses:
         200:
+          description: |
+
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/data"
               example: { id: "id-testonly" }
+      parameters:
+        - in: query
+          name: field
+          schema:
+            type: string
+        - in: query
+          name: include
+          schema:
+            type: string
+            enum:
+              - a
+              - b
   /foo:
     post:
       responses:
         200:
+          description: |
+
           content:
             application/json:
               schema:

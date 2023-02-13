@@ -28,7 +28,7 @@ export default express.service(function (app) {
         });
         Object.assign(req, <typeof req>{
             content(type: string = 'application/json') {
-                return openapi.child(
+                return openapi.node(
                     'paths',
                     JSON.pointer.escape(req.route.path),
                     req.method.toLowerCase(),

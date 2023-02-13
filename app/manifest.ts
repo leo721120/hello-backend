@@ -3,7 +3,7 @@ import '@io/lib/node'
 export default express.service(function (app) {
     app.service('manifest', function () {
         const path = require.resolve('../package.json');
-        const data = require(path) as Dict<unknown>;
+        const data = require(path) as Record<string, unknown>;
         return Object.pick(data, 'version');
     });
 });

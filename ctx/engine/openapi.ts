@@ -24,7 +24,7 @@ export default express.service(function (app) {
                     headers: formdata.getHeaders(),
                     binding,
                 });
-                openapi.child(
+                openapi.node(
                     'paths',
                     JSON.pointer.escape('/fr-api/camera'),
                     'post',
@@ -45,7 +45,7 @@ export default express.service(function (app) {
                     url: '/version',
                     binding,
                 });
-                openapi.child(
+                openapi.node(
                     'paths',
                     JSON.pointer.escape('/version'),
                     'get',

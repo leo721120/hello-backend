@@ -1,4 +1,4 @@
-{// workaround for openapi
+{// workaround for openapi example
     const v = require('ajv/dist/vocabularies/core/id') as {
         readonly default: ajv.CodeKeywordDefinition
     };
@@ -6,65 +6,88 @@
         // to prevent throw error when read openapi example with 'id' field
     };
 }
-import type { OpenAPIV3_1 as OpenAPI } from 'openapi-types'
+import type { OpenAPIV3_1 as v3 } from 'openapi-types'
 import * as formats from 'ajv-formats'
 import * as fs from 'node:fs'
 import * as yaml from 'yaml'
 import * as ajv from 'ajv'
 import '@io/lib/error'
 export const Ajv = formats.default(new ajv.default({
-    strict: false,// for openapi definition
+    strict: false,// workaround for openapi keywords
 }));
 export default Object.assign(JSON, <typeof JSON>{
     openapi(text) {
         try {
-            // check if file exist
-            fs.accessSync(text);
-            const yaml = fs.readFileSync(text, 'utf8');
-            return this.openapi(yaml);
+            if (!text.includes('\n')) {
+                // check if file exist
+                fs.accessSync(text);
+                const yaml = fs.readFileSync(text, 'utf8');
+                return this.openapi(yaml);
+            }
         } catch {
-            return Ajv.getSchema(text)?.schema ?? JSON.yaml(text
-                // workaround to resolve parameter syntax for Ajv
-                .replace('required: true', 'required: []')
-            );
+            // eat for another way to find content
         }
+        return Ajv.getSchema(text)?.schema ?? JSON.yaml(text
+            // workaround to resolve parameter syntax for Ajv
+            .replace('required: true', 'required: []')
+        );
     },
     schema($id: string, def: object) {
+        const ext = <Validator<unknown>>{
+            node(...paths) {
+                const root = $id.includes('#')
+                    ? $id// already started from document
+                    : `${$id}#`
+                    ;
+                return JSON.schema([
+                    root,
+                    ...paths,
+                ].join('/'));
+            },
+            assert(data, e) {
+                if (!this(data)) {
+                    const message = this.errors
+                        ?.map(e => e.message)
+                        .filter(Boolean)
+                        .join(', ')
+                        ?? 'schema validation failed'
+                        ;
+                    throw Error.Code({
+                        message,
+                        name: SyntaxError.name,
+                        errno: 400,
+                        ...e,
+                    });
+                }
+            },
+            attempt(data) {
+                this.assert(data);
+                return data;
+            },
+            foreach(field, cb) {
+                const schema = this.schema as undefined | {
+                    [name: string]: readonly unknown[] | undefined
+                };
+                schema?.[field]?.forEach?.((_, index) => {
+                    const node = this.node<never>(
+                        field,
+                        index.toString(),
+                    );
+                    cb(node, index);
+                });
+            },
+            as() {
+                return this;
+            },
+        };
         const get = function () {
-            const obj = Ajv.getSchema(
+            return Object.assign(Ajv.getSchema(
                 // ajv cannot resolve multi-reference
                 JSON.pointer.resolve($id)
-            ) ?? function () {
+            ) ?? function DefaultValidator() {
+                // prevent block caller
                 return true;
-            };
-            return Object.assign(obj, <Validator<unknown>>{
-                child(...paths) {
-                    return JSON.schema([
-                        `${$id}#`,
-                        ...paths,
-                    ].join('/'));
-                },
-                assert(data, e) {
-                    if (!this(data)) {
-                        const message = this.errors
-                            ?.map(e => e.message)
-                            .filter(Boolean)
-                            .join(', ')
-                            ?? 'schema validation failed'
-                            ;
-                        throw Error.Code({
-                            message,
-                            name: SyntaxError.name,
-                            errno: 400,
-                            ...e,
-                        });
-                    }
-                },
-                attempt(data) {
-                    this.assert(data);
-                    return data;
-                },
-            });
+            }, ext);
         };
         const set = function () {
             console.assert(def, 'schema should not be null or undefined');
@@ -97,7 +120,7 @@ export default Object.assign(JSON, <typeof JSON>{
                 last,
             ].join('/');
 
-            const dict = vali.schema as Dict<OpenAPI.ReferenceObject | undefined>;
+            const dict = vali.schema as Record<string, v3.ReferenceObject | undefined>;
             const item = dict[last];
             const $ref = item?.$ref;
             const home = $id.split('#')[0];
@@ -111,6 +134,16 @@ export default Object.assign(JSON, <typeof JSON>{
         },
     },
 });
+declare module 'openapi-types' {
+    namespace OpenAPIV3 {
+        interface Document {
+            /**
+            compatible to json schema
+            */
+            readonly $id?: string
+        }
+    }
+}
 declare global {
     interface JSON {
         /**
@@ -118,21 +151,21 @@ declare global {
         */
         yaml<V>(text: string): V
         /**
-        parse text as openapi format
-        */
-        openapi<V extends object>(text: string): OpenAPI.Document<V>
-        /**
         read file content as openapi
         */
-        openapi<V extends object>(path: string): OpenAPI.Document<V>
+        openapi<V extends object>(path: string): v3.Document<V>
+        /**
+        parse text as openapi format
+        */
+        openapi<V extends object>(text: string): v3.Document<V>
         /**
         find a document with the $id
         */
-        openapi<V extends object>($id: string): OpenAPI.Document<V>
+        openapi<V extends object>($id: string): v3.Document<V>
         /**
         define an openapi as json schema
         */
-        schema<V extends object>($id: string, openapi: OpenAPI.Document<V>): Validator<object> & {
+        schema<V extends object>($id: string, openapi: v3.Document<V>): Validator<object> & {
             readonly schema: typeof openapi
         }
         /**
@@ -157,29 +190,40 @@ declare global {
         }
     }
 }
-declare module 'openapi-types' {
-    namespace OpenAPIV3 {
-        interface Document {
-            /**
-            compatible to json schema
-            */
-            readonly $id?: string
-        }
-    }
-}
 type Validator<V> = ajv.ValidateFunction<V> & {
-    /**
-    find sub-node by given paths
-    */
-    child<U extends unknown>(...paths: readonly string[]): Validator<U>
-    /**
-    throw error if invalid
-    */
-    assert<E extends Error>(data: V, e?: Partial<E>): never
     /**
     throw error if invalid
 
     @return passed value
     */
     attempt<A extends V>(data: A): A
+    /**
+    throw error if invalid
+    */
+    assert<E extends Error>(data: V, e?: Partial<E>): never
+    /**
+    find sub-node by given paths
+    */
+    node<U extends unknown>(...paths: readonly string[]): Validator<U>
+    /**
+    iterate sub-node by given field name, this is useful for openapi parameters
+
+    @example
+    const op = openapi.node(
+        'paths',
+        JSON.pointer.escape('/path/to/api'),
+        'get',
+    );
+    op.foreach('parameters', function(param) {
+        param.as('openapi.parameter');
+    });
+    */
+    foreach<A>(field: string, cb: (schema: Validator<A>, index: number) => void): void
+    /**
+    force convert type to, this is useful for openapi parameters
+    */
+    as<A>(): Validator<A>
+    as<A extends unknown>(type: 'openapi.parameter'): Validator<A> & {
+        readonly schema: v3.ParameterObject & v3.ReferenceObject
+    }
 };
