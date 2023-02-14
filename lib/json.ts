@@ -64,16 +64,15 @@ export default Object.assign(JSON, <typeof JSON>{
                 this.assert(data);
                 return data;
             },
-            foreach(field, cb) {
-                const schema = this.schema as undefined | {
-                    [name: string]: readonly unknown[] | undefined
-                };
-                schema?.[field]?.forEach?.((_, index) => {
+            foreach(cb) {
+                const schema = this.schema as undefined
+                    | Partial<Record<string, unknown>>
+                    ;
+                Object.entries(schema ?? {}).forEach(([field,]) => {
                     const node = this.node<never>(
                         field,
-                        index.toString(),
                     );
-                    cb(node, index);
+                    cb(node, field);
                 });
             },
             as() {
@@ -206,19 +205,20 @@ type Validator<V> = ajv.ValidateFunction<V> & {
     */
     node<U extends unknown>(...paths: readonly string[]): Validator<U>
     /**
-    iterate sub-node by given field name, this is useful for openapi parameters
+    iterate sub-node under this node, this is useful for openapi parameters
 
     @example
     const op = openapi.node(
         'paths',
         JSON.pointer.escape('/path/to/api'),
         'get',
+        'parameters',
     );
-    op.foreach('parameters', function(param) {
-        param.as('openapi.parameter');
+    op.foreach(function(node) {
+        node.as('openapi.parameter');
     });
     */
-    foreach<A>(field: string, cb: (schema: Validator<A>, index: number) => void): void
+    foreach<A>(cb: (node: Validator<A>, field: string) => void): void
     /**
     force convert type to, this is useful for openapi parameters
     */

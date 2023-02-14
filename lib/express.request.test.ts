@@ -22,15 +22,79 @@ describe('express/req', function () {
     });
     it('.querystrings', async function () {
         const app = express().get('/abc', async function (req, res) {
-            const list = req.querystrings('qa');
-            res.status(200).json({ list });
+            const qs = req.querystrings('qa');
+            res.status(200).json({ qs });
         });
         const res = await express
             .fetch(app)
             .get('/abc?qa=123')
             ;
-        expect(res.body.list).toEqual([
+        expect(res.body.qs).toEqual([
             '123',
         ]);
+    });
+    it('.querystrings, multiple', async function () {
+        const app = express().get('/abc', async function (req, res) {
+            const qs = req.querystrings('qa');
+            res.status(200).json({ qs });
+        });
+        const res = await express
+            .fetch(app)
+            .get('/abc?qa=123&qa=xyz')
+            ;
+        expect(res.body.qs).toEqual([
+            '123',
+            'xyz',
+        ]);
+    });
+    it('.querystrings, comma separated', async function () {
+        const app = express().get('/abc', async function (req, res) {
+            const qs = req.querystrings('qa');
+            res.status(200).json({ qs });
+        });
+        const res = await express
+            .fetch(app)
+            .get('/abc?qa=123,456&qa=xyz')
+            ;
+        expect(res.body.qs).toEqual([
+            '123',
+            '456',
+            'xyz',
+        ]);
+    });
+    it('.querystrings, empty if not found', async function () {
+        const app = express().get('/abc', async function (req, res) {
+            const qs = req.querystrings('qa');
+            res.status(200).json({ qs });
+        });
+        const res = await express
+            .fetch(app)
+            .get('/abc?pk=192')
+            ;
+        expect(res.body.qs).toEqual([
+            // empty
+        ]);
+    });
+    it('.querystring', async function () {
+        const app = express().get('/abc', async function (req, res) {
+            const qs = req.querystring('qa');
+            res.status(200).json({ qs });
+        });
+        const res = await express
+            .fetch(app)
+            .get('/abc?qa=321')
+            ;
+        expect(res.body.qs).toEqual('321');
+    });
+    it('.querystring, omit if not found', async function () {
+        const app = express().get('/abc', async function (req, res) {
+            const qs = req.querystring('qa');
+            res.status(200).json({ qs });
+        });
+        const res = await express
+            .fetch(app)
+            .get('/abc?no=321')
+            ;
+        expect(res.body.qs).toEqual(undefined);
     });
 });

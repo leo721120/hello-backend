@@ -167,9 +167,10 @@ describe('json', function () {
             'paths',
             JSON.pointer.escape('/foo/{id}'),
             'get',
+            'parameters',
         );
-        op.foreach('parameters', function (item) {
-            const param = item.as('openapi.parameter');
+        op.foreach(function (node) {
+            const param = node.as('openapi.parameter');
             expect(param.schema.in).toBe('query');
         });
     });

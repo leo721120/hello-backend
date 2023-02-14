@@ -17,9 +17,15 @@ export default Object.assign(express.request, <typeof express.request>{
         return e;
     },
     querystrings(name) {
-        const values = this.query[name] as undefined | string | string[] ?? [];
-        const text = [].concat(values as []).join(',');
-        return text.split(',').filter(Boolean).unique();
+        const list = [].concat(this.query[name] as [] ?? [])
+            .join(',')
+            .split(',')
+            .filter(Boolean)// remove empty
+            ;
+        return list as readonly string[];
+    },
+    querystring(name) {
+        return this.query[name];
     },
     content() {
         return this.body;
@@ -56,9 +62,12 @@ declare global {
             */
             cloudevent(): CloudEvent<string>
             /**
-            empty array if not found
+            @return query-strings with array type
             */
-            querystrings<K extends string>(name: string): K[]
+            querystrings<K extends string>(name: string): readonly K[]
+            /**
+            */
+            querystring<K extends string>(name: string): K | undefined
             /**
             return body content
             */
