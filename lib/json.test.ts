@@ -174,6 +174,45 @@ describe('json', function () {
             expect(param.schema.in).toBe('query');
         });
     });
+    it('.openapi, find parameter', async function () {
+        const doc = JSON.openapi(`${__dirname}/json.test.yml`);
+        const openapi = JSON.schema('testonly.ppp.yml', doc);
+        const op = openapi.node(
+            'paths',
+            JSON.pointer.escape('/foo/{id}'),
+            'get',
+            'parameters',
+        );
+        const node = op.find(function (node) {
+            const param = node.as('openapi.parameter');
+            return param.schema.name === 'q1';
+        });
+        const param = node?.as('openapi.parameter');
+        expect(param?.schema.in).toBe('query');
+        expect(param?.schema.name).toBe('q1');
+    });
+    it('.openapi, map parameters', async function () {
+        const doc = JSON.openapi(`${__dirname}/json.test.yml`);
+        const openapi = JSON.schema('testonly.ppp.yml', doc);
+        const op = openapi.node(
+            'paths',
+            JSON.pointer.escape('/foo/{id}'),
+            'get',
+            'parameters',
+        );
+        const list = op.map(function (node) {
+            return node;
+        });
+        expect(list).toHaveLength(2);
+        {
+            const param = list[0].as('openapi.parameter');
+            expect(param.schema.in).toBe('query');
+        }
+        {
+            const param = list[1].as('openapi.parameter');
+            expect(param.schema.in).toBe('query');
+        }
+    });
     it('.pointer', async function () {
         expect(JSON.pointer.escape('/abc/{id}')).toBe('~1abc~1{id}');
     });

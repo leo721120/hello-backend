@@ -9,7 +9,11 @@ export default environment.define(function ({ step }) {
     }
     step(/^new environment$/, async function () {
         const events = await import('node:events');
-        const app = e().on('error', function (e) {
+        const watch = new events.EventEmitter();
+        const app = e().on('event', function (...a) {
+            // forward events to watch
+            watch.emit('event', ...a);
+        }).on('error', function (e) {
             if (process.env.DEBUG) {
                 console.error(e);
             }
@@ -19,7 +23,7 @@ export default environment.define(function ({ step }) {
             await app.setup(await import('@io/app/domain.mock'));
         }
         Object.assign(environment, <typeof environment>{
-            e: events.default.on(app, 'event'),
+            e: events.default.on(watch, 'event'),
             //benchmark: undefined,
             res: undefined,
             req: {},

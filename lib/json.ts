@@ -65,15 +65,32 @@ export default Object.assign(JSON, <typeof JSON>{
                 return data;
             },
             foreach(cb) {
+                this.map(cb);
+            },
+            find(cb) {
                 const schema = this.schema as undefined
                     | Partial<Record<string, unknown>>
                     ;
-                Object.entries(schema ?? {}).forEach(([field,]) => {
+                for (const [field,] of Object.entries(schema ?? {})) {
                     const node = this.node<never>(
                         field,
                     );
-                    cb(node, field);
-                });
+                    if (cb(node, field)) {
+                        return node;
+                    }
+                }
+                return undefined;// not found
+            },
+            map(cb) {
+                const schema = this.schema as undefined
+                    | Partial<Record<string, unknown>>
+                    ;
+                return Object.entries(schema ?? {}).map(([field,]) => {
+                    const node = this.node<never>(
+                        field,
+                    );
+                    return cb(node, field);
+                }) as readonly unknown[];
             },
             as() {
                 return this;
@@ -218,7 +235,15 @@ type Validator<V> = ajv.ValidateFunction<V> & {
         node.as('openapi.parameter');
     });
     */
-    foreach<A>(cb: (node: Validator<A>, field: string) => void): void
+    foreach<A extends V>(cb: (node: Validator<A>, field: string) => void): void
+    /**
+    find sub-node like `array.find`
+    */
+    find<A extends V>(cb: (node: Validator<A>, field: string) => boolean): Validator<A> | undefined
+    /**
+    same as `.foreach`, but can return value at each
+    */
+    map<R, A extends V>(cb: (node: Validator<A>, field: string) => R): readonly R[]
     /**
     force convert type to, this is useful for openapi parameters
     */

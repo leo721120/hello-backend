@@ -27,6 +27,23 @@ export default express.service(function (app) {
             app.emit('event', res.cloudevent());
         });
         Object.assign(req, <typeof req>{
+            querystrings(name) {
+                const value = [].concat(this.query[name] as [] ?? []) as readonly string[];
+                {
+                    openapi.node(
+                        'paths',
+                        JSON.pointer.escape(req.route.path),
+                        req.method.toLowerCase(),
+                        'parameters',
+                    ).find(function (node) {
+                        const param = node.as('openapi.parameter');
+                        return param.schema.in === 'query'
+                            && param.schema.name === name
+                            ;
+                    })?.assert(this.query[name]);
+                }
+                return value;
+            },
             content(type: string = 'application/json') {
                 return openapi.node(
                     'paths',

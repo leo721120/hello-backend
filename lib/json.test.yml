@@ -18,11 +18,11 @@ paths:
               example: { id: "id-testonly" }
       parameters:
         - in: query
-          name: field
+          name: q1
           schema:
             type: string
         - in: query
-          name: include
+          name: q2
           schema:
             type: string
             enum:
