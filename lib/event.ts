@@ -3,20 +3,29 @@ import TraceParent from 'traceparent'
 import '@io/lib/node'
 export default Object.assign(globalThis, <typeof globalThis>{
     CloudEvent(params) {
-        const tracecontext = params.id?.length
-            ? TraceParent.fromString(params.id)
-            : TraceParent.startOrResume(params.id, {
+        if (params.id === null) {
+            return CloudEvent({
+                ...params,
+                id: '00-00000000000000000000000000000000-0000000000000000-00',
+            });
+        } else if (params.id === undefined) {
+            const id = TraceParent.startOrResume(null, {
                 transactionSampleRate: 1,
-            })
-            ;
-        return {
-            time: params.time ?? new Date().toISOString(),
-            datacontenttype: 'application/json',
-            specversion: '1.0',
-            source: '.',
-            ...params,
-            id: tracecontext.toString(),
-        };
+            });
+            return CloudEvent({
+                ...params,
+                id: id.toString(),
+            });
+        } else {
+            const id = TraceParent.fromString(params.id);
+
+            return {
+                datacontenttype: 'application/json',
+                specversion: '1.0',
+                ...params,
+                id: id.toString(),
+            };
+        }
     },
 });
 declare global {
@@ -32,14 +41,14 @@ declare global {
         : unknown
     }
     var CloudEvent: {
-        <K extends string>(params: Editable<K>): CloudEvent<K>
-        readonly EMPTY_ID: string
+        <K extends string>(params: Omit<CloudEvent<K>, 'id'> & {
+            readonly id:
+            //
+            | CloudEventV1<unknown>['id']
+            // 00-00000000000000000000000000000000-0000000000000000-00
+            | null
+            // generate new one
+            | undefined
+        }): CloudEvent<K>
     }
 }
-type Editable<K extends string> = Partial<CloudEvent<K>> & Pick<CloudEvent<K>,
-    | 'type'
-    | 'data'
->;
-Object.assign(CloudEvent, <typeof CloudEvent>{
-    EMPTY_ID: '00-00000000000000000000000000000000-0000000000000000-00',
-});

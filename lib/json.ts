@@ -29,7 +29,7 @@ export default Object.assign(JSON, <typeof JSON>{
         }
         return Ajv.getSchema(text)?.schema ?? JSON.yaml(text
             // workaround to resolve parameter syntax for Ajv
-            .replace('required: true', 'required: []')
+            .replace(/required: true/g, '#')
         );
     },
     schema($id: string, def: object) {
@@ -161,6 +161,9 @@ declare module 'openapi-types' {
     }
 }
 declare global {
+    namespace JSON {
+        type Schema<V> = ajv.JSONSchemaType<V>;
+    }
     interface JSON {
         /**
         parse text as YAML format

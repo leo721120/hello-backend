@@ -53,11 +53,18 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
     fetch.interceptors.request.use(function (req) {
         const now = req.now ?? Date.now();
         const method = req.method?.toUpperCase() ?? 'GET';
+        const cloudevent = req.cloudevent ?? CloudEvent({
+            source: req.url ?? '/',
+            data: undefined,
+            type: method,
+            id: undefined,// generate new one
+        });
         const headers = {
             ...req.headers,
-            traceparent: req.cloudevent?.id ?? CloudEvent.EMPTY_ID,
+            traceparent: cloudevent.id,
         };
         return Object.assign(req, <typeof req>{
+            cloudevent,
             headers,
             method,
             now,
@@ -75,8 +82,7 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
             },
         });
     });
-    return Object.assign(fetch, {
-    });
+    return fetch;
 };
 export default Object.assign(build, {
     mock(fetch: ReturnType<typeof build>) {

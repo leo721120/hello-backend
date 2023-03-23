@@ -16,7 +16,7 @@ describe('express/req', function () {
             id: expect.any(String),
             source: '/abc?q=124',
             specversion: '1.0',
-            time: expect.any(String),
+            //time: expect.any(String),
             type: 'GET',
         });
     });

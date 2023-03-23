@@ -72,6 +72,17 @@ declare global {
             offset(): number
         }
     }
+    interface Promise<T> {
+        /**
+        Calls a defined callback function on each element of an array, and returns an array that contains the results.
+        */
+        map<R>(cb: (v: T extends readonly (infer E)[] ? E : T) => R): Promise<T extends readonly unknown[] ? readonly R[] : R>
+        map<R>(cb: (v: T extends (infer E)[] ? E : T) => R): Promise<T extends unknown[] ? R[] : R>
+        /**
+        */
+        filter(cb: (v: T extends readonly (infer E)[] ? E : T) => boolean): Promise<T extends readonly (infer E)[] ? readonly E[] : (T | undefined)>
+        filter(cb: (v: T extends (infer E)[] ? E : T) => boolean): Promise<T extends (infer E)[] ? E[] : (T | undefined)>
+    }
     interface Object {
         toJSON?<R>(): R
     }
@@ -182,6 +193,24 @@ Object.assign(Object, <ObjectConstructor>{
             c[a] = o[a];
         }
         return c;
+    },
+});
+Object.assign(Promise.prototype, <Promise<unknown>>{
+    async filter(cb) {
+        return this.then(value => {
+            return Array.isArray(value)
+                ? value.filter(cb)
+                : cb(value) ? value : undefined
+                ;
+        });
+    },
+    async map(cb) {
+        return this.then(value => {
+            return Array.isArray(value)
+                ? value.map(cb as () => unknown)
+                : cb(value)
+                ;
+        });
     },
 });
 Object.assign(Promise, <PromiseConstructor>{

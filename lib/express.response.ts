@@ -4,19 +4,6 @@ export default Object.assign(express.response, <typeof express.response>{
     robotstag(value) {
         return this.setHeader('X-Robots-Tag', value);
     },
-    cloudevent() {
-        const e = {
-            ...this.req.cloudevent(),
-        };
-        Object.assign(e, {
-            status: this.statusCode,
-            elapse: this.elapse(),
-        });
-        this.cloudevent = () => {
-            return e;
-        };
-        return e;
-    },
     elapse() {
         return Date.now() - this.req.now.getTime();
     },
@@ -30,11 +17,11 @@ export default Object.assign(express.response, <typeof express.response>{
         this.status(errno < 0 ? 500 : errno);
         this.statusMessage = e.name;
         return this.json(<rfc7807>{
-            code: e.name,
             type: e.help,
+            title: e.name,
+            status: this.statusCode,
             detail: e.message,
             instance: this.req.path,
-            parameters: e.params,
         });
     },
 });
@@ -45,10 +32,6 @@ declare global {
             https://developers.google.com/search/docs/advanced/robots/robots_meta_tag?hl=zh-tw#xrobotstag
             */
             robotstag(value: 'noindex' | 'none'): this
-            /**
-            extract tracecontext from header
-            */
-            cloudevent(): CloudEvent<string>
             /**
             how much time has elapsed since receiving the request
             */

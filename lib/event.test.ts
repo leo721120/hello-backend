@@ -8,6 +8,26 @@ describe('event', function () {
             type: 'testonly/event',
             data: { foo: 'bar' },
             time: t,
+            id: null
+        });
+        expect(c).toEqual({
+            datacontenttype: 'application/json',
+            specversion: '1.0',
+            id: '00-00000000000000000000000000000000-0000000000000000-00',
+            time: t,
+            source: '/testonly',
+            type: 'testonly/event',
+            data: { foo: 'bar' },
+        });
+    });
+    it('.cloudevent, id', async function () {
+        const t = new Date().toISOString();
+        const c = CloudEvent({
+            source: '/testonly',
+            type: 'testonly/event',
+            data: { foo: 'bar' },
+            time: t,
+            id: undefined,// generate new one
         });
         expect(c).toEqual({
             datacontenttype: 'application/json',

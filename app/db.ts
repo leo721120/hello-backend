@@ -17,11 +17,10 @@ export default express.service(function (app) {
                 password: '',
             });
             app.emit('event', CloudEvent({
-                id: CloudEvent.EMPTY_ID,
                 source: uri.toString(),
-                data: undefined,
                 type: 'db',
                 text: 'connect',
+                id: null,
             }));
         });
         Sequelize.afterInit('init-db', function (db) {

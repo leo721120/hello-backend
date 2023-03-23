@@ -150,6 +150,38 @@ describe('Promise', function () {
         r.ok(3);
         expect(await r).toBe(3);
     });
+    it('.map, value', async function () {
+        const r = Promise.resolve(13);
+        const v = r.map(function (a) {
+            return `str_${a}`;
+        });
+        expect(await v).toBe('str_13');
+    });
+    it('.map, array', async function () {
+        const r = Promise.resolve([24]);
+        const v = r.map(function (a) {
+            return `str_${a}`;
+        });
+        expect(await v).toEqual([
+            'str_24'
+        ]);
+    });
+    it('.filter, value', async function () {
+        const r = Promise.resolve(13);
+        const v = r.filter(function (a) {
+            return a < 10;
+        });
+        expect(await v).toBe(undefined);
+    });
+    it('.filter, array', async function () {
+        const r = Promise.resolve([24, 9]);
+        const v = r.filter(function (a) {
+            return a > 10;
+        });
+        expect(await v).toEqual([
+            24
+        ]);
+    });
 });
 describe('Array', function () {
     it('.unique', async function () {

@@ -3,24 +3,22 @@ import '@io/lib/event'
 import '@io/lib/node'
 export default express.service(function (app) {
     app.ws('/ws', function (ws, req) {
-        const e = req.cloudevent();
+        const re = req.cloudevent();
         //
         ws.on('error', function (e) {
-            app.emit('error', e, req.cloudevent());
+            app.emit('error', Object.assign(e, <typeof e>{
+                cloudevent: re,
+            }));
         }).on('close', function () {
             app.emit('event', CloudEvent({
-                source: e.source,
-                id: e.id,
-                type: e.type,
-                data: undefined,
+                ...re,
                 text: 'close',
             }));
         }).on('message', function (byte) {
             const ce = CloudEvent<'WebSocket.Message'>({
+                ...re,
                 type: 'WebSocket.Message',
-                source: e.source,
-                id: e.id,
-                data: {
+                data: <CloudEvents['WebSocket.Message']>{
                     byte() {
                         return byte as Buffer;
                     },

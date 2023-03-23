@@ -22,9 +22,17 @@ export default express.service(function (app) {
             },
         });
     }).use(function (req, res, next) {
-        app.emit('event', req.cloudevent());
+        app.emit('event',
+            req.cloudevent()
+        );
         res.once('finish', function () {
-            app.emit('event', res.cloudevent());
+            const ce = req.cloudevent();
+            app.emit('event', {
+                ...ce,
+                elapse: res.elapse(),
+                type: res.statusCode.toString(),
+                time: undefined,// useless
+            });
         });
         Object.assign(req, <typeof req>{
             querystrings(name) {
@@ -40,7 +48,28 @@ export default express.service(function (app) {
                         return param.schema.in === 'query'
                             && param.schema.name === name
                             ;
-                    })?.assert(this.query[name]);
+                    })?.node('schema').assert(this.query[name]);
+                }
+                return value;
+            },
+            parameter(name) {
+                const value = this.params[name];
+                const field = function () {// convert express `path` to openapi `path`
+                    const p = req.route.path as string;
+                    return p.replace(`:${name}`, `{${name}}`);
+                };
+                {
+                    openapi.node(
+                        'paths',
+                        JSON.pointer.escape(field()),
+                        //req.method.toLowerCase(),
+                        'parameters',
+                    ).find(function (node) {
+                        const param = node.as('openapi.parameter');
+                        return param.schema.in === 'path'
+                            && param.schema.name === name
+                            ;
+                    })?.node('schema').assert(this.params[name]);
                 }
                 return value;
             },

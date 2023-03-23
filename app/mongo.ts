@@ -22,28 +22,25 @@ export default express.service(function (app) {
             db.close();
         }).emit('event', await Promise.try(function () {
             return CloudEvent({
-                id: CloudEvent.EMPTY_ID,
                 source: uri.toString(),
-                data: undefined,
                 type: 'mongo',
                 text: 'connect',
+                id: null,
             });
         }));
         db.on('close', function () {
             app.emit('event', CloudEvent({
-                id: CloudEvent.EMPTY_ID,
                 source: uri.toString(),
-                data: undefined,
                 type: 'mongo',
                 text: 'connect',
+                id: null,
             }));
         }).on('timeout', function () {
             app.emit('event', CloudEvent({
-                id: CloudEvent.EMPTY_ID,
                 source: uri.toString(),
-                data: undefined,
                 type: 'mongo',
                 text: 'timeout',
+                id: null,
             }));
         }).on('commandFailed', function (e) {
             /*app.emit('error', {

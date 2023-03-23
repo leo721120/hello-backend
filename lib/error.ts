@@ -1,3 +1,4 @@
+import '@io/lib/event'
 export default Object.assign(Error, <ErrorConstructor>{
     Code(e) {
         return Object.assign(Error(e.message), e);
@@ -9,19 +10,30 @@ declare global {
     }
     interface Error {
         /**
+        source of error
+        */
+        readonly cloudevent?: CloudEvent<string>
+        /**
         how long to be wait if retryable, in milliseconds
         */
         readonly retrydelay?: number
-        readonly params?: object
-        readonly errno?: number | string
-        /**
-        indicate the direction of the user
-        */
-        readonly help?: string
         /**
         more description about this error, may contain technical details
         */
         readonly reason?: unknown
+        /**
+        */
+        readonly params?: object
+        /**
+        */
+        readonly errno?: number | string
+        /**
+        */
+        readonly code?: number | string
+        /**
+        indicate the direction of the user
+        */
+        readonly help?: string
     }
     interface rfc7807 {
         /**

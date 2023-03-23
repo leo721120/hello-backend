@@ -4,6 +4,7 @@ import dotenv from 'dotenv'
 import helmet from 'helmet'
 import cors from 'cors'
 import pino from 'pino'
+import '@io/lib/event'
 import '@io/lib/node'
 dotenv.config();
 Promise.try(async function () {
@@ -15,22 +16,22 @@ Promise.try(async function () {
     });
     app.once('close', function () {
         log.info({ text: 'close' });
-    }).on('event', function (e) {
+    }).on('event', function ({ time, data, datacontenttype, specversion, ...ce }) {
         log.info({
-            name: e.id,
-            type: e.type,
-            source: e.source,
-            status: e.status,
-            elapse: e.elapse,
-            at: e.time,
-            text: e.text,
+            ...ce,
+            at: time,
         });
-    }).on<string>('error', function (e, a) {// bind before setup to prevent [ERR_UNHANDLED_ERROR]
+    }).on('error', function (e) {// bind before setup to prevent [ERR_UNHANDLED_ERROR]
+        const ce = e.cloudevent ?? CloudEvent({
+            id: null,
+        });
         log.warn({
-            name: a?.id,
-            type: e.errno,
-            code: e.name,
+            id: ce.id,
+            type: e.name,
+            code: e.code,
             text: e.message,
+            params: e.params,
+            reason: e.reason,
         });
     });
     {

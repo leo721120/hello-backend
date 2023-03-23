@@ -5,10 +5,11 @@ import '@io/lib/node'
 export default Object.assign(express.request, <typeof express.request>{
     cloudevent() {
         const e = CloudEvent({
+            // generate new one if not exist
             id: this.header('traceparent'),
             type: this.method.toUpperCase(),
-            time: this.now.toISOString(),
-            data: undefined,
+            //time: this.now.toISOString(),
+            //data: undefined,
             source: this.url,
         });
         this.cloudevent = () => {
@@ -26,6 +27,9 @@ export default Object.assign(express.request, <typeof express.request>{
     },
     querystring(name) {
         return this.query[name];
+    },
+    parameter(name) {
+        return this.params[name];
     },
     content() {
         return this.body;
@@ -66,8 +70,13 @@ declare global {
             */
             querystrings<K extends string>(name: string): readonly K[]
             /**
+            @return first value from `querystrings`
             */
             querystring<K extends string>(name: string): K | undefined
+            /**
+            @return value from `params[name]`
+            */
+            parameter<K extends string>(name: string): K
             /**
             return body content
             */

@@ -21,4 +21,4 @@ Feature: GET
         Then expect events should be
             | type | source     |
             | GET  | /not/exist |
-            | GET  | /not/exist |
+            | 400  | /not/exist |

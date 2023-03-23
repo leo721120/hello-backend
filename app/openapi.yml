@@ -1,10 +1,10 @@
-openapi: 3.1.0
+openapi: 3.0.3
 
 info:
   version: 1.0.0
-  title: DeviceOn/iService LicenseService
+  title: example backend
   description: |
-    Welcome to the reference for the LicenseService API.
+    Welcome to the reference for the example backend API.
 
     # Authentication
 
@@ -19,14 +19,10 @@ info:
     - The DELETE method deletes the specified resource.
 
 tags:
-  - name: Brand
+  - name: User
     description: |
-      about brand
-      <SchemaDefinition schemaRef="#/components/schemas/brand"/>
-  - name: Cost
-    description: |
-      about cost in brand
-      <SchemaDefinition schemaRef="#/components/schemas/cost"/>
+      about user
+      <SchemaDefinition schemaRef="#/components/schemas/user"/>
 
 servers:
   - url: http://{hostname}:{port}/v1.0/invoke/{appid}/method
@@ -44,7 +40,7 @@ servers:
       appid:
         description: |
           name of application
-        default: appsrv
+        default: devapp
 
 security: []
 
@@ -119,200 +115,26 @@ paths:
                     type: string
                     enum:
                       - SUCCESS
-  /brand:
-    post:
-      summary: CreateBrand
-      description: |
-        create brand by given properties
-      tags:
-        - Brand
-      requestBody:
-        content:
-          application/json:
-            schema:
-              additionalProperties: false
-              type: object
-              properties:
-                id:
-                  $ref: "#/components/schemas/brand/properties/id"
-                  description: |
-                    user-specified, omit if auto-generated
-                licenses:
-                  $ref: "#/components/schemas/brand/properties/licenses"
-      responses:
-        default:
-          description: |
-            operation failed
-        409:
-          description: |
-            brand already existed
-        200:
-          description: |
-            operation success
-          content:
-            application/json:
-              schema:
-                additionalProperties: false
-                type: object
-                properties:
-                  id:
-                    $ref: "#/components/schemas/brand/properties/id"
+  /users:
     get:
-      summary: ListBrands
       description: |
-        list all brands (only for debug)
-      tags:
-        - Brand
-      responses:
-        default:
-          description: |
-            operation failed
-        200:
-          description: |
-            operation success
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/brands"
-  /brand/{id}:
-    parameters:
-      - $ref: "#/components/parameters/brand_id"
-    delete:
-      summary: RemoveBrand
-      description: |
-        remove brand by id
-      tags:
-        - Brand
-      responses:
-        default:
-          description: |
-            operation failed
-        204:
-          description: |
-            operation success
-    get:
-      summary: FindBrand
-      description: |
-        find brand by brand id
-      tags:
-        - Brand
-      responses:
-        default:
-          description: |
-            operation failed
-        404:
-          description: |
-            brand not found
-        200:
-          description: |
-            operation success
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/brand"
-  /brand/{id}/licenses:
-    parameters:
-      - $ref: "#/components/parameters/brand_id"
-    post:
-      summary: ApplyLicenses
-      description: |
-        apply licenses to this brand
-      tags:
-        - Cost
-      requestBody:
-        content:
-          application/json:
-            schema:
-              description: |
-                list of licenses to be applied
-              type: array
-              minItems: 1
-              maxItems: 99
-              items:
-                $ref: "#/components/schemas/license"
-      responses:
-        default:
-          description: |
-            operation failed
-        404:
-          description: |
-            brand not found
-        204:
-          description: |
-            operation success
-    get:
-      summary: ListLicenses
-      description: |
-        list licenses under this brand
-      tags:
-        - Cost
-      responses:
-        default:
-          description: |
-            operation failed
-        404:
-          description: |
-            brand not found
-        200:
-          description: |
-            operation success
-          content:
-            application/json:
-              $ref: "#/components/schemas/brand/properties/licenses"
-  /brand/{id}/devices:
-    parameters:
-      - $ref: "#/components/parameters/brand_id"
-    delete:
-      summary: RemoveDevices
-      description: |
-        remove devices from this brand
-      tags:
-        - Cost
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/devices"
-      responses:
-        default:
-          description: |
-            operation failed
-        404:
-          description: |
-            brand not found
-        204:
-          description: |
-            operation success
-    post:
-      summary: RegisterDevices
-      description: |
-        register devices to this brand
-      tags:
-        - Cost
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/devices"
-              description: |
-                list of devices to register
-      responses:
-        default:
-          description: |
-            operation failed
-        404:
-          description: |
-            brand not found
-        204:
-          description: |
-            operation success
 
-webhooks:
-  BrandAdded:
+      tags:
+        - User
+      responses:
+        200:
+          description: |
+            operation success
+          content:
+            application/json:
+              schema: {}
+
+x-webhooks:
+  UserAdded:
     post:
-      summary: BrandAdded
+      summary: UserAdded
       description: |
-        event notification about new brand added
+        event notification about new user has be added
       tags: []
       requestBody:
         content:
@@ -320,9 +142,9 @@ webhooks:
             example:
               {
                 "id": "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01",
-                "type": "License.BrandAdded",
+                "type": "IAM.UserAdded",
                 "time": "2022-11-25T14:06:53Z",
-                "data": { "id": "BRAND-ID-0001ABCD" },
+                "data": { "id": "USER-JmJEL9Y8PrbrvqCVEfg5SlUCxEVJfVU6" },
               }
             schema:
               allOf:
@@ -332,329 +154,12 @@ webhooks:
                   properties:
                     type:
                       enum:
-                        - License.BrandAdded
+                        - IAM.UserAdded
                     data:
                       allOf:
-                        - $ref: "#/components/schemas/brand"
+                        - $ref: "#/components/schemas/user"
                         - required:
                             - id
-  BrandRemoved:
-    post:
-      summary: BrandRemoved
-      description: |
-        event notification about brand removed
-      tags: []
-      requestBody:
-        content:
-          application/cloudevents+json:
-            example:
-              {
-                "id": "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01",
-                "type": "License.BrandRemoved",
-                "time": "2022-11-25T14:06:53Z",
-                "data": { "id": "BRAND-ID-0001ABCD" },
-              }
-            schema:
-              allOf:
-                - $ref: "#/components/schemas/event"
-                - required:
-                    - data
-                  properties:
-                    type:
-                      enum:
-                        - License.BrandRemoved
-                    data:
-                      allOf:
-                        - $ref: "#/components/schemas/brand"
-                        - required:
-                            - id
-  DevicesRegistered:
-    post:
-      summary: DevicesRegistered
-      description: |
-        event notification about devices registered to brand
-      tags: []
-      requestBody:
-        content:
-          application/cloudevents+json:
-            example:
-              {
-                "id": "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01",
-                "type": "License.DevicesRegistered",
-                "time": "2022-11-25T14:06:53Z",
-                "data":
-                  {
-                    "id": "BRAND-ID-0001ABCD",
-                    "devices":
-                      [
-                        {
-                          "did": "DID-00:11:22:33",
-                          "manufacturer": "advantech",
-                        },
-                        { "did": "DID-00:11:22:44", "manufacturer": "unknown" },
-                      ],
-                  },
-              }
-            schema:
-              allOf:
-                - $ref: "#/components/schemas/event"
-                - required:
-                    - data
-                  properties:
-                    type:
-                      enum:
-                        - License.DevicesRegistered
-                    data:
-                      allOf:
-                        - $ref: "#/components/schemas/brand"
-                        - required:
-                            - id
-                            - devices
-                          properties:
-                            devices:
-                              $ref: "#/components/schemas/devices"
-  DevicesRemoved:
-    post:
-      summary: DevicesRemoved
-      description: |
-        event notification about devices removed from brand
-      tags: []
-      requestBody:
-        content:
-          application/cloudevents+json:
-            example:
-              {
-                "id": "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01",
-                "type": "License.DevicesRemoved",
-                "time": "2022-11-25T14:06:53Z",
-                "data":
-                  {
-                    "id": "BRAND-ID-0001ABCD",
-                    "devices":
-                      [
-                        {
-                          "did": "DID-00:11:22:33",
-                          "manufacturer": "advantech",
-                        },
-                        { "did": "DID-00:11:22:44", "manufacturer": "unknown" },
-                      ],
-                  },
-              }
-            schema:
-              allOf:
-                - $ref: "#/components/schemas/event"
-                - required:
-                    - data
-                  properties:
-                    type:
-                      enum:
-                        - License.DevicesRemoved
-                    data:
-                      allOf:
-                        - $ref: "#/components/schemas/brand"
-                        - required:
-                            - id
-                            - devices
-                          properties:
-                            devices:
-                              $ref: "#/components/schemas/devices"
-  LicensesApplied:
-    post:
-      summary: LicensesApplied
-      description: |
-        event notification about licenses is applied to brand
-      tags: []
-      requestBody:
-        content:
-          application/cloudevents+json:
-            example:
-              {
-                "id": "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01",
-                "type": "License.LicensesApplied",
-                "time": "2022-11-25T14:06:53Z",
-                "data":
-                  {
-                    "id": "BRAND-ID-0001ABCD",
-                    "licenses": [{ "sn": "ADDED-LICENSE-0000XXXX" }],
-                  },
-              }
-            schema:
-              allOf:
-                - $ref: "#/components/schemas/event"
-                - required:
-                    - data
-                  properties:
-                    type:
-                      enum:
-                        - License.LicensesApplied
-                    data:
-                      allOf:
-                        - $ref: "#/components/schemas/brand"
-                        - required:
-                            - id
-                            - licenses
-  PricingChanged:
-    post:
-      summary: PricingChanged
-      description: |
-        event notification about brand pricing plan has changed
-      tags: []
-      requestBody:
-        content:
-          application/cloudevents+json:
-            example:
-              {
-                "id": "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01",
-                "type": "License.PricingChanged",
-                "time": "2022-11-25T14:06:53Z",
-                "data":
-                  {
-                    "id": "BRAND-ID-0001ABCD",
-                    "pricing": { "id": "PRICE-MANAGER" },
-                    "prev.pricing": { "id": "PRICE-BUILDER" },
-                  },
-              }
-            schema:
-              allOf:
-                - $ref: "#/components/schemas/event"
-                - required:
-                    - data
-                  properties:
-                    type:
-                      enum:
-                        - License.PricingChanged
-                    data:
-                      allOf:
-                        - $ref: "#/components/schemas/brand"
-                        - required:
-                            - id
-                            - pricing
-                            - prev.pricing
-                          properties:
-                            prev.pricing:
-                              $ref: "#/components/schemas/pricing"
-                              description: |
-                                state before modification
-  QuotaIsLow:
-    post:
-      summary: QuotaIsLow
-      description: |
-        event notification about brand quota are lower than the warning value
-      tags: []
-      requestBody:
-        content:
-          application/cloudevents+json:
-            example:
-              {
-                "id": "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01",
-                "type": "License.QuotaIsLow",
-                "time": "2022-11-25T14:06:53Z",
-                "data":
-                  {
-                    "id": "BRAND-ID-0001ABCD",
-                    "cost":
-                      {
-                        "remain_points": 1000,
-                        "total_points": 6000,
-                        "cost_per_day": 300,
-                      },
-                  },
-              }
-            schema:
-              allOf:
-                - $ref: "#/components/schemas/event"
-                - required:
-                    - data
-                  properties:
-                    type:
-                      enum:
-                        - License.QuotaIsLow
-                    data:
-                      allOf:
-                        - $ref: "#/components/schemas/brand"
-                        - required:
-                            - id
-                            - cost
-  OutOfQuota:
-    post:
-      summary: OutOfQuota
-      description: |
-        event notification about brand quota have been used up
-      tags: []
-      requestBody:
-        content:
-          application/cloudevents+json:
-            example:
-              {
-                "id": "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01",
-                "type": "License.OutOfQuota",
-                "time": "2022-11-25T14:06:53Z",
-                "data":
-                  {
-                    "id": "BRAND-ID-0001ABCD",
-                    "cost":
-                      {
-                        "remain_points": -300,
-                        "total_points": 6000,
-                        "cost_per_day": 300,
-                      },
-                  },
-              }
-            schema:
-              allOf:
-                - $ref: "#/components/schemas/event"
-                - required:
-                    - data
-                  properties:
-                    type:
-                      enum:
-                        - License.OutOfQuota
-                    data:
-                      allOf:
-                        - $ref: "#/components/schemas/brand"
-                        - required:
-                            - id
-                            - cost
-  QuotaRestored:
-    post:
-      summary: QuotaRestored
-      description: |
-        event notification about brand quota from out of use to available
-      tags: []
-      requestBody:
-        content:
-          application/cloudevents+json:
-            example:
-              {
-                "id": "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01",
-                "type": "License.QuotaRestored",
-                "time": "2022-11-25T14:06:53Z",
-                "data":
-                  {
-                    "id": "BRAND-ID-0001ABCD",
-                    "cost":
-                      {
-                        "remain_points": 600,
-                        "total_points": 6000,
-                        "cost_per_day": 300,
-                      },
-                  },
-              }
-            schema:
-              allOf:
-                - $ref: "#/components/schemas/event"
-                - required:
-                    - data
-                  properties:
-                    type:
-                      enum:
-                        - License.QuotaRestored
-                    data:
-                      allOf:
-                        - $ref: "#/components/schemas/brand"
-                        - required:
-                            - id
-                            - cost
 
 components:
   schemas:
@@ -728,178 +233,18 @@ components:
         data:
           description: |
             The event payload.
-    cost:
+    user:
       description: |
-        used to describe the current charging situation
-      additionalProperties: false
-      type: object
-      example:
-        {
-          "remain_points": 1000,
-          "total_points": 6000,
-          "cost_per_day": 300,
-          "create_at": "2022-11-25T14:06:53Z",
-          "last_debit_time": "2022-11-25T14:06:53Z",
-          "next_debit_time": "2022-11-26T00:00:00Z",
-        }
-      properties:
-        remain_points:
-          description: |
-            remain points
-          type: integer
-          minimum: -99999999
-          maximum: 99999999
-        total_points:
-          description: |
-            total points count from all licenses
-          type: integer
-          minimum: -99999999
-          maximum: 99999999
-        cost_per_day:
-          description: |
-            how many points decrease every day
-          type: integer
-          minimum: 0
-          maximum: 99999999
-        create_at:
-          description: |
-            when to create this billing list
-          type: string
-          format: date-time
-          example: 2022-11-25T14:06:53Z
-        last_debit_time:
-          description: |
-            time of last billing
-          type: string
-          format: date-time
-          example: 2022-11-25T14:06:53Z
-        next_debit_time:
-          description: |
-            time of next billing
-          type: string
-          format: date-time
-          example: 2022-11-25T14:06:53Z
-    pricing:
-      description: |
-        basis for charges
-      additionalProperties: false
+        
       type: object
       properties:
         id:
-          description: |
-            identity of pricing definition
           type: string
-          minLength: 1
-          maxLength: 99
-        mode:
-          description: |
-            mode of pricing definition
-          type: string
-          enum:
-            - builder
-            - manager
-        charge:
-          description: |
-            details for calculate
-          additionalProperties: false
-          type: object
-          properties:
-            nonadvdev:
-              description: |
-                cost per non-Advantech device
-              type: integer
-              minimum: 0
-              maximum: 9999
-            advdev:
-              description: |
-                cost per Advantech device
-              type: integer
-              minimum: 0
-              maximum: 9999
-      example:
-        { "id": "PRICE-BUILDER", "mode": "builder", "charge": { advdev: 0 } }
-    license:
-      description: |
-        used to describe the license object
-      additionalProperties: false
-      type: object
-      properties:
-        sn:
-          description: |
-            serial number for this license
-          type: string
-          example: "LICENSE-SN-00000001"
-          minLength: 1
-          maxLength: 99
-    device:
-      description: |
-        used to describe the device object
-      type: object
-      additionalProperties: false
-      properties:
-        did:
-          type: string
-          minLength: 1
-          maxLength: 99
-        manufacturer:
-          description: |
-            manufacturer of device, used to determine is advantech device or not
-          type: string
-          enum:
-            - advantech
-            - unknown
-    devices:
-      description: |
-        list of device object
-      maxItems: 9999
-      minItems: 1
-      type: array
-      example:
-        [
-          { "did": "DID-00:11:22:33", "manufacturer": "advantech" },
-          { "did": "DID-00:11:22:44", "manufacturer": "unknown" },
-        ]
-      items:
-        $ref: "#/components/schemas/device"
-    brand:
-      description: |
-        used to hold everything about billing under this brand
-      additionalProperties: false
-      type: object
-      properties:
-        id:
-          description: |
-            identity of brand
-          type: string
-          example: BRAND-ID-0001ABCD
-          minLength: 1
-          maxLength: 99
-        cost:
-          $ref: "#/components/schemas/cost"
-        pricing:
-          $ref: "#/components/schemas/pricing"
-          description: |
-            used pricing plan for this brand
-        licenses:
-          description: |
-            list of licenses applied to this brand
-          type: array
-          minItems: 0
-          maxItems: 9999
-          items:
-            $ref: "#/components/schemas/license"
-    brands:
-      description: |
-        list of brands
-      type: array
-      minItems: 0
-      maxItems: 9999
-      items:
-        $ref: "#/components/schemas/brand"
+
   parameters:
-    brand_id:
+    user-id:
       in: path
       name: id
       required: true
       schema:
-        $ref: "#/components/schemas/brand/properties/id"
+        $ref: "#/components/schemas/user/properties/id"

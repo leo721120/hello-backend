@@ -1,6 +1,6 @@
 import express from '@io/lib/express'
 export default express.service(async function (app) {
-    await app.setup(await import('@io/app/manifest'));
+    await app.setup(await import('@io/app/environment'));
     await app.setup(await import('@io/app/openapi'));
     await app.setup(await import('@io/app/mongo'));
     await app.setup(await import('@io/app/dapr'));

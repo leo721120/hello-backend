@@ -25,10 +25,10 @@ export default express.service(function (app) {
         const method = req.method?.toUpperCase() ?? 'GET';
         const cloudevent = CloudEvent({
             ...req.cloudevent,
-            time: now.toISOString(),
-            data: undefined,
-            type: method,
             source: req.url,
+            time: now.toISOString(),
+            type: method,
+            id: null,
         });
         {
             app.emit('event', cloudevent);

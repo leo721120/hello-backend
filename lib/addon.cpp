@@ -1,4 +1,7 @@
+#pragma warning(push)
+#pragma warning(disable:4819)
 #include <nan.h>
+#pragma warning(pop)
 
 void Init(v8::Local<v8::Object> exports) {
   v8::Local<v8::Context> context = exports->CreationContext();

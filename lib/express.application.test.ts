@@ -43,15 +43,15 @@ describe('express/app', function () {
         });
         const res = await express
             .fetch(app)
-            .get('/not-exist')
+            .get('/api/to/not-exist')
             ;
         //expect(res.headers['content-type']).toEqual('application/problem+json');
         expect(res.status).toBe(400);
         expect(res.body).toEqual({
-            code: 'SyntaxError',
-            //type: 'none',
+            title: 'SyntaxError',
             detail: 'method not found',
-            instance: '/not-exist',
+            status: 400,
+            instance: '/api/to/not-exist',
         });
     });
     it('.authenticate', async function () {

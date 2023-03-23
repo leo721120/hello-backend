@@ -75,6 +75,31 @@ export default environment.define(function ({ step }) {
             return res?.expect(item.name, RegExp(item.value));
         }, environment.res);
     });
+    step(/^expect body schema should be$/, async function (list: readonly Record<'openapi', string>[]) {
+        const res = await environment.res;
+        const sep = list.map(function (item) {
+            return JSON.pointer.escape(item.openapi);
+        });
+        JSON.schema(sep.join('/')).assert(res?.body);
+    });
+    step(/^expect body should match json$/, async function (text: string) {
+        const res = await environment.res?.expect('Content-Type', /json/);
+        const ans = JSON.parse(text) as unknown;
+
+        if (Array.isArray(ans)) {
+            expect(res?.body).toEqual(
+                expect.arrayContaining(
+                    ans.map(expect.objectContaining)
+                )
+            );
+        } else {
+            expect(res?.body).toEqual(
+                expect.objectContaining(
+                    ans
+                )
+            );
+        }
+    });
     step(/^expect body should be json$/, async function (text: string) {
         const res = await environment.res?.expect('Content-Type', /json/);
         expect(res?.body).toEqual(JSON.parse(text));
