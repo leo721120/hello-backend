@@ -4,11 +4,11 @@ describe('String', function () {
     it('.numberify', async function () {
         expect('129'.numberify()).toBe(129);
     });
-    it('.numberify, default', async function () {
+    it('.numberify, default value if NaN', async function () {
         expect('a'.numberify(13)).toBe(13);
     });
-    it('.numberify, default to 0 if NaN', async function () {
-        expect('a'.numberify()).toBe(0);
+    it('.numberify, NaN if fail', async function () {
+        expect('a'.numberify()).toBeNaN();
     });
     it('.nanoid', async function () {
         const id = String.nanoid(8);

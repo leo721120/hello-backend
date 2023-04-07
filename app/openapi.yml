@@ -18,16 +18,42 @@ info:
     - The PATCH method applies partial modifications to a resource.
     - The DELETE method deletes the specified resource.
 
+    # Error
+
+    The API uses standard HTTP status codes to indicate the success or failure of the API call. The body of the response will be `RFC 7807` in the following format
+
+    ```js
+    {
+      "title": "SyntaxError",
+      "detail": "The request parameter has incorrect format.",
+      "instance": "/streams/{id}",
+      "status": 400,
+    }
+    ```
+
 tags:
-  - name: User
+  - name: System
+  - name: Event
     description: |
-      about user
-      <SchemaDefinition schemaRef="#/components/schemas/user"/>
+      Used to describe the events that the system will send.
 
 servers:
+  - url: http://{hostname}:{port}
+    description: |
+      for develop
+    variables:
+      hostname:
+        description: |
+          hostname to server
+        default: localhost
+      port:
+        description: |
+          port to listen
+        default: "8088"
+  
   - url: http://{hostname}:{port}/v1.0/invoke/{appid}/method
     description: |
-      only for develop
+      over dapr
     variables:
       hostname:
         description: |
@@ -45,66 +71,47 @@ servers:
 security: []
 
 paths:
-  /version:
+  /versions:
     get:
-      summary: QueryVersion
+      summary: ListVersions
       description: |
-        query version for this service
-      tags: []
+        Can be used to view system version information.
+      tags:
+        - System
       responses:
         default:
           description: |
-            operation failed
+            Operation failed.
         200:
           description: |
-            operation success
+            Operation success.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/version"
-  /config:
-    get:
-      summary: QueryConfig
-      description: |
-        query configuration from this service
-      tags: []
-      responses:
-        default:
-          description: |
-            operation failed
-        200:
-          description: |
-            operation success
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/config"
+                allOf:
+                  - $ref: "#/components/schemas/versions"
+
   /events:
     post:
-      summary: ReceiveEvent
+      summary: NotifyEvent
       description: |
-        receive event from other service
-      tags: []
+        Used to notify the system that an event has occurred.
+      tags:
+        - System
       requestBody:
         required: true
         content:
           application/cloudevents+json:
-            example:
-              {
-                "id": "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01",
-                "type": "Event.From.Other.Service",
-                "time": "2022-11-25T14:06:53Z",
-                "data": {},
-              }
             schema:
-              $ref: "#/components/schemas/event"
+              allOf:
+                - $ref: "#/components/schemas/cloudevent"
       responses:
         default:
           description: |
-            operation failed
+            Operation failed.
         200:
           description: |
-            operation success
+            Operation success.
           content:
             application/json:
               example: { status: "SUCCESS" }
@@ -115,77 +122,66 @@ paths:
                     type: string
                     enum:
                       - SUCCESS
-  /users:
-    get:
-      description: |
-
-      tags:
-        - User
-      responses:
-        200:
-          description: |
-            operation success
-          content:
-            application/json:
-              schema: {}
 
 x-webhooks:
-  UserAdded:
+  SomethingHappened:
     post:
-      summary: UserAdded
+      summary: SomethingHappened
       description: |
-        event notification about new user has be added
-      tags: []
+        Used to notify the system that an event has occurred.
+      tags:
+        - Event
       requestBody:
         content:
           application/cloudevents+json:
-            example:
-              {
-                "id": "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01",
-                "type": "IAM.UserAdded",
-                "time": "2022-11-25T14:06:53Z",
-                "data": { "id": "USER-JmJEL9Y8PrbrvqCVEfg5SlUCxEVJfVU6" },
-              }
             schema:
               allOf:
-                - $ref: "#/components/schemas/event"
-                - required:
-                    - data
-                  properties:
-                    type:
-                      enum:
-                        - IAM.UserAdded
-                    data:
-                      allOf:
-                        - $ref: "#/components/schemas/user"
-                        - required:
-                            - id
+                - $ref: "#/components/schemas/cloudevent"
 
 components:
   schemas:
-    version:
-      additionalProperties: false
+    error:
+      maxProperties: 9
       type: object
-      example: { version: "1.0.0" }
-      required:
-        - version
+      description: |
+        Used to describe problem details by RFC 7807.
       properties:
-        version:
+        type:
           description: |
-            version of this service
+            A URI reference [RFC3986] that identifies the problem type. This specification encourages that, when dereferenced, it provide human-readable documentation for the problem type (e.g., using HTML [W3C.REC-html5-20141028]). When this member is not present, its value is assumed to be "about:blank".
+          type: string
+          format: uri
+          example: https://example.com/probs/out-of-credit
+        title:
+          description: |
+            A short, human-readable summary of the problem type. It SHOULD NOT change from occurrence to occurrence of the problem, except for purposes of localization (e.g., using proactive content negotiation; see [RFC7231], Section 3.4).
+          type: string
+          example: Out of credit
+        status:
+          description: |
+            The HTTP status code ([RFC7231], Section 6) generated by the origin server for this occurrence of the problem.
+          type: integer
+          format: int32
+          example: 400
+        detail:
+          description: |
+            A human-readable explanation specific to this occurrence of the problem.
+          type: string
+          example: Your current balance is 30, but that costs 50.
+        instance:
+          description: |
+            A URI reference that identifies the specific occurrence of the problem. It may or may not yield further information if dereferenced.
           type: string
           minLength: 1
-          maxLength: 99
-    config:
-      additionalProperties: false
-      type: object
-      example: {}
-      properties: {}
-    event:
+          maxLength: 999
+          example: /account/12345/msgs/abc
+
+    cloudevent:
       # https://raw.githubusercontent.com/cloudevents/spec/main/cloudevents/formats/cloudevents.json
+      maxProperties: 99
+      type: object
       description: |
         CloudEvents Specification JSON Schema
-      type: object
       required:
         - source
         - time
@@ -197,54 +193,64 @@ components:
             Identifies the event.
           type: string
           minLength: 1
+          example: 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01
         type:
           description: |
             Describes the type of event related to the originating occurrence.
           type: string
           minLength: 1
+          example: someone.something.happen
         time:
           description: |
             Timestamp of when the occurrence happened. Must adhere to RFC 3339.
           type: string
           format: date-time
           minLength: 1
+          example: "2022-11-25T14:06:53Z"
         source:
           description: |
             Identifies the context in which an event happened.
           type: string
           minLength: 1
-        subject:
-          description: |
-            Describes the subject of the event in the context of the event producer (identified by source).
-          type: string
-          minLength: 1
+          example: /<some-project>/<some-service>
         specversion:
           description: |
             The version of the CloudEvents specification which the event uses.
           type: string
-          minLength: 1
           default: "1.0"
         datacontenttype:
           description: |
             Content type of the data value. Must adhere to RFC 2046 format.
           type: string
-          minLength: 1
           default: application/json
         data:
           description: |
             The event payload.
-    user:
-      description: |
-        
-      type: object
-      properties:
-        id:
-          type: string
 
-  parameters:
-    user-id:
-      in: path
-      name: id
-      required: true
-      schema:
-        $ref: "#/components/schemas/user/properties/id"
+    versions:
+      maxProperties: 9
+      type: object
+      description: |
+        Used to describe the versions of this service and various information about the system.
+      properties:
+        backend:
+          description: |
+            Version of this service.
+          type: string
+          minLength: 1
+          maxLength: 99
+          example: 1.0.3-beta
+        platform:
+          description: |
+            A string identifying the operating system platform.
+          type: string
+          minLength: 1
+          maxLength: 99
+          example: win32
+        os:
+          description: |
+            A string identifying the operating system.
+          type: string
+          minLength: 1
+          maxLength: 99
+          example: Windows 10 Enterprise

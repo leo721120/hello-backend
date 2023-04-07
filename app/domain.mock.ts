@@ -9,8 +9,8 @@ export default express.service(function (app) {
     console.assert(process.env.NODE_ENV !== 'production',
         'should not use mock objects in production'
     );
-    app.service('mock', async function () {
-        const fetch = await app.service('dapr');
+    app.service('mock', function () {
+        const fetch = app.service('dapr');
         return dapr.mock(fetch);
     });
     MongoClient.connect = Function.monkeypatch(MongoClient.connect.bind(MongoClient), function (cb) {
@@ -30,7 +30,7 @@ declare global {
             /**
             mock object, only for test
             */
-            service(name: 'mock'): Promise<Mock>
+            service(name: 'mock'): Mock
         }
     }
 }

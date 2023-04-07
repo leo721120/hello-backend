@@ -1,9 +1,11 @@
 import express from '@io/lib/express'
+import os from 'node:os'
 export default express.service(function (app) {
-    app.get('/version', async function (req, res) {
-        const info = await req.app.service('environment');
+    app.get('/versions', async function (req, res) {
         res.status(200).json({
-            version: info.version,
+            backend: process.manifest.version,
+            platform: os.platform(),
+            os: os.version(),
         });
     });
 });

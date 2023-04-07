@@ -10,7 +10,8 @@ add_library(addon SHARED
 target_link_libraries(addon
     ${CMAKE_JS_LIB}
 )
-set_target_properties(addon PROPERTIES PREFIX "" SUFFIX ".node"
+set_target_properties(addon PROPERTIES
+    PREFIX "" SUFFIX ".node"
     RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}"
     RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}"
     RUNTIME_OUTPUT_DIRECTORY_MinSizeRel "${CMAKE_CURRENT_SOURCE_DIR}"

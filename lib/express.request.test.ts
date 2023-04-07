@@ -11,11 +11,8 @@ describe('express/req', function () {
             .get('/abc?q=124')
             ;
         expect(res.body.e).toEqual({
-            datacontenttype: 'application/json',
-            //data: undefined,
             id: expect.any(String),
             source: '/abc?q=124',
-            specversion: '1.0',
             //time: expect.any(String),
             type: 'GET',
         });
@@ -96,5 +93,28 @@ describe('express/req', function () {
             .get('/abc?no=321')
             ;
         expect(res.body.qs).toEqual(undefined);
+    });
+    it('.querynumber', async function () {
+        const app = express().get('/abc', async function (req, res) {
+            const qs = req.querynumber('qa');
+            res.status(200).json({ qs });
+        });
+        const res = await express
+            .fetch(app)
+            .get('/abc?qa=321')
+            ;
+        expect(res.body.qs).toEqual(321);
+    });
+    it('.querynumber, omit if NaN', async function () {
+        const app = express().get('/abc', async function (req, res) {
+            const qs = req.querynumber('qa');
+            expect(qs).toBeNaN();
+            res.status(200).json({ qs });
+        });
+        const res = await express
+            .fetch(app)
+            .get('/abc?qa=abg')
+            ;
+        expect(res.body.qs).toBe(null);
     });
 });

@@ -13,16 +13,26 @@ export default Object.assign(express.response, <typeof express.response>{
             this.set('Retry-After', delay.toString());
         }
 
-        const errno = Number.numberify(e.errno, 500);
-        this.status(errno < 0 ? 500 : errno);
-        this.statusMessage = e.name;
-        return this.json(<rfc7807>{
-            type: e.help,
+        this.status(e.status ?? 500);
+        this.json(<rfc7807>{
+            type: e.type,
             title: e.name,
             status: this.statusCode,
             detail: e.message,
-            instance: this.req.path,
+            instance: e.instance ?? this.req.path,
         });
+    },
+    range(params) {
+        const ranges = [params.start, params.end]
+            .filter(Boolean)
+            ;
+        const range = ranges.length
+            ? ranges.join('-')
+            : '*'
+            ;
+        return this.setHeader('Content-Range',
+            `${params.unit} ${range}/${params.size}`
+        );
     },
 });
 declare global {
@@ -40,6 +50,17 @@ declare global {
             response an error as rfc7807
             */
             error(e: Error): this
+            /**
+            format to HTTP/1.1 Content-Range header field.
+
+            @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Range
+            */
+            range(params: {
+                readonly unit: 'items'
+                readonly size: number
+                readonly start?: number
+                readonly end?: number
+            }): this
         }
     }
 }

@@ -1,7 +1,7 @@
-import * as timer from 'node:timers/promises'
-import * as crypto from 'node:crypto'
-import * as nanoid from 'nanoid'
-import * as v8 from 'v8'
+import timer from 'node:timers/promises'
+import crypto from 'node:crypto'
+import nanoid from 'nanoid'
+import v8 from 'v8'
 //
 declare global {
     namespace NodeJS {
@@ -92,7 +92,7 @@ declare global {
         */
         numberify(defaultvalue: number): number
         /**
-        @returns convert as number or 0 if NaN
+        @returns convert as number or NaN
         */
         numberify(): number
         /**
@@ -159,7 +159,7 @@ Object.assign(String, <StringConstructor>{
     nanoid: nanoid.customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'),
 });
 Object.assign(String.prototype, <String>{
-    numberify(defaultvalue = 0) {
+    numberify(defaultvalue = NaN) {
         return Number.numberify(this, defaultvalue as number);
     },
     buffer(encoding) {

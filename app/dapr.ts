@@ -1,6 +1,8 @@
 import express from '@io/lib/express'
 import dapr from '@io/lib/dapr'
 import http from 'node:http'
+import '@io/lib/event'
+import '@io/lib/node'
 export interface Dapr extends ReturnType<typeof dapr> {
 }
 export default express.service(function (app) {
@@ -28,7 +30,7 @@ export default express.service(function (app) {
             source: req.url,
             time: now.toISOString(),
             type: method,
-            id: null,
+            id: req.cloudevent?.id,
         });
         {
             app.emit('event', cloudevent);
@@ -48,7 +50,7 @@ export default express.service(function (app) {
         res.status(200).json({});
     }).get('/dapr/metadata', async function (req, res) {
         const cloudevent = req.cloudevent();
-        const dapr = await app.service('dapr');
+        const dapr = app.service('dapr');
         const metadata = await dapr.metadata({ cloudevent });
         res.status(200).json(metadata.data);
     });
@@ -85,7 +87,7 @@ declare global {
     }
     namespace Express {
         interface Application {
-            service(name: 'dapr'): Promise<Dapr>
+            service(name: 'dapr'): Dapr
         }
     }
 }

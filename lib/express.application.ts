@@ -8,18 +8,16 @@ export default Object.assign(express.application, <Application>{
     service(name, factory) {
         const key = `service/${name}`;
         const get = () => {
-            return this.get(key);
+            const f = this.get(key) as typeof factory;
+            console.assert(f, `${name} factory is not found`);
+            return f();
         };
         const set = () => {
-            return this.set(key, Promise.defer(async () => {
-                try {
-                    return await factory();
-                } catch (e) {
-                    // auto retryable
-                    this.service(name, factory);
-                    throw e;
-                }
-            }));
+            return this.set(key, () => {
+                const v = factory();
+                this.set(key, () => v);
+                return v;
+            });
         };
         return arguments.length > 1
             ? set()
@@ -44,10 +42,10 @@ export default Object.assign(express.application, <Application>{
     },
     handle(req, res, next) {
         const done = (err?: Error) => {
-            const e = err ?? Error.Code({
+            const e = err ?? Error.$({
                 message: `method not found`,
                 name: SyntaxError.name,
-                errno: 400,
+                status: 400,
             });
             this.final(e, req, res, next);
         };
@@ -56,8 +54,12 @@ export default Object.assign(express.application, <Application>{
         });
         return handle.call(this, req, res, next ?? done);
     },
-    final(err, req, res, next) {
+    final(err: Error, req, res, next) {
+        Object.assign(err, <typeof err>{
+            tracecontext: req.cloudevent(),
+        });
         res.error(err);
+        this.emit('error', err);
     },
 });
 declare global {
@@ -66,8 +68,8 @@ declare global {
             readonly express: typeof express
             readonly handle: express.RequestHandler
             readonly final: express.ErrorRequestHandler
-            service<V>(name: string, factory: () => PromiseLike<V> | V): this
-            service<V>(name: string): Promise<V>
+            service<V>(name: string, factory: () => V): this
+            service<V>(name: string): V
             setup<V>(object: { default: Setup<V> }): Promise<V>
             authenticate<U extends {}>(type: string, cb: Authenticate<U>): this
             authenticate<U extends {}>(type: string): Authenticate<U> | undefined

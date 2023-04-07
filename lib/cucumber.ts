@@ -5,7 +5,7 @@ export interface Definition {
 }
 export interface Fixture {
     define(cb: (options: Definition) => void): this
-    launch(file: string): void
+    launch(file: string, ...more: readonly string[]): void
 }
 export const definitions = [] as cucumber.StepDefinitions[];
 export default <Fixture>{
@@ -17,29 +17,31 @@ export default <Fixture>{
         });
         return this;
     },
-    launch(file) {
-        const text = fs.readFileSync(file).toString();
-        const only = text.includes('@only');
-        {
-            const feature = cucumber.parseFeature(text, {
-                tagFilter: only ? '@only' : 'not @skip',
-                errors: true,
-            });
-            {// hotfix
-                const outlines = [];
-                for (const outline of feature.scenarioOutlines) {
-                    for (const scenario of outline.scenarios) {
-                        outlines.push({
-                            ...outline,
-                            scenarios: [scenario],
-                            //if scenario title !== outline title, step will be skipped
-                            title: scenario.title,
-                        });
+    launch(...list) {
+        cucumber.autoBindSteps(list.map(function (file) {
+            const text = fs.readFileSync(file).toString();
+            const only = text.includes('@only');
+            {
+                const feature = cucumber.parseFeature(text, {
+                    tagFilter: only ? '@only' : 'not @skip',
+                    errors: true,
+                });
+                {// hotfix
+                    const outlines = [];
+                    for (const outline of feature.scenarioOutlines) {
+                        for (const scenario of outline.scenarios) {
+                            outlines.push({
+                                ...outline,
+                                scenarios: [scenario],
+                                //if scenario title !== outline title, step will be skipped
+                                title: scenario.title,
+                            });
+                        }
                     }
+                    feature.scenarioOutlines = outlines;
                 }
-                feature.scenarioOutlines = outlines;
+                return feature;
             }
-            cucumber.autoBindSteps([feature], definitions);
-        }
+        }), definitions);
     },
 };

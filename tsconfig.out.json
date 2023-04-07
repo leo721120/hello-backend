@@ -2,9 +2,12 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "./tsconfig.json",
   "exclude": [
-    //"**/node_modules/",
     "./lib/wasm/*.ts",
     "**/*.test.ts",
     "**/*.spec.ts"
-  ]
+  ],
+  "compilerOptions": {
+    // some library conflicts with lib/error
+    "skipLibCheck": true
+  }
 }

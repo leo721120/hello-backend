@@ -52,10 +52,12 @@ export default Object.assign(JSON, <typeof JSON>{
                         .join(', ')
                         ?? 'schema validation failed'
                         ;
-                    throw Error.Code({
-                        message,
+                    throw Error.$({
                         name: SyntaxError.name,
-                        errno: 400,
+                        reason: this.errors,
+                        params: data,//! could be a large object
+                        status: 400,
+                        message,
                         ...e,
                     });
                 }
@@ -219,7 +221,7 @@ type Validator<V> = ajv.ValidateFunction<V> & {
     /**
     throw error if invalid
     */
-    assert<E extends Error>(data: V, e?: Partial<E>): never
+    assert(data: V, e?: Partial<Error>): never
     /**
     find sub-node by given paths
     */

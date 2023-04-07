@@ -28,6 +28,9 @@ export default Object.assign(express.request, <typeof express.request>{
     querystring(name) {
         return this.query[name];
     },
+    querynumber(name) {
+        return this.query[name]?.toString().numberify();
+    },
     parameter(name) {
         return this.params[name];
     },
@@ -44,10 +47,10 @@ export default Object.assign(express.request, <typeof express.request>{
     authenticate() {
         const [type] = this.authorization();
         const cb = this.app.authenticate(type) ?? function () {
-            throw Error.Code({
+            throw Error.$({
                 message: 'unknown authenticate type',
                 name: 'Unauthorized',
-                errno: 401,
+                status: 401,
                 params: { type },
             });
         };
@@ -73,6 +76,10 @@ declare global {
             @return first value from `querystrings`
             */
             querystring<K extends string>(name: string): K | undefined
+            /**
+            @return from querystring, but convert to number or NaN
+            */
+            querynumber<K extends number>(name: string): K | undefined
             /**
             @return value from `params[name]`
             */

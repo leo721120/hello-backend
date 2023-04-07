@@ -3,20 +3,21 @@ import '@io/lib/event'
 import '@io/lib/node'
 export default express.service(function (app) {
     app.ws('/ws', function (ws, req) {
-        const re = req.cloudevent();
-        //
+        const ce = req.cloudevent();
+
         ws.on('error', function (e) {
             app.emit('error', Object.assign(e, <typeof e>{
-                cloudevent: re,
+                tracecontext: ce,
             }));
         }).on('close', function () {
             app.emit('event', CloudEvent({
-                ...re,
-                text: 'close',
+                ...ce,
+                data: undefined,
+                type: 'WebSocket.Close',
             }));
         }).on('message', function (byte) {
-            const ce = CloudEvent<'WebSocket.Message'>({
-                ...re,
+            const ev = CloudEvent<'WebSocket.Message'>({
+                ...ce,
                 type: 'WebSocket.Message',
                 data: <CloudEvents['WebSocket.Message']>{
                     byte() {
@@ -30,21 +31,24 @@ export default express.service(function (app) {
                     },
                     error(e) {
                         return this.reply(<rfc7807>{
-                            type: e.help,
-                            code: e.name,
-                            status: e.errno,
+                            type: e.type,
+                            title: e.name,
+                            status: e.status ?? 500,
                             detail: e.message,
+                            instance: e.instance,
                         });
                     },
                     reply(message) {
-                        ws.send(JSON.stringify(message), function (e) {
-                            ws.emit('error', e);
+                        return new Promise(function (done, fail) {
+                            ws.send(JSON.stringify(message), function (e) {
+                                e ? fail(e) : done();
+                            });
                         });
                     },
                 },
             });
-            app.emit('event', ce);
-            app.emit(ce.type, ce);
+            app.emit('event', ev);
+            app.emit(ev.type, ev);
         });
     }).on('WebSocket.Message', function (ce) {
         /*Promise.try(function () {
@@ -89,7 +93,7 @@ declare global {
             /**
             reply a message to client
             */
-            reply<A>(message: A): void
+            reply<A>(message: A): Promise<void>
         }
     }
 }

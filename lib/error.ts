@@ -1,18 +1,18 @@
 import '@io/lib/event'
 export default Object.assign(Error, <ErrorConstructor>{
-    Code(e) {
+    $(e) {
         return Object.assign(Error(e.message), e);
     }
 });
 declare global {
     interface ErrorConstructor {
-        Code(e: Error): Error
+        $(e: Required<Pick<Error, 'status'>> & Error): Error
     }
-    interface Error {
+    interface Error extends Pick<rfc7807, 'type' | 'status' | 'instance'> {
         /**
-        source of error
+        used to trace the context of error
         */
-        readonly cloudevent?: CloudEvent<string>
+        readonly tracecontext?: CloudEvent<string>
         /**
         how long to be wait if retryable, in milliseconds
         */
@@ -22,18 +22,19 @@ declare global {
         */
         readonly reason?: unknown
         /**
+        describe the params of the problem
         */
         readonly params?: object
         /**
         */
-        readonly errno?: number | string
+        readonly errno?: unknown
         /**
         */
-        readonly code?: number | string
-        /**
-        indicate the direction of the user
-        */
-        readonly help?: string
+        readonly code?:
+        | 'ECONNREFUSED'
+        | 'ENOENT'
+        | string
+        | number
     }
     interface rfc7807 {
         /**

@@ -1,7 +1,7 @@
 import '@io/lib/event'
 //
 describe('event', function () {
-    it('.cloudevent, id', async function () {
+    it('.cloudevent, id=null', async function () {
         const t = new Date().toISOString();
         const c = CloudEvent({
             source: '/testonly',
@@ -11,8 +11,6 @@ describe('event', function () {
             id: null
         });
         expect(c).toEqual({
-            datacontenttype: 'application/json',
-            specversion: '1.0',
             id: '00-00000000000000000000000000000000-0000000000000000-00',
             time: t,
             source: '/testonly',
@@ -20,7 +18,7 @@ describe('event', function () {
             data: { foo: 'bar' },
         });
     });
-    it('.cloudevent, id', async function () {
+    it('.cloudevent, id=undefined', async function () {
         const t = new Date().toISOString();
         const c = CloudEvent({
             source: '/testonly',
@@ -30,8 +28,6 @@ describe('event', function () {
             id: undefined,// generate new one
         });
         expect(c).toEqual({
-            datacontenttype: 'application/json',
-            specversion: '1.0',
             id: expect.any(String),
             time: t,
             source: '/testonly',
@@ -39,7 +35,7 @@ describe('event', function () {
             data: { foo: 'bar' },
         });
     });
-    it('.cloudevent, id', async function () {
+    it('.cloudevent, id=', async function () {
         const t = new Date().toISOString();
         const c = CloudEvent({
             source: '/testonly',
@@ -49,8 +45,6 @@ describe('event', function () {
             id: '00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-01',
         });
         expect(c).toEqual({
-            datacontenttype: 'application/json',
-            specversion: '1.0',
             id: '00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-01',
             time: t,
             source: '/testonly',

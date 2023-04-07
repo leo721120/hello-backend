@@ -15,14 +15,16 @@ describe('sequelize', function () {
         };
         const Table = db.define<Table>('table', {
             id: {
-                type: db.Sequelize.DataTypes.TEXT,
+                type: db.DataTypes.TEXT,
                 primaryKey: true,
                 allowNull: false,
             },
             name: {
-                type: db.Sequelize.DataTypes.TEXT,
+                type: db.DataTypes.TEXT,
                 allowNull: false,
             },
+        });
+        await Table.sync({// create table if not exists
         });
         await Table.bulkCreate([
             {

@@ -49,7 +49,9 @@ export default express.service(function (app) {
                     ? status.RETRY
                     : status.DROP,
             });
-            app.emit('error', e, req.cloudevent());
+            app.emit('error', Object.assign(e, <typeof e>{
+                tracecontext: req.cloudevent(),
+            }));
         });
     });
 });
@@ -73,9 +75,5 @@ declare global {
         off<K extends string>(event: 'event', cb: (e: CloudEvent<K>) => void): this
         once<K extends string>(event: 'event', cb: (e: CloudEvent<K>) => void): this
         emit<K extends string>(event: 'event', e: CloudEvent<K>): boolean
-        on<K extends string>(event: 'error', cb: (e: Error, a?: CloudEvent<K>) => void): this
-        off<K extends string>(event: 'error', cb: (e: Error, a?: CloudEvent<K>) => void): this
-        once<K extends string>(event: 'error', cb: (e: Error, a?: CloudEvent<K>) => void): this
-        emit<K extends string>(event: 'error', e: Error, a: CloudEvent<K>): boolean
     }
 }

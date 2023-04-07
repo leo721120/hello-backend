@@ -1,17 +1,12 @@
 import sequelize, { Sequelize } from '@io/lib/sequelize'
-import type { Options } from '@io/lib/sequelize'
 import express from '@io/lib/express'
+import '@io/lib/event'
 import '@io/lib/node'
 import 'pg'// force pkg to include
 export default express.service(function (app) {
-    app.service('db', async function () {
+    app.service('db', function () {
         const uri = new URL(process.env.SEQUELIZE_HREF ?? 'sqlite::memory:');
-        const options = await Promise.try<Options>(function () {
-            return {
-                ...JSON.parse(process.env.SEQUELIZE_OPTIONS ?? '{}'),
-                schema: process.env.SEQUELIZE_SCHEMA,
-            };
-        });
+
         Sequelize.beforeInit('init-db', function (config, options) {
             Object.assign(uri, <typeof uri>{// omit sensitive information
                 password: '',
@@ -19,7 +14,6 @@ export default express.service(function (app) {
             app.emit('event', CloudEvent({
                 source: uri.toString(),
                 type: 'db',
-                text: 'connect',
                 id: null,
             }));
         });
@@ -30,7 +24,8 @@ export default express.service(function (app) {
             });
         });
         return sequelize({
-            ...options,
+            ...JSON.parse(process.env.SEQUELIZE_OPTIONS ?? '{}'),
+            schema: process.env.SEQUELIZE_SCHEMA,
             uri: uri.toString(),
             benchmark: true,
             logging(text, elapse) {
@@ -74,7 +69,7 @@ declare global {
     }
     namespace Express {
         interface Application {
-            service(name: 'db'): Promise<ReturnType<typeof sequelize>>
+            service(name: 'db'): ReturnType<typeof sequelize>
         }
     }
 }

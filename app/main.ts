@@ -6,39 +6,46 @@ import cors from 'cors'
 import pino from 'pino'
 import '@io/lib/event'
 import '@io/lib/node'
-dotenv.config();
-Promise.try(async function () {
+export default Promise.try(async function () {
+    {
+        dotenv.config();
+    }
     const app = express();
     const log = pino({
         level: process.env.LOG_LEVEL ?? 'info',
         base: { appid: process.env.APP_ID },
         messageKey: 'text',
     });
-    app.once('close', function () {
-        log.info({ text: 'close' });
-    }).on('event', function ({ time, data, datacontenttype, specversion, ...ce }) {
+    app.on('event', function ({ id, type, source, time, data, ...e }) {
         log.info({
-            ...ce,
+            id,
+            type,
+            source,
+            ...e,
             at: time,
         });
     }).on('error', function (e) {// bind before setup to prevent [ERR_UNHANDLED_ERROR]
-        const ce = e.cloudevent ?? CloudEvent({
+        const ce = e.tracecontext ?? CloudEvent({
             id: null,
         });
         log.warn({
             id: ce.id,
             type: e.name,
-            code: e.code,
             text: e.message,
+            errno: e.errno,
             params: e.params,
             reason: e.reason,
         });
+    }).once('close', function () {
+        log.info({ text: 'close' });
     });
     {
         app.use(compress());
-        app.use(helmet());
+        app.use(helmet({ contentSecurityPolicy: false }));// disable for apidoc
         app.use(cors());
-        await app.setup(await import('@io/app/domain'));
+        {
+            await app.setup(await import('@io/app/domain'));
+        }
     }
     const srv = app.listen(process.env.APP_PORT, function () {
         //
@@ -55,4 +62,5 @@ Promise.try(async function () {
         log.info({ signal });
         srv.close();
     });
-}).catch(console.error);
+    return srv;
+});

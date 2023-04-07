@@ -2,10 +2,10 @@ import '@io/lib/error'
 //
 describe('error', function () {
     it('.code', async function () {
-        const e = Error.Code({
-            name: SyntaxError.name,
+        const e = Error.$({
             message: 'test for error',
-            errno: 1234,
+            name: SyntaxError.name,
+            status: 400,
         });
         const fn = function () {
             throw e;

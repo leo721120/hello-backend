@@ -1,3 +1,4 @@
+import prototype from '@io/lib/express.request'
 import express from '@io/lib/express'
 import path from 'node:path'
 import '@io/lib/node'
@@ -6,13 +7,9 @@ export default express.service(function (app) {
     const openapi = JSON.schema('openapi.json',
         JSON.openapi(path.join(__dirname, 'openapi.yml'))
     );
-    Object.assign(app, <typeof app>{
-        final(err: Error, req, res, _) {
-            res.error(err);
-            app.emit('error', err, req.cloudevent());
-        },
-    });
-    app.get('/openapi', function (req, res) {
+    app.get('/favicon.ico', async function (req, res) {
+        res.sendFile(path.join(__dirname, '../logo.ico'));
+    }).get('/openapi', function (req, res) {
         res.format({
             json() {
                 res.json(openapi.schema);
@@ -26,31 +23,46 @@ export default express.service(function (app) {
             req.cloudevent()
         );
         res.once('finish', function () {
-            const ce = req.cloudevent();
             app.emit('event', {
-                ...ce,
+                ...req.cloudevent(),
                 elapse: res.elapse(),
                 type: res.statusCode.toString(),
                 time: undefined,// useless
+                data: undefined,// omit
             });
         });
+        function queryfield<V>(field: string, value: V | undefined): typeof value {
+            const node = openapi.node(
+                'paths',
+                JSON.pointer.escape(req.route.path),
+                req.method.toLowerCase(),
+                'parameters',
+            ).find(function (node) {
+                const param = node.as('openapi.parameter');
+                return param.schema.in === 'query'
+                    && param.schema.name === field
+                    // value can be omitted
+                    && (param.schema.required || value !== undefined)
+                    ;
+            });
+            node?.node('schema').assert(value, {
+                instance: `${req.path}?${field}=`,
+                params: { field },
+            });
+            return value;
+        }
         Object.assign(req, <typeof req>{
             querystrings(name) {
-                const value = [].concat(this.query[name] as [] ?? []) as readonly string[];
-                {
-                    openapi.node(
-                        'paths',
-                        JSON.pointer.escape(req.route.path),
-                        req.method.toLowerCase(),
-                        'parameters',
-                    ).find(function (node) {
-                        const param = node.as('openapi.parameter');
-                        return param.schema.in === 'query'
-                            && param.schema.name === name
-                            ;
-                    })?.node('schema').assert(this.query[name]);
-                }
-                return value;
+                const value = prototype.querystrings.call(this, name);
+                return queryfield(name, value);
+            },
+            querystring(name) {
+                const value = prototype.querystring.call(this, name);
+                return queryfield(name, value);
+            },
+            querynumber(name) {
+                const value = prototype.querynumber.call(this, name);
+                return queryfield(name, value);
             },
             parameter(name) {
                 const value = this.params[name];

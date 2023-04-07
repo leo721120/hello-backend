@@ -13,33 +13,15 @@ describe('express/app', function () {
                 },
             };
         });
-        const service = await app.service<Service>('testonly');
+        const service = app.service<Service>('testonly');
         expect(service.go()).toBe(true);
-    });
-    it('.service, retryable', async function () {
-        const app = express();
-        let count = 0;
-        app.service<Service>('testonly', function () {
-            if (++count < 3) {
-                throw Error('testfail');
-            }
-            return {
-                go() {
-                    return true;
-                },
-            };
-        });
-        await expect(app.service('testonly')).rejects.toThrow('testfail');
-        await expect(app.service('testonly')).rejects.toThrow('testfail');
-        const service = await app.service<Service>('testonly');
-        expect(service.go()).toBe(true);
-        expect(count).toBe(3);
     });
     it('.final, rfc7807', async function () {
-        const app = express().use(function (req, res, next) {
+        const app = express().once('error', function () {
+            //
+        }).use(function (req, res, next) {
             // force mixin express req/res prototypes
             next();
-        }).once('error', function () {
         });
         const res = await express
             .fetch(app)
@@ -48,6 +30,7 @@ describe('express/app', function () {
         //expect(res.headers['content-type']).toEqual('application/problem+json');
         expect(res.status).toBe(400);
         expect(res.body).toEqual({
+            //type: expect.any(String),
             title: 'SyntaxError',
             detail: 'method not found',
             status: 400,

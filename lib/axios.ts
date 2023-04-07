@@ -2,6 +2,7 @@ import type { AxiosError, AxiosRequestConfig } from 'axios'
 import axios from 'axios'
 import mime from 'mime'
 import '@io/lib/event'
+import '@io/lib/error'
 export function build(config?: Readonly<AxiosRequestConfig>) {
     const fetch = axios.create({
         baseURL: 'http://localhost',
@@ -14,11 +15,9 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
             cloudevent() {
                 const e = CloudEvent({
                     id: this.headers?.['traceparent'] ?? req.cloudevent?.id,
-                    type: req.method ?? 'GET',
+                    type: this.status.toString(),
                     time: now.toISOString(),
-                    data: undefined,
                     source: req.url,
-                    status: this.status,
                     elapse: this.elapse(),
                 });
                 this.cloudevent = () => {
@@ -40,9 +39,12 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
     }, function (e: AxiosError) {
         const res = e.response;
         const req = e.config;
-        throw Object.assign(e, <typeof e>{
-            name: res?.statusText ?? e.name,
-            errno: res?.status ?? e.errno ?? 504,
+        throw Error.$({
+            message: e.message,
+            name: e.code ?? res?.statusText ?? e.name,
+            errno: e.errno,
+            status: res?.status ?? 504,
+            reason: res?.data,
             params: e.params ?? {
                 method: req.method,
                 url: req.url,
@@ -53,11 +55,11 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
     fetch.interceptors.request.use(function (req) {
         const now = req.now ?? Date.now();
         const method = req.method?.toUpperCase() ?? 'GET';
-        const cloudevent = req.cloudevent ?? CloudEvent({
+        const cloudevent = CloudEvent({
+            ...req.cloudevent,
             source: req.url ?? '/',
-            data: undefined,
             type: method,
-            id: undefined,// generate new one
+            id: req.cloudevent?.id,// or generate new one
         });
         const headers = {
             ...req.headers,
@@ -72,9 +74,11 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
     }, function (e: AxiosError) {
         const res = e.response;
         const req = e.config;
-        throw Object.assign(e, <typeof e>{
-            name: res?.statusText ?? e.name,
-            errno: res?.status ?? e.errno ?? 504,
+        throw Error.$({
+            message: e.message,
+            name: e.code ?? res?.statusText ?? e.name,
+            errno: e.errno,
+            status: res?.status ?? 504,
             params: e.params ?? {
                 method: req.method,
                 url: req.url,

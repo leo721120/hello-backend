@@ -1,17 +1,23 @@
 import environment from '@io/lib/cucumber'
 import e from '@io/lib/express'
 import '@io/lib/node'
+import '@io/lib/json'
 //import autocannon from 'autocannon'
 export default environment.define(function ({ step }) {
+    afterEach(async function () {
+        environment.app.emit('close');// stop mock services
+    });
     interface Header {
         readonly name: string
         readonly value: string
     }
-    step(/^new environment$/, async function () {
+    step(/^new environment$/, async function (list?: readonly Record<'service', string>[]) {
         const events = await import('node:events');
         const watch = new events.EventEmitter();
         const app = e().on('event', function (...a) {
-            // forward events to watch
+            if (process.env.DEBUG) {
+                console.info(...a);
+            }
             watch.emit('event', ...a);
         }).on('error', function (e) {
             if (process.env.DEBUG) {
@@ -21,6 +27,10 @@ export default environment.define(function ({ step }) {
         {
             await app.setup(await import('@io/app/domain'));
             await app.setup(await import('@io/app/domain.mock'));
+            await app.setup(await import('@io/app/openapi.mock'));
+        }
+        for (const item of list ?? []) {
+            item;
         }
         Object.assign(environment, <typeof environment>{
             e: events.default.on(watch, 'event'),
@@ -76,11 +86,18 @@ export default environment.define(function ({ step }) {
         }, environment.res);
     });
     step(/^expect body schema should be$/, async function (list: readonly Record<'openapi', string>[]) {
+        const openapi = JSON.schema('openapi.json');
         const res = await environment.res;
         const sep = list.map(function (item) {
             return JSON.pointer.escape(item.openapi);
         });
-        JSON.schema(sep.join('/')).assert(res?.body);
+        try {
+            openapi.node(...sep).assert(res?.body);
+        } catch (e) {
+            // more information for debug
+            console.error(e);
+            throw e;
+        }
     });
     step(/^expect body should match json$/, async function (text: string) {
         const res = await environment.res?.expect('Content-Type', /json/);

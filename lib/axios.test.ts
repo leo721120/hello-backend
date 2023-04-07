@@ -5,9 +5,11 @@ describe('axios', function () {
     const mock = axios.mock(fetch);
     {
         mock.persist(true)
+            .get('/testcase/err').replyWithError(Error('4test'))
             .get('/testcase/abc').reply(200, {
                 abc: 'test',
-            });
+            })
+            ;
     }
     it('.request', async function () {
         const res = await fetch.request({
@@ -20,20 +22,27 @@ describe('axios', function () {
             abc: 'test',
         });
     });
+    it('.request, error', async function () {
+        const err = await fetch.request({
+            url: '/testcase/err',
+        }).then(function () {
+            return undefined;
+        }).catch(function (e) {
+            return e as Error;
+        });
+        expect(err).toEqual(Error('4test'));
+        expect(Object.keys(err!).length).toBeLessThan(9);
+    });
     it('.cloudevent', async function () {
         const res = await fetch.request({
             url: '/testcase/abc',
         });
         expect(res.cloudevent()).toEqual({
-            datacontenttype: 'application/json',
-            data: undefined,
             elapse: expect.any(Number),
             id: expect.any(String),
             source: '/testcase/abc',
-            specversion: '1.0',
-            status: 200,
             time: expect.any(String),
-            type: 'GET',
+            type: '200',
         });
     });
 });
