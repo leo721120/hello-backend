@@ -2,6 +2,7 @@ import express from '@io/lib/express'
 export default express.service(async function (app) {
     await app.setup(await import('@io/app/openapi'));
     await app.setup(await import('@io/app/config'));
+    await app.setup(await import('@io/app/mongo'));
     await app.setup(await import('@io/app/dapr'));
     await app.setup(await import('@io/app/db'));
     await app.setup(await import('@io/app/websocket'));
