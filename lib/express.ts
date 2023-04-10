@@ -1,3 +1,9 @@
+import websocket from 'express-ws'
+import express from 'express'
+import ws from 'ws'
+import '@io/lib/error'
+import '@io/lib/event'
+import '@io/lib/node'
 {// make router handler can support async-await
     const layer = require('express/lib/router/layer');
     layer.prototype.handle_request = <express.RequestHandler>function (this: any, req, res, next) {
@@ -6,33 +12,17 @@
         if (fn.length > 3) {
             return next();
         }
-        Promise.try(function () {
+        Promise.resolve().then(function () {
             return fn(req, res, next);
         }).catch(next);
     };
 }
-import '@io/lib/express.application'
-import '@io/lib/express.websocket'
-import '@io/lib/express.response'
-import '@io/lib/express.request'
-import express from 'express'
-import ws from 'ws'
-export function Builder() {
+export function builder() {
     return <Application>express();
 }
-export default Object.assign(Builder, {
+export default Object.assign(builder, express, {
     middleware(cb: express.RequestHandler): typeof cb {
         return cb;
-    },
-    /**
-    @returns websocket to this server, auto close when server down
-    */
-    websocket(app: Application, path: string) {
-        const srv = app.websocket();
-        const addr = srv.address() as { readonly port: number };
-        const websocket = new ws(`ws://localhost:${addr.port}/${path.split('/').filter(Boolean).join('/')}`);
-        srv.once('close', () => websocket.close());
-        return websocket;
     },
     service<V>(cb: (app: Application) => PromiseLike<V> | V): typeof cb {
         return cb;
@@ -44,5 +34,291 @@ export default Object.assign(Builder, {
         const name = 'supertest';// use variable to prevent pkg include this
         const mock = require(name) as typeof import('supertest');
         return mock(app);
+    },
+});
+declare module 'ws' {
+    interface Server {
+        /**
+        @returns websocket to this server, auto close when server down
+        */
+        connect(path: string): WebSocket
+    }
+}
+declare global {
+    namespace Express {
+        interface Application extends websocket.WithWebsocketMethod {
+            readonly express: typeof express
+            readonly handle: express.RequestHandler
+            readonly final: express.ErrorRequestHandler
+            service<V>(name: string, factory: () => V): this
+            service<V>(name: string): V
+            setup<V>(object: { default: Setup<V> }): Promise<V>
+            authenticate<U extends {}>(type: string, cb: Authenticate<U>): this
+            authenticate<U extends {}>(type: string): Authenticate<U> | undefined
+            websocket(): ReturnType<websocket.Instance['getWss']>
+        }
+        interface Response {
+            /**
+            https://developers.google.com/search/docs/advanced/robots/robots_meta_tag?hl=zh-tw#xrobotstag
+            */
+            robotstag(value: 'noindex' | 'none'): this
+            /**
+            how much time has elapsed since receiving the request
+            */
+            elapse(): number
+            /**
+            response an error as rfc7807
+            */
+            error(e: Error): this
+            /**
+            format to HTTP/1.1 Content-Range header field.
+
+            @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Range
+            */
+            range(params: {
+                readonly unit: 'items'
+                readonly size: number
+                readonly start?: number
+                readonly end?: number
+            }): this
+        }
+        interface Request {
+            /**
+            time to receive this request
+            */
+            readonly now: Date
+            /**
+            extract tracecontext from header
+            */
+            cloudevent(): CloudEvent<string>
+            /**
+            @return query-strings with array type
+            */
+            querystrings<K extends string>(name: string): readonly K[]
+            /**
+            @return first value from `querystrings`
+            */
+            querystring<K extends string>(name: string): K | undefined
+            /**
+            @return from querystring, but convert to number or NaN
+            */
+            querynumber<K extends number>(name: string): K | undefined
+            /**
+            @return value from `params[name]`
+            */
+            parameter<K extends string>(name: string): K
+            /**
+            return body content
+            */
+            content<V>(): V
+            content<V>(mime: 'application/json'): V
+            content<V>(mime: 'application/cloudevents+json'): V
+            /**
+            extract authorization header as [type, credentials]
+            */
+            authorization(): [string, string]
+            /**
+            find user object from registered authenticate functions
+            */
+            authenticate<U extends {}>(): Promise<U | undefined>
+        }
+    }
+    interface Application extends Express.Application, ReturnType<typeof express> {
+        on<A extends unknown>(event: string, cb: (...a: A[]) => void): this
+        //
+        on(event: 'error', cb: (e: Error) => void): this
+        off(event: 'error', cb: (e: Error) => void): this
+        once(event: 'error', cb: (e: Error) => void): this
+        emit(event: 'error', e: Error): boolean
+        on(event: 'close', cb: () => void): this
+        off(event: 'close', cb: () => void): this
+        once(event: 'close', cb: () => void): this
+        emit(event: 'close'): boolean
+    }
+}
+interface Setup<V> {
+    (app: Application): PromiseLike<V> | V
+}
+interface Authenticate<U extends {}> {
+    (req: express.Request): PromiseLike<U | undefined> | U | undefined
+}
+namespace prototype {
+    export const application = { ...express.application };
+}
+Object.assign(express.application, <Application>{
+    express,
+    //
+    service(name, factory) {
+        const key = `service/${name}`;
+        const get = () => {
+            const f = this.get(key) as typeof factory;
+            console.assert(f, `service/${name} is not found`);
+            return f();
+        };
+        const set = () => {
+            return this.set(key, () => {
+                const v = factory();
+                this.set(key, () => v);
+                return v;
+            });
+        };
+        return arguments.length > 1
+            ? set()
+            : get()
+            ;
+    },
+    setup(object) {
+        return object.default(this);
+    },
+    authenticate(type, cb) {
+        const key = `authenticate-${type}`;
+        const get = () => {
+            return this.get(key);
+        };
+        const set = () => {
+            return this.set(key, cb);
+        };
+        return arguments.length === 1
+            ? get()
+            : set()
+            ;
+    },
+    handle(req, res, next) {
+        const done = (err?: Error) => {
+            const e = err ?? Error.$({
+                message: `method not found`,
+                name: SyntaxError.name,
+                status: 400,
+            });
+            this.final(e, req, res, next);
+        };
+        Object.assign(req, <typeof req>{
+            now: new Date(),
+        });
+        return prototype.application.handle.call(this, req, res, next ?? done);
+    },
+    final(err: Error, req, res, next) {
+        Object.assign(err, <typeof err>{
+            tracecontext: req.cloudevent(),
+        });
+        res.error(err);
+        this.emit('error', err);
+    },
+    websocket() {
+        Object.assign(this, { ws: undefined });
+        const wss = websocket(this).getWss();
+        Object.assign(wss, <typeof wss>{
+            connect(path) {
+                const addr = this.address() as { readonly port: number };
+                const uri = new URL(path, 'ws://localhost');
+                //uri.hostname = 'localhost';
+                //uri.protocol = 'ws';
+                uri.port = addr.port.toString();
+                const client = new ws(uri.toString());
+                this.once('close', () => client.close());
+                return client;
+            },
+        });
+        this.websocket = () => {
+            return wss;
+        };
+        return wss.once('close', function () {
+            // also close socket to prevent hanging
+            wss.options.server?.close();
+        });
+    },
+    ws(...a) {
+        this.websocket();
+        return this.ws(...a);
+    },
+});
+Object.assign(express.response, <typeof express.response>{
+    robotstag(value) {
+        return this.setHeader('X-Robots-Tag', value);
+    },
+    elapse() {
+        return Date.now() - this.req.now.getTime();
+    },
+    error(e) {
+        if (e.retrydelay) {
+            const delay = e.retrydelay / 1000;// convert to seconds
+            this.set('Retry-After', delay.toString());
+        }
+
+        this.status(e.status ?? 500);
+        this.json(<rfc7807>{
+            type: e.type,
+            title: e.name,
+            status: this.statusCode,
+            detail: e.message,
+            instance: e.instance ?? this.req.path,
+        });
+    },
+    range(params) {
+        const ranges = [params.start, params.end]
+            .filter(Boolean)
+            ;
+        const range = ranges.length
+            ? ranges.join('-')
+            : '*'
+            ;
+        return this.setHeader('Content-Range',
+            `${params.unit} ${range}/${params.size}`
+        );
+    },
+});
+Object.assign(express.request, <typeof express.request>{
+    cloudevent() {
+        const e = CloudEvent({
+            // generate new one if not exist
+            id: this.header('traceparent'),
+            type: this.method.toUpperCase(),
+            //time: this.now.toISOString(),
+            //data: undefined,
+            source: this.url,
+        });
+        this.cloudevent = () => {
+            return e;
+        };
+        return e;
+    },
+    querystrings(name) {
+        const list = [].concat(this.query[name] as [] ?? [])
+            .join(',')
+            .split(',')
+            .filter(Boolean)// remove empty
+            ;
+        return list as readonly string[];
+    },
+    querystring(name) {
+        return this.query[name];
+    },
+    querynumber(name) {
+        return this.query[name]?.toString().numberify();
+    },
+    parameter(name) {
+        return this.params[name];
+    },
+    content() {
+        return this.body;
+    },
+    authorization() {
+        const header = this.header('authorization') ?? '';
+        const [type = '', credentials = ''] = header.split(' ');
+        const authorization = [type.toLocaleLowerCase(), credentials] as [string, string];
+        this.authorization = () => authorization;
+        return authorization;
+    },
+    authenticate() {
+        const [type] = this.authorization();
+        const cb = this.app.authenticate(type) ?? function () {
+            throw Error.$({
+                message: 'unknown authenticate type',
+                name: 'Unauthorized',
+                status: 401,
+                params: { type },
+            });
+        };
+        return cb(this);
     },
 });

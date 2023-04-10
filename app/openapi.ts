@@ -1,4 +1,3 @@
-import prototype from '@io/lib/express.request'
 import express from '@io/lib/express'
 import path from 'node:path'
 import '@io/lib/node'
@@ -53,15 +52,15 @@ export default express.service(function (app) {
         }
         Object.assign(req, <typeof req>{
             querystrings(name) {
-                const value = prototype.querystrings.call(this, name);
+                const value = express.request.querystrings.call(this, name);
                 return queryfield(name, value);
             },
             querystring(name) {
-                const value = prototype.querystring.call(this, name);
+                const value = express.request.querystring.call(this, name);
                 return queryfield(name, value);
             },
             querynumber(name) {
-                const value = prototype.querynumber.call(this, name);
+                const value = express.request.querynumber.call(this, name);
                 return queryfield(name, value);
             },
             parameter(name) {

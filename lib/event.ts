@@ -1,21 +1,20 @@
 import { CloudEventV1 } from 'cloudevents'
 import TraceParent from 'traceparent'
-import '@io/lib/node'
 export default Object.assign(globalThis, <typeof globalThis>{
     CloudEvent({ id, ...params }) {
         if (id === null) {
-            return CloudEvent({
+            return {
                 id: '00-00000000000000000000000000000000-0000000000000000-00',
                 ...params,
-            });
+            };
         } else if (id === undefined) {
             const id = TraceParent.startOrResume(null, {
                 transactionSampleRate: 1,
             });
-            return CloudEvent({
+            return {
                 id: id.toString(),
                 ...params,
-            });
+            };
         } else {
             return {
                 id: TraceParent.fromString(id).toString(),

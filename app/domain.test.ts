@@ -1,10 +1,10 @@
 import environment from '@io/lib/cucumber'
-import e from '@io/lib/express'
+import express from '@io/lib/express'
 import '@io/lib/node'
 import '@io/lib/json'
 //import autocannon from 'autocannon'
 export default environment.define(function ({ step }) {
-    afterEach(async function () {
+    afterEach(function () {
         environment.app.emit('close');// stop mock services
     });
     interface Header {
@@ -14,15 +14,18 @@ export default environment.define(function ({ step }) {
     step(/^new environment$/, async function (list?: readonly Record<'service', string>[]) {
         const events = await import('node:events');
         const watch = new events.EventEmitter();
-        const app = e().on('event', function (...a) {
+        const app = express().on('event', function (...a) {
             if (process.env.DEBUG) {
                 console.info(...a);
             }
-            watch.emit('event', ...a);
+            {// cannot use `app` directly because of `event.on` throw error if got `error` event
+                watch.emit('event', ...a);
+            }
         }).on('error', function (e) {
             if (process.env.DEBUG) {
                 console.error(e);
             }
+            environment.errors.push(e);
         });
         {
             await app.setup(await import('@io/app/domain'));
@@ -33,8 +36,8 @@ export default environment.define(function ({ step }) {
             item;
         }
         Object.assign(environment, <typeof environment>{
-            e: events.default.on(watch, 'event'),
-            //benchmark: undefined,
+            events: events.default.on(watch, 'event'),
+            errors: [] as Error[],
             res: undefined,
             req: {},
             app,
@@ -45,7 +48,7 @@ export default environment.define(function ({ step }) {
             url,
         });
     });
-    step(/^headers$/, function (list: readonly Header[]) {
+    step(/^headers$/, function (list: readonly Record<'name' | 'value', string>[]) {
         Object.assign(environment.req, <typeof environment.req>{
             headers: list.reduce(function (obj, item) {
                 return {
@@ -61,16 +64,16 @@ export default environment.define(function ({ step }) {
         });
     });
     step(/^method (\w+)$/, function (method: string) {
+        const app = express.fetch(environment.app);
         const req = environment.req;
         const url = req.url ?? '/';
-        const app = e.fetch(environment.app);
         const res = app[method.toLowerCase() as 'get'](url);
         {
-            if (req.data) {
-                res.send(req.data);
-            }
             if (req.headers) {
                 res.set(req.headers);
+            }
+            if (req.data) {
+                res.send(req.data);
             }
         }
         Object.assign(environment, <typeof environment>{
@@ -123,7 +126,7 @@ export default environment.define(function ({ step }) {
     });
     step(/^expect events should be$/, async function (list: readonly CloudEvent<string>[]) {
         for (const e of list) {
-            const res = await environment.e?.next();
+            const res = await environment.events.next();
             expect(res?.value).toEqual([expect.objectContaining(e)]);
         }
     });
@@ -165,8 +168,9 @@ export default environment.define(function ({ step }) {
 });
 declare module '@io/lib/cucumber' {
     interface Fixture {
-        readonly e?: AsyncIterableIterator<object>
-        readonly app: ReturnType<typeof e>
+        readonly events: AsyncIterableIterator<object>
+        readonly errors: Error[]
+        readonly app: Application
         readonly req: import('axios').AxiosRequestConfig
         readonly res?: import('supertest').Test
         //readonly benchmark?: autocannon.Result

@@ -14,7 +14,7 @@ describe('websocket', function () {
     });
     it('.on, WebSocket.Message', async function () {
         const events = await import('node:events');
-        const ws = express.websocket(app, '/ws');
+        const ws = app.websocket().connect('/ws');
         await events.default.once(ws, 'open');
         const done = events.default.once(app, 'WebSocket.Message');
         ws.send(JSON.stringify({

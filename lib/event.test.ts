@@ -10,7 +10,7 @@ describe('event', function () {
             time: t,
             id: null
         });
-        expect(c).toEqual({
+        expect(c).toEqual(<typeof c>{
             id: '00-00000000000000000000000000000000-0000000000000000-00',
             time: t,
             source: '/testonly',
@@ -27,7 +27,7 @@ describe('event', function () {
             time: t,
             id: undefined,// generate new one
         });
-        expect(c).toEqual({
+        expect(c).toEqual(<typeof c>{
             id: expect.any(String),
             time: t,
             source: '/testonly',
@@ -44,7 +44,7 @@ describe('event', function () {
             time: t,
             id: '00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-01',
         });
-        expect(c).toEqual({
+        expect(c).toEqual(<typeof c>{
             id: '00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-01',
             time: t,
             source: '/testonly',
