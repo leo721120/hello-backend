@@ -12,7 +12,7 @@ import '@io/lib/node'
         if (fn.length > 3) {
             return next();
         }
-        Promise.resolve().then(function () {
+        Promise.try(function () {
             return fn(req, res, next);
         }).catch(next);
     };
@@ -50,12 +50,12 @@ declare global {
             readonly express: typeof express
             readonly handle: express.RequestHandler
             readonly final: express.ErrorRequestHandler
+            authenticate<U extends object>(type: Lowercase<string>): Authenticate<U> | undefined
+            authenticate<U extends object>(type: Lowercase<string>, cb: Authenticate<U>): this
+            websocket(): ReturnType<websocket.Instance['getWss']>
             service<V>(name: string, factory: () => V): this
             service<V>(name: string): V
             setup<V>(object: { default: Setup<V> }): Promise<V>
-            authenticate<U extends {}>(type: string, cb: Authenticate<U>): this
-            authenticate<U extends {}>(type: string): Authenticate<U> | undefined
-            websocket(): ReturnType<websocket.Instance['getWss']>
         }
         interface Response {
             /**
@@ -116,11 +116,11 @@ declare global {
             /**
             extract authorization header as [type, credentials]
             */
-            authorization(): [string, string]
+            authorization(): [Lowercase<string>, string]
             /**
             find user object from registered authenticate functions
             */
-            authenticate<U extends {}>(): Promise<U | undefined>
+            authenticate<U extends object>(): Promise<U>
         }
     }
     interface Application extends Express.Application, ReturnType<typeof express> {
@@ -136,11 +136,11 @@ declare global {
         emit(event: 'close'): boolean
     }
 }
+interface Authenticate<U extends object> {
+    (req: express.Request): PromiseLike<U> | U
+}
 interface Setup<V> {
     (app: Application): PromiseLike<V> | V
-}
-interface Authenticate<U extends {}> {
-    (req: express.Request): PromiseLike<U | undefined> | U | undefined
 }
 namespace prototype {
     export const application = { ...express.application };
@@ -171,7 +171,7 @@ Object.assign(express.application, <Application>{
         return object.default(this);
     },
     authenticate(type, cb) {
-        const key = `authenticate-${type}`;
+        const key = `authenticate/${type}`;
         const get = () => {
             return this.get(key);
         };
@@ -305,11 +305,11 @@ Object.assign(express.request, <typeof express.request>{
     authorization() {
         const header = this.header('authorization') ?? '';
         const [type = '', credentials = ''] = header.split(' ');
-        const authorization = [type.toLocaleLowerCase(), credentials] as [string, string];
+        const authorization = [type.toLowerCase(), credentials] as ReturnType<typeof this.authorization>;
         this.authorization = () => authorization;
         return authorization;
     },
-    authenticate() {
+    async authenticate() {
         const [type] = this.authorization();
         const cb = this.app.authenticate(type) ?? function () {
             throw Error.$({
@@ -319,6 +319,6 @@ Object.assign(express.request, <typeof express.request>{
                 params: { type },
             });
         };
-        return cb(this);
+        return await cb(this);
     },
 });

@@ -10,6 +10,9 @@ describe('String', function () {
     it('.numberify, NaN if fail', async function () {
         expect('a'.numberify()).toBeNaN();
     });
+    it('.numberify, || for NaN', async function () {
+        expect('a'.numberify() || 13).toBe(13);
+    });
     it('.nanoid', async function () {
         const id = String.nanoid(8);
         expect(id.length).toBe(8);
@@ -230,5 +233,19 @@ describe('Function', function () {
             };
         });
         expect(f()).toBe(1 + 3);
+    });
+});
+describe('Number', function () {
+    it('.narrow', async function () {
+        const n = 13;
+        expect(n.narrow(0, 15)).toBe(13);
+        expect(n.narrow(0, 10)).toBe(10);
+        expect(n.narrow(0, 13)).toBe(13);
+        expect(n.narrow(18, 99)).toBe(18);
+    });
+    it('.narrow, NaN', async function () {
+        const n = 'a'.numberify();
+        expect(n.narrow(0, 15)).toBeNaN();
+        expect(n.narrow(20, 35)).toBeNaN();
     });
 });

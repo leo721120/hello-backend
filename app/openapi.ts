@@ -95,6 +95,26 @@ export default express.service(function (app) {
                     'schema',
                 ).attempt(this.body);
             },
+            header(name) {
+                const value = express.request.header.call(this, name);
+                const node = openapi.node(
+                    'paths',
+                    JSON.pointer.escape(req.route.path),
+                    req.method.toLowerCase(),
+                    'parameters',
+                ).find(function (node) {
+                    const param = node.as('openapi.parameter');
+                    return param.schema.in === 'header'
+                        && param.schema.name.toLowerCase() === name.toLowerCase()
+                        // value can be omitted
+                        && (param.schema.required || value !== undefined)
+                        ;
+                });
+                node?.node('schema').assert(value, {
+                    params: { name },
+                });
+                return value;
+            },
         });
         Object.assign(res, <typeof res>{
             send: Function.monkeypatch(res.send, function (cb) {

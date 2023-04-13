@@ -94,10 +94,11 @@ describe('express', function () {
         const ans = [] as unknown[];
         app.authenticate('basic', function (req) {
             ans.push(...req.authorization());
-            return {};
+            return { id: 'u13' };
         });
         app.get('/test', async function (req, res) {
-            await req.authenticate();
+            const user = await req.authenticate();
+            expect(user).toEqual({ id: 'u13' });
             res.status(200).end();
         });
         await express

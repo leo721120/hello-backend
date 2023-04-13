@@ -53,7 +53,7 @@ export default environment.define(function ({ step }) {
             headers: list.reduce(function (obj, item) {
                 return {
                     ...obj,
-                    [item.name]: item.value,
+                    [item.name.toLowerCase()]: item.value,
                 };
             }, {}),
         });

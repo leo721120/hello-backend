@@ -119,6 +119,12 @@ declare global {
         */
         base64(from?: BufferEncoding): string
     }
+    interface Number {
+        /**
+        narrow range (min <= this <= max)
+        */
+        narrow(min: number, max: number): number
+    }
     interface Array<T> {
         /**
         force convert element type to V
@@ -302,5 +308,14 @@ Object.assign(Date, <DateConstructor>{
 Object.assign(Date.prototype, <typeof Date.prototype>{
     invalid() {
         return isNaN(this.valueOf());
+    },
+});
+Object.assign(Number.prototype, <typeof Number.prototype>{
+    narrow(min, max) {
+        console.assert(min < max, 'min must less than max');
+        return Number.isNaN(this)
+            ? NaN
+            : Math.min(max, Math.max(min, this as number))
+            ;
     },
 });

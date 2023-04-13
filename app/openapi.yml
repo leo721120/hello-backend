@@ -123,6 +123,82 @@ paths:
                     enum:
                       - SUCCESS
 
+  /token:
+    get:
+      summary: IssueToken
+      description: |
+        Used to issue a token for the system.
+      tags:
+        - System
+      responses:
+        default:
+          description: |
+            Operation failed.
+        401:
+          description: |
+            User cannot be identified.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/error"
+        400:
+          description: |
+            Invalid request.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/error"
+        200:
+          description: |
+            Operation success.
+          content:
+            application/json:
+              schema:
+                description: |
+                  
+                type: object
+                maxProperties: 9
+                required:
+                  - access_token
+                  - token_type
+                properties:
+                  access_token:
+                    description: |
+                      The access token issued by the authorization server.
+                    type: string
+                    minLength: 9
+                    maxLength: 9999
+                    example: eyJz93a...k4laUWw
+                  token_type:
+                    description: |
+                      The type of the token issued as described in [RFC6749], Section 7.1. Value is case insensitive.
+                    type: string
+                    enum:
+                      - bearer
+                      - jwt
+                  expires_in:
+                    description: |
+                      The lifetime in seconds of the access token. For example, the value "3600" denotes that the access token will expire in one hour from the time the response was generated. If omitted, the authorization server SHOULD provide the expiration time via other means or document the default value.
+                    type: integer
+                    minimum: 1
+                    maximum: 3600
+                    default: 300
+                    example: 300
+      parameters:
+        - name: Authorization
+          in: header
+          description: |
+            https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 999
+            example: basic YTpi
+            pattern: "^(basic) [a-zA-Z0-9+/=]+$"
+
 x-webhooks:
   SomethingHappened:
     post:
