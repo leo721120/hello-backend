@@ -208,6 +208,18 @@ describe('express/res', function () {
     });
 });
 describe('express/req', function () {
+    it('.origin', async function () {
+        const app = express().get('/abc', async function (req, res) {
+            const e = req.origin();
+            new URL(e);// can be parsed
+            res.status(200).json({ e });
+        });
+        const res = await express
+            .fetch(app)
+            .get('/abc?q=124')
+            ;
+        expect(res.body.e).toMatch(RegExp('http(s)?://127.0.0.1:\\d+'));
+    });
     it('.cloudevent', async function () {
         const app = express().get('/abc', async function (req, res) {
             const e = req.cloudevent();

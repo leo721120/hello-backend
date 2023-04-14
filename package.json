@@ -74,6 +74,7 @@
     "dotenv": "^16.0.3",
     "express": "^4.17.3",
     "express-ws": "^5.0.2",
+    "fido2-lib": "^3.3.5",
     "form-data": "^4.0.0",
     "fs-extra": "^10.1.0",
     "hash-wasm": "^4.9.0",

@@ -28,6 +28,10 @@ describe('String', function () {
         expect(id.base64()).toBe(id.encode('base64'));
         expect(id.base64().decode('base64')).toBe(id);
     });
+    it('.sha1', async function () {
+        const s = 'abc012';
+        expect(s.sha1()).toBe('b5e0438b897040e4333ec5050b5204a9df4e9fea');
+    });
 });
 describe('Object', function () {
     it('.copy', async function () {
@@ -247,5 +251,21 @@ describe('Number', function () {
         const n = 'a'.numberify();
         expect(n.narrow(0, 15)).toBeNaN();
         expect(n.narrow(20, 35)).toBeNaN();
+    });
+});
+describe('ArrayBuffer', function () {
+    it('.toJSON', async function () {
+        const a = new ArrayBuffer(16);
+        const j = { a };
+        const v = new Uint8Array(a);
+        for (let i = 0; i < v.length; i++) {
+            v[i] = i + 48;
+        }
+        expect(JSON.stringify(j)).toBe(JSON.stringify({
+            a: 'MDEyMzQ1Njc4OTo7PD0+Pw==',// base64 of '0123456789:;<=>?'
+        }));
+        expect(JSON.stringify(j)).toBe(JSON.stringify({
+            a: '0123456789:;<=>?'.base64(),
+        }));
     });
 });

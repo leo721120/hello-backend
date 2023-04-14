@@ -36,6 +36,9 @@ tags:
   - name: Event
     description: |
       Used to describe the events that the system will send.
+  - name: WebAuthn
+    description: |
+      Used to register or authenticate with [WebAuthn](https://webauthn.io).
 
 servers:
   - url: http://{hostname}:{port}
@@ -50,7 +53,7 @@ servers:
         description: |
           port to listen
         default: "8088"
-  
+
   - url: http://{hostname}:{port}/v1.0/invoke/{appid}/method
     description: |
       over dapr
@@ -157,7 +160,7 @@ paths:
             application/json:
               schema:
                 description: |
-                  
+
                 type: object
                 maxProperties: 9
                 required:
@@ -198,6 +201,137 @@ paths:
             maxLength: 999
             example: basic YTpi
             pattern: "^(basic) [a-zA-Z0-9+/=]+$"
+
+  /webauthn/{name}/attestation:
+    parameters:
+      - name: name
+        in: path
+        description: |
+          name of user
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 99
+          example: user007
+    post:
+      summary: Register
+      description: |
+        Used to register a new credential with user.
+      tags:
+        - WebAuthn
+      responses:
+        default:
+          description: |
+            Operation failed.
+        200:
+          description: |
+            Operation success.
+          content:
+            application/json:
+              schema:
+                type: object
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: |
+                https://developer.mozilla.org/en-US/docs/Web/API/PublicKeyCredential
+              type: object
+    get:
+      summary: Attestation
+      description: |
+        Used to retrieve challenge for registration.
+      tags:
+        - WebAuthn
+      responses:
+        default:
+          description: |
+            Operation failed.
+        200:
+          description: |
+            Operation success.
+          content:
+            application/json:
+              schema:
+                description: |
+                  https://developer.mozilla.org/en-US/docs/Web/API/CredentialsContainer/create
+                type: object
+
+  /webauthn/{name}/assertion:
+    parameters:
+      - name: name
+        in: path
+        description: |
+          name of user
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 99
+          example: user007
+    post:
+      summary: Authenticate
+      description: |
+        Used to authenticate user with credential.
+      tags:
+        - WebAuthn
+      responses:
+        default:
+          description: |
+            Operation failed.
+        200:
+          description: |
+            Operation success.
+          content:
+            application/json:
+              schema:
+                type: object
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: |
+                https://developer.mozilla.org/en-US/docs/Web/API/PublicKeyCredential
+              type: object
+    get:
+      summary: Assertion
+      description: |
+        Used to retrieve challenge for authentication.
+      tags:
+        - WebAuthn
+      responses:
+        default:
+          description: |
+            Operation failed.
+        200:
+          description: |
+            Operation success.
+          content:
+            application/json:
+              schema:
+                description: |
+                  https://developer.mozilla.org/en-US/docs/Web/API/CredentialsContainer/get
+                type: object
+
+  /webauthn/demo:
+    get:
+      summary: Demo
+      description: |
+        Demo page to show how to use webauthn.
+      tags:
+        - WebAuthn
+      responses:
+        default:
+          description: |
+            Operation failed.
+        200:
+          description: |
+            Operation success.
+          content:
+            text/html:
+              schema:
+                type: string
 
 x-webhooks:
   SomethingHappened:

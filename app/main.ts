@@ -36,6 +36,9 @@ export default Promise.try(async function () {
             params: e.params,
             reason: e.reason,
         });
+        if (process.env.DEBUG) {
+            console.error(e.stack);
+        }
     }).once('close', function () {
         log.info({ text: 'close' });
     });

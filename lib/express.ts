@@ -88,6 +88,9 @@ declare global {
             */
             readonly now: Date
             /**
+            */
+            origin(): string | 'http://localhost:8080'
+            /**
             extract tracecontext from header
             */
             cloudevent(): CloudEvent<string>
@@ -268,6 +271,16 @@ Object.assign(express.response, <typeof express.response>{
     },
 });
 Object.assign(express.request, <typeof express.request>{
+    origin() {
+        const port = this.socket.localPort ?? (this.secure ? 443 : 80);
+        const url = new URL('http://localhost');
+        url.protocol = this.protocol;
+        url.hostname = this.hostname;
+        url.port = port.toString();
+        const origin = url.origin;
+        this.origin = () => origin;
+        return origin;
+    },
     cloudevent() {
         const e = CloudEvent({
             // generate new one if not exist

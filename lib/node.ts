@@ -118,6 +118,9 @@ declare global {
         @param from default to utf8
         */
         base64(from?: BufferEncoding): string
+        /**
+        */
+        sha1(): string
     }
     interface Number {
         /**
@@ -140,6 +143,12 @@ declare global {
         @return result of isNaN(this.valueOf())
         */
         invalid(): boolean
+    }
+    interface ArrayBuffer {
+        /**
+        ArrayBuffer cannot be serialized by JSON.stringify by default
+        */
+        toJSON?(): unknown
     }
 }
 Object.assign(Function, <FunctionConstructor>{
@@ -179,6 +188,13 @@ Object.assign(String.prototype, <String>{
     },
     base64(from) {
         return this.encode('base64', from);
+    },
+    sha1() {
+        return crypto
+            .createHash('sha1')
+            .update(this as string)
+            .digest('hex')
+            ;
     },
 });
 Object.assign(Object, <ObjectConstructor>{
@@ -317,5 +333,10 @@ Object.assign(Number.prototype, <typeof Number.prototype>{
             ? NaN
             : Math.min(max, Math.max(min, this as number))
             ;
+    },
+});
+Object.assign(ArrayBuffer.prototype, <ArrayBuffer>{
+    toJSON() {
+        return Buffer.from(this).toString('base64');
     },
 });

@@ -65,9 +65,10 @@ export default express.service(function (app) {
             },
             parameter(name) {
                 const value = this.params[name];
-                const field = function () {// convert express `path` to openapi `path`
-                    const p = req.route.path as string;
-                    return p.replace(`:${name}`, `{${name}}`);
+                const field = () => {// convert express `path` to openapi `path`
+                    return Object.keys(this.params).reduce(function (p, name) {
+                        return p.replace(`:${name}`, `{${name}}`);
+                    }, req.route.path as string);
                 };
                 {
                     openapi.node(
