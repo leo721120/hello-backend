@@ -188,7 +188,7 @@ Object.assign(express.application, <Application>{
     },
     handle(req, res, next) {
         const done = (err?: Error) => {
-            const e = err ?? Error.$({
+            const e = err ?? Error.build({
                 message: `method not found`,
                 name: SyntaxError.name,
                 status: 400,
@@ -202,7 +202,7 @@ Object.assign(express.application, <Application>{
     },
     final(err: Error, req, res, next) {
         Object.assign(err, <typeof err>{
-            tracecontext: req.cloudevent(),
+            context: req.cloudevent(),
         });
         res.error(err);
         this.emit('error', err);
@@ -250,11 +250,10 @@ Object.assign(express.response, <typeof express.response>{
 
         this.status(e.status ?? 500);
         this.json(<rfc7807>{
-            type: e.type,
             title: e.name,
             status: this.statusCode,
             detail: e.message,
-            instance: e.instance ?? this.req.path,
+            instance: e.resource ?? this.req.path,
         });
     },
     range(params) {
@@ -325,7 +324,7 @@ Object.assign(express.request, <typeof express.request>{
     async authenticate() {
         const [type] = this.authorization();
         const cb = this.app.authenticate(type) ?? function () {
-            throw Error.$({
+            throw Error.build({
                 message: 'unknown authenticate type',
                 name: 'Unauthorized',
                 status: 401,

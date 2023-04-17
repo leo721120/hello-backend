@@ -33,6 +33,8 @@ info:
 
 tags:
   - name: System
+    description: |
+      
   - name: Event
     description: |
       Used to describe the events that the system will send.
@@ -130,7 +132,7 @@ paths:
     get:
       summary: IssueToken
       description: |
-        Used to issue a token for the system.
+        Used to issue a token for access resources.
       tags:
         - System
       responses:
@@ -201,6 +203,15 @@ paths:
             maxLength: 999
             example: basic YTpi
             pattern: "^(basic) [a-zA-Z0-9+/=]+$"
+        - name: expire
+          in: query
+          description: |
+            The lifetime in seconds of the access token.
+          schema:
+            type: number
+            minimum: 1
+            maximum: 3600
+            default: 300
 
   /webauthn/{name}/attestation:
     parameters:

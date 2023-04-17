@@ -173,7 +173,7 @@ describe('express/res', function () {
     });
     it('.error', async function () {
         const app = express().get('/abc', async function (req, res) {
-            res.error(Error.$({
+            res.error(Error.build({
                 message: 'only4test',
                 name: '4test',
                 status: 402,

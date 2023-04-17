@@ -1,4 +1,4 @@
-import { CloudEventV1 } from 'cloudevents'
+import type { CloudEventV1 } from 'cloudevents'
 import TraceParent from 'traceparent'
 export default Object.assign(globalThis, <typeof globalThis>{
     CloudEvent({ id, ...params }) {

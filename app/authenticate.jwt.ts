@@ -63,7 +63,7 @@ export default express.service(async function (app) {
             });
         } catch (e) {
             if (e instanceof jsonwebtoken.TokenExpiredError) {
-                throw Error.$({
+                throw Error.build({
                     message: e.message,
                     name: 'TokenExpired',
                     status: 401,
@@ -71,14 +71,14 @@ export default express.service(async function (app) {
                 });
             }
             if (e instanceof Error) {
-                throw Error.$({
+                throw Error.build({
                     message: e.message,
                     name: 'InvalidToken',
                     status: 401,
                     reason: e,
                 });
             }
-            throw Error.$({
+            throw Error.build({
                 message: 'fail to verify token',
                 name: 'UnexpectedError',
                 status: 500,

@@ -14,7 +14,7 @@ export default express.service(function (app) {
     }
     const authentications = Object.assign(new Map<string, Fido2AttestationResult>(), {
         find(key: string, e?: Partial<Error>) {
-            if (!authentications.has(key)) throw Error.$({
+            if (!authentications.has(key)) throw Error.build({
                 message: 'authentication not found',
                 name: 'NotFound',
                 status: 401,
@@ -26,7 +26,7 @@ export default express.service(function (app) {
     });
     const attestations = Object.assign(new Map<string, ExpectedAttestationResult>(), {
         pop(key: string, e?: Partial<Error>) {
-            if (!attestations.has(key)) throw Error.$({
+            if (!attestations.has(key)) throw Error.build({
                 message: 'webauthn attestation not found',
                 name: 'NotFound',
                 status: 400,
@@ -41,7 +41,7 @@ export default express.service(function (app) {
     });
     const assertions = Object.assign(new Map<string, ExpectedAssertionResult>(), {
         pop(key: string, e?: Partial<Error>) {
-            if (!assertions.has(key)) throw Error.$({
+            if (!assertions.has(key)) throw Error.build({
                 message: 'webauthn assertion not found',
                 name: 'NotFound',
                 status: 400,

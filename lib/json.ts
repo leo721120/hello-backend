@@ -52,7 +52,7 @@ export default Object.assign(JSON, <typeof JSON>{
                         .join(', ')
                         ?? 'schema validation failed'
                         ;
-                    throw Error.$({
+                    throw Error.build({
                         name: SyntaxError.name,
                         reason: this.errors,
                         params: data,//! could be a large object

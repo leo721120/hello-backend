@@ -36,10 +36,10 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
                     : -1;
             },
         });
-    }, function (e: AxiosError) {
+    }, function (e: Readonly<AxiosError>) {
         const res = e.response;
         const req = e.config;
-        throw Error.$({
+        throw Error.build({
             message: e.message,
             name: e.code ?? res?.statusText ?? e.name,
             errno: e.errno,
@@ -71,10 +71,10 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
             method,
             now,
         });
-    }, function (e: AxiosError) {
+    }, function (e: Readonly<AxiosError>) {
         const res = e.response;
         const req = e.config;
-        throw Error.$({
+        throw Error.build({
             message: e.message,
             name: e.code ?? res?.statusText ?? e.name,
             errno: e.errno,

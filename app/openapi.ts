@@ -45,7 +45,7 @@ export default express.service(function (app) {
                     ;
             });
             node?.node('schema').assert(value, {
-                instance: `${req.path}?${field}=`,
+                resource: `${req.path}?${field}=`,
                 params: { field },
             });
             return value;

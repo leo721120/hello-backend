@@ -50,7 +50,7 @@ export default express.service(function (app) {
                     : status.DROP,
             });
             app.emit('error', Object.assign(e, <typeof e>{
-                tracecontext: req.cloudevent(),
+                context: req.cloudevent(),
             }));
         });
     });

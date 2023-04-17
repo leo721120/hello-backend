@@ -7,7 +7,7 @@ export default express.service(function (app) {
 
         ws.on('error', function (e) {
             app.emit('error', Object.assign(e, <typeof e>{
-                tracecontext: ce,
+                context: ce,
             }));
         }).on('close', function () {
             app.emit('event', CloudEvent({
@@ -31,11 +31,10 @@ export default express.service(function (app) {
                     },
                     error(e) {
                         return this.reply(<rfc7807>{
-                            type: e.type,
                             title: e.name,
                             status: e.status ?? 500,
                             detail: e.message,
-                            instance: e.instance,
+                            instance: e.resource,
                         });
                     },
                     reply(message) {
