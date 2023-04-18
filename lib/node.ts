@@ -137,6 +137,11 @@ declare global {
         remove duplicated elements
         */
         unique<R extends T>(): Array<R>
+        /**
+        @return intersection of two arrays
+        */
+        intersection<A extends T>(a: Array<A>): Array<T>
+        //intersection<A extends T>(a: ReadonlyArray<A>): Array<T>
     }
     interface Date {
         /**
@@ -307,6 +312,9 @@ Object.assign(Promise, <PromiseConstructor>{
 Object.assign(Array.prototype, <typeof Array.prototype>{
     unique() {
         return [...new Set(this)];
+    },
+    intersection(a) {
+        return this.filter(v => a.includes(v));
     },
 });
 Object.assign(Date, <DateConstructor>{

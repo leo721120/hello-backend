@@ -197,6 +197,13 @@ describe('Array', function () {
         expect(a).toEqual([1, 2, 2, 3, 'a', 'b', 'a', 'c']);
         expect(v).toEqual([1, 2, 3, 'a', 'b', 'c']);
     });
+    it('.intersection', async function () {
+        const a = [1, 4, 687, 43, 'ab'];
+        const b = [1, 43, 89, 'ab'];
+        expect(a.intersection(b)).toEqual([
+            1, 43, 'ab',
+        ]);
+    });
 });
 describe('Date', function () {
     it('iso8601', async function () {
