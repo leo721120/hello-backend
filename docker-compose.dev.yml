@@ -2,23 +2,39 @@ version: '3'
 
 networks:
   backend: {}
+  dapr: {}
 
 services:
   #---------------------------------------
+  zipkin:
+    #
+    extends:
+      file: docker-compose.e2e.yml
+      service: zipkin
+    ports:
+      # export for dev
+      - 9411:9411
+  #---------------------------------------
+  redis:
+    #
+    extends:
+      file: docker-compose.e2e.yml
+      service: redis
+  #---------------------------------------
   mongo:
-    # database (only for develop)
+    #
     extends:
       file: docker-compose.e2e.yml
       service: mongo
     ports:
-      # export for debug
+      # export for dev
       - 27017:27017
   #---------------------------------------
   postgres:
-    # database (only for develop)
+    #
     extends:
       file: docker-compose.e2e.yml
       service: postgres
     ports:
-      # export for debug
+      # export for dev
       - 5432:5432

@@ -46,3 +46,58 @@ describe('axios', function () {
         });
     });
 });
+describe('axios/openapi', function () {
+    const document = JSON.schema('abc.yml',
+        JSON.openapi(`${__dirname}/json.test.yml`)
+    );
+    const fetch = axios.openapi(axios(), document);
+    const mock = axios.mock(fetch.axios);
+
+    it('200', async function () {
+        {
+            mock.get('/foo/123?q1=xyz').reply(200, {
+                id: 'abc',
+                a: '0123',
+            });
+        }
+        const res = await fetch({
+            openapi: '/foo/{id}',
+            method: 'get',
+            params: {
+                id: 123,
+            },
+            query: {
+                q1: 'xyz',
+            },
+        });
+        expect(res.status).toBe(200);
+        expect(res.data).toEqual({
+            id: 'abc',
+            a: '0123',
+        });
+    });
+    it('502, malformed response', async function () {
+        {
+            mock.get('/foo/123?q1=xyz').reply(200, {
+                bad: 'item',
+            });
+        }
+        const err = await fetch({
+            openapi: '/foo/{id}',
+            method: 'get',
+            params: {
+                id: 123,
+            },
+            query: {
+                q1: 'xyz',
+            },
+        }).catch(function (e: Error) {
+            return e;
+        });
+        expect(err).toBeInstanceOf(Error);
+        const e = err as Error;
+        expect(e.status).toBe(502);
+        expect(e.message).toBe('must NOT have additional properties');
+        expect(e.name).toBe(SyntaxError.name);
+    });
+});

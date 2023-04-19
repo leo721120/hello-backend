@@ -111,6 +111,54 @@ describe('express', function () {
             'a:b'.base64(),
         ]);
     });
+    it('.openapi', async function () {
+        const document = JSON.schema('abc.yml',
+            JSON.openapi(`${__dirname}/json.test.yml`)
+        );
+        const app = express().use(
+            express.openapi(document)
+        ).get('/foo/:id', async function (req, res) {
+            const id = req.parameter('id');
+            res.status(200).json({
+                id,
+            });
+        });
+        const res = await express
+            .fetch(app)
+            .get('/foo/199')
+            ;
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual({
+            id: '199',
+        });
+    });
+    it('.openapi, invalid request', async function () {
+        const document = JSON.schema('abc.yml',
+            JSON.openapi(`${__dirname}/json.test.yml`)
+        );
+        const app = express().use(
+            express.openapi(document)
+        ).get('/foo/:id', function (req, res) {
+            const id = req.parameter('id');
+            res.status(200).json({
+                id,
+            });
+        }).on('error', function () {
+            // eat
+        });
+        const url = `/foo/${'a'.repeat(9 + 1)}`;
+        const res = await express
+            .fetch(app)
+            .get(url)
+            ;
+        expect(res.status).toBe(400);
+        expect(res.body).toEqual({
+            detail: 'must NOT have more than 9 characters',
+            instance: url,
+            status: 400,
+            title: 'SyntaxError',
+        });
+    });
 });
 describe('express/ws', function () {
     const app = express().ws('/testonly/ws', function (ws, req) {

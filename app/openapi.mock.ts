@@ -1,6 +1,4 @@
-import { getHttpOperationsFromSpec } from '@stoplight/prism-cli/dist/operations'
 import type { IPrismHttpServer } from '@stoplight/prism-http-server/dist/types'
-import type { IHttpOperation } from '@stoplight/types'
 import express from '@io/lib/express'
 import '@io/lib/node'
 export default express.service(async function (app) {
@@ -23,9 +21,6 @@ export default express.service(async function (app) {
                 server.close();
             });
             return Object.assign(server, <typeof server>{
-                apis() {
-                    return getHttpOperationsFromSpec(document);
-                },
             });
         },
     });
@@ -37,7 +32,6 @@ declare module '@io/app/domain.mock' {
 }
 declare module '@stoplight/prism-http-server/dist/types' {
     interface IPrismHttpServer {
-        apis(): Promise<IHttpOperation[]>
         addr(): string
     }
 }

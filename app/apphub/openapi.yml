@@ -1,0 +1,191 @@
+openapi: 3.0.3
+
+info:
+  version: 1.0.0
+  title: Apphub
+  description: |
+    Welcome to the reference for the Apphub API.
+
+servers:
+  - url: http://apphub.dev
+    description: |
+      only for develop
+
+security:
+  - accesstoken: []
+
+tags: []
+
+paths:
+  /api/devicemgr:
+    get:
+      summary: list managed devices
+      description: |
+
+      security:
+        - accesstoken: []
+      responses:
+        default:
+          description: operation failed
+        200:
+          description: operation success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/devices"
+
+  /login:
+    post:
+      summary: retrieve access token
+      description: |
+
+      security: []
+      responses:
+        default:
+          description: operation failed
+        200:
+          description: operation success
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/CHANGED"
+                  - required:
+                      - token
+                    properties:
+                      token:
+                        type: string
+                        minLength: 1
+                        maxLength: 999
+                        example: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTY4MTg4NDg0MywiZXhwIjoxNjgxODg4NDQzfQ.3o6eCMmLNjcrED3wgCF8Bl2sDK0Dgn9VLvJ7ELtQDT0
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  minLength: 1
+                  maxLength: 99
+                  example: user123
+                password:
+                  type: string
+                  minLength: 1
+                  maxLength: 99
+                  example: pass456
+
+components:
+  schemas:
+    devices:
+      minItems: 0
+      maxItems: 9999
+      type: array
+      items:
+        $ref: "#/components/schemas/device"
+
+    device:
+      maxProperties: 9
+      type: object
+      required:
+        - endpoint
+      properties:
+        endpoint:
+          type: string
+          minLength: 1
+          maxLength: 99
+          example: 28:6B:35:45:48:B8
+        isOnline:
+          type: string
+          enum:
+            - "true"
+            - "false"
+        isonline:
+          type: boolean
+        isBind:
+          type: boolean
+        registrationId:
+          type: string
+          example: aMRmwMUolX
+        registrationDate:
+          type: string
+          minLength: 1
+          maxLength: 99
+          example: 2023-04-18T19:58:43+08:00
+        lwM2MmVersion:
+          type: string
+          example: 1.0
+        lifetime:
+          type: integer
+          example: 86400
+        bindingMode:
+          type: string
+          enum:
+            - U
+        rootPath:
+          type: string
+          example: /
+        ipaddress:
+          type: string
+          minLength: 1
+          maxLength: 99
+          example: 172.22.28.69
+        devName:
+          description: |
+            default to endpoint
+          type: string
+          minLength: 0
+          maxLength: 99
+          example: 28:6B:35:45:48:B8
+        boardName:
+          type: string
+          minLength: 0
+          maxLength: 99
+          example: rk30sdk
+        timestamp:
+          type: string
+          example: 2023-04-19T14:20:14+08:00
+        groupname:
+          type: string
+          minLength: 0
+          maxLength: 99
+          example: gid:22
+        objectLinks:
+          type: array
+          minItems: 0
+          maxItems: 9999
+          items:
+            maxProperties: 99
+            type: object
+            properties:
+              url:
+                type: string
+                example: string\u0026lt\u003d86400\u0026isbind\u003dfalse\u0026tc\u003d1680796880345\u0026tz\u003dUTC+8\u0026iotkey\u003dXXXXXX\u0026location\u003dXXXXXX\u0026its_en\u003dtrue\u0026lng\u003d\u0026lat\u003d\u0026tenantId\u003dXXXXXX\u0026mode\u003dXXXXXX\u0026bat\u003dfalse\u0026src\u003dnet\u0026agent_ver\u003d1.1.21\u0026signInfo\u003dwindows
+              attributes:
+                type: object
+
+    CHANGED:
+      maxProperties: 9
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - CHANGED
+
+  securitySchemes:
+    accesstoken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        use /login to retrieve access token
+
+        ```http
+        accesstoken: <token>
+        ```

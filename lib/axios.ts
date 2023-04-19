@@ -1,10 +1,17 @@
-import type { AxiosError, AxiosRequestConfig } from 'axios'
+import type { AxiosRequestConfig } from 'axios'
+import type { AxiosResponse } from 'axios'
+import type { AxiosError } from 'axios'
+import https from 'node:https'
+import http from 'node:http'
 import axios from 'axios'
 import mime from 'mime'
 import '@io/lib/event'
 import '@io/lib/error'
+import '@io/lib/json'
 export function build(config?: Readonly<AxiosRequestConfig>) {
     const fetch = axios.create({
+        httpsAgent: new https.Agent({ keepAlive: true, keepAliveMsecs: 30_000 }),
+        httpAgent: new http.Agent({ keepAlive: true, keepAliveMsecs: 30_000 }),
         baseURL: 'http://localhost',
         ...config,
     });
@@ -89,6 +96,62 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
     return fetch;
 };
 export default Object.assign(build, {
+    /**
+    @param openapi openapi schema
+    @param fetch axios instance
+    */
+    openapi(fetch: ReturnType<typeof build>, openapi: ReturnType<typeof JSON.schema>) {
+        async function invoke<R, D = unknown>(config: Omit<Readonly<AxiosRequestConfig>, 'url' | 'baseURL'> & {
+            /**
+            path in openapi definition
+    
+            @example /abc/{id}/xyz/{name}
+            */
+            readonly openapi: `/${string}`
+            /**
+            used for api path template (move querystring to `query`)
+            */
+            readonly params?: Record<string, string | number>
+            readonly query?: Record<string, string | number>
+            /**
+            fixed to lowercase
+            */
+            readonly method: Lowercase<'get' | 'put' | 'head' | 'post' | 'patch' | 'delete' | 'options'>
+            /**
+            body data
+            */
+            readonly data?: D
+        }) {
+            const url = Object
+                .entries(config.params ?? {})
+                .reduce(function (path, [name, value]) {
+                    return path.replace(new RegExp(`{${name}}`, 'g'), String(value));
+                }, config.openapi as string)
+                ;
+            const res = await fetch.request<R, AxiosResponse<R, D>, D>({
+                ...config,
+                url,
+                params: config.query,
+            });
+            openapi.node(
+                'paths',
+                JSON.pointer.escape(config.openapi),
+                config.method,
+                'responses',
+                res.status.toString(),
+                'content',
+                JSON.pointer.escape(res.mimetype()),
+                'schema',
+            ).assert(res.data, {
+                status: 502,
+            });
+            return res;
+        }
+        return Object.assign(invoke, {
+            document: openapi,
+            axios: fetch,
+        });
+    },
     mock(fetch: ReturnType<typeof build>) {
         const name = 'nock';// use variable to prevent pkg include this
         const nock = require(name) as typeof import('nock');

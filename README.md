@@ -34,8 +34,8 @@ npm test
 # (optional) launch containers for e2e (db, mq, ...)
 docker-compose -f docker-compose.e2e.yml up
 
-# (optional) launch mock engine if you don't have real engine
-npm run mock/engine
+# (optional) launch mock service if you don't have real service
+npm run mock/apphub
 ```
 
 There are 2 way to launch **Dapr** environment.

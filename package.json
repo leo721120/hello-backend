@@ -18,7 +18,8 @@
     "dapr": "dapr run -a devapp -H 3500 -p 58088 -c ./cnf/dapr/config.yml -- ts-node app/main",
     "test": "jest",
     "mock": "prism mock",
-    "mock/app": "prism mock ./app/openapi.yml"
+    "mock/app": "prism mock ./app/openapi.yml",
+    "mock/apphub": "prism mock ./app/apphub/openapi.yml"
   },
   "devDependencies": {
     "@stoplight/prism-cli": "^4.11.1",

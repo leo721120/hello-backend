@@ -1,6 +1,5 @@
 import express from '@io/lib/express'
 import dapr from '@io/lib/dapr'
-import http from 'node:http'
 import '@io/lib/event'
 import '@io/lib/node'
 export interface Dapr extends ReturnType<typeof dapr> {
@@ -8,15 +7,10 @@ export interface Dapr extends ReturnType<typeof dapr> {
 export default express.service(function (app) {
     const timeout = Number.numberify(process.env.DAPR_TIMEOUT, 3_000);
     const port = Number.numberify(process.env.DAPR_HTTP_PORT, 3500);
-    const httpAgent = new http.Agent({
-        keepAliveMsecs: 30_000,
-        keepAlive: true,
-    });
     const fetch = dapr({
         // sidecar should be localhost
         baseURL: `http://localhost:${port}`,
         timeout,
-        httpAgent,
     });
     fetch.interceptors.response.use(function (res) {
         app.emit('event', res.cloudevent());
@@ -43,9 +37,6 @@ export default express.service(function (app) {
     });
     app.service('dapr', function () {
         return fetch;
-    }).once('close', function () {
-        // close keep-alived connections
-        httpAgent.destroy();
     }).get('/dapr/config', function (req, res) {
         res.status(200).json({});
     }).get('/dapr/metadata', async function (req, res) {

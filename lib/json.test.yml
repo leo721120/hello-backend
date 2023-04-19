@@ -6,6 +6,14 @@ info:
 
 paths:
   /foo/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 9
     get:
       responses:
         200:
