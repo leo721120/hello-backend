@@ -19,11 +19,11 @@ export default express.service(function (app) {
         });
     }).use(function (req, res, next) {
         app.emit('event',
-            req.cloudevent()
+            req.tracecontext()
         );
         res.once('finish', function () {
             app.emit('event', {
-                ...req.cloudevent(),
+                ...req.tracecontext(),
                 elapse: res.elapse(),
                 type: res.statusCode.toString(),
                 time: undefined,// useless

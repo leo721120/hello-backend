@@ -3,21 +3,21 @@ import '@io/lib/event'
 import '@io/lib/node'
 export default express.service(function (app) {
     app.ws('/ws', function (ws, req) {
-        const ce = req.cloudevent();
+        const tracecontext = req.tracecontext();
 
         ws.on('error', function (e) {
             app.emit('error', Object.assign(e, <typeof e>{
-                context: ce,
+                tracecontext,
             }));
         }).on('close', function () {
             app.emit('event', CloudEvent({
-                ...ce,
+                ...tracecontext,
                 data: undefined,
                 type: 'WebSocket.Close',
             }));
         }).on('message', function (byte) {
             const ev = CloudEvent<'WebSocket.Message'>({
-                ...ce,
+                ...tracecontext,
                 type: 'WebSocket.Message',
                 data: <CloudEvents['WebSocket.Message']>{
                     byte() {

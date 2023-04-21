@@ -13,25 +13,25 @@ export default express.service(function (app) {
         timeout,
     });
     fetch.interceptors.response.use(function (res) {
-        app.emit('event', res.cloudevent());
+        app.emit('event', res.tracecontext());
         return res;
     });
     fetch.interceptors.request.use(function (req) {
         const now = new Date();
         const method = req.method?.toUpperCase() ?? 'GET';
-        const cloudevent = CloudEvent({
-            ...req.cloudevent,
+        const tracecontext = CloudEvent({
+            ...req.tracecontext,
             source: req.url,
             time: now.toISOString(),
             type: method,
-            id: req.cloudevent?.id,
+            id: req.tracecontext?.id,
         });
         {
-            app.emit('event', cloudevent);
+            app.emit('event', tracecontext);
         }
         return Object.assign(req, <typeof req>{
             now: now.getTime(),
-            cloudevent,
+            tracecontext,
             method,
         });
     });
@@ -40,9 +40,9 @@ export default express.service(function (app) {
     }).get('/dapr/config', function (req, res) {
         res.status(200).json({});
     }).get('/dapr/metadata', async function (req, res) {
-        const cloudevent = req.cloudevent();
+        const tracecontext = req.tracecontext();
         const dapr = app.service('dapr');
-        const metadata = await dapr.metadata({ cloudevent });
+        const metadata = await dapr.metadata({ tracecontext });
         res.status(200).json(metadata.data);
     });
 });

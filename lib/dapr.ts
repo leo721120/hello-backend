@@ -70,7 +70,7 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
             }>({
                 url: `/v1.0/publish/${ev.pubsubname}/${ev.topic}`,
                 validateStatus: null,
-                cloudevent: ev,
+                tracecontext: ev,
                 method: 'POST',
                 data: ev,
                 params: {// just for log, not for function

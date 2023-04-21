@@ -37,7 +37,7 @@ describe('axios', function () {
         const res = await fetch.request({
             url: '/testcase/abc',
         });
-        expect(res.cloudevent()).toEqual({
+        expect(res.tracecontext()).toEqual({
             elapse: expect.any(Number),
             id: expect.any(String),
             source: '/testcase/abc',

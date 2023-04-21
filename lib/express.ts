@@ -188,7 +188,7 @@ declare global {
             /**
             extract tracecontext from header
             */
-            cloudevent(): CloudEvent<string>
+            tracecontext(): CloudEvent<string>
             /**
             @return query-strings with array type
             */
@@ -297,7 +297,7 @@ Object.assign(express.application, <Application>{
     },
     final(err: Error, req, res, next) {
         Object.assign(err, <typeof err>{
-            context: req.cloudevent(),
+            tracecontext: req.tracecontext(),
         });
         res.error(err);
         this.emit('error', err);
@@ -375,7 +375,7 @@ Object.assign(express.request, <typeof express.request>{
         this.origin = () => origin;
         return origin;
     },
-    cloudevent() {
+    tracecontext() {
         const e = CloudEvent({
             // generate new one if not exist
             id: this.header('traceparent'),
@@ -384,7 +384,7 @@ Object.assign(express.request, <typeof express.request>{
             //data: undefined,
             source: this.url,
         });
-        this.cloudevent = () => {
+        this.tracecontext = () => {
             return e;
         };
         return e;

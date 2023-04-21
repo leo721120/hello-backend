@@ -25,7 +25,7 @@ export default Promise.try(async function () {
             at: time,
         });
     }).on('error', function (e) {// bind before setup to prevent [ERR_UNHANDLED_ERROR]
-        const ce = e.context ?? CloudEvent({
+        const ce = e.tracecontext ?? CloudEvent({
             id: null,
         });
         log.warn({

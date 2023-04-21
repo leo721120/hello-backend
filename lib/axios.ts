@@ -19,15 +19,15 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
         const now = new Date();
         const req = res.config;
         return Object.assign(res, <typeof res>{
-            cloudevent() {
+            tracecontext() {
                 const e = CloudEvent({
-                    id: this.headers?.['traceparent'] ?? req.cloudevent?.id,
+                    id: this.headers?.['traceparent'] ?? req.tracecontext?.id,
                     type: this.status.toString(),
                     time: now.toISOString(),
                     source: req.url,
                     elapse: this.elapse(),
                 });
-                this.cloudevent = () => {
+                this.tracecontext = () => {
                     return e;
                 };
                 return e;
@@ -62,18 +62,18 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
     fetch.interceptors.request.use(function (req) {
         const now = req.now ?? Date.now();
         const method = req.method?.toUpperCase() ?? 'GET';
-        const cloudevent = CloudEvent({
-            ...req.cloudevent,
+        const tracecontext = CloudEvent({
+            ...req.tracecontext,
             source: req.url ?? '/',
             type: method,
-            id: req.cloudevent?.id,// or generate new one
+            id: req.tracecontext?.id,// or generate new one
         });
         const headers = {
             ...req.headers,
-            traceparent: cloudevent.id,
+            traceparent: tracecontext.id,
         };
         return Object.assign(req, <typeof req>{
-            cloudevent,
+            tracecontext,
             headers,
             method,
             now,
@@ -163,7 +163,7 @@ declare module 'axios' {
         /**
         inject tracecontext to header
         */
-        readonly cloudevent?: CloudEvent<string>
+        readonly tracecontext?: CloudEvent<string>
         /**
         datetime to send this request
 
@@ -175,7 +175,7 @@ declare module 'axios' {
         /**
         extract tracecontext from header
         */
-        cloudevent(): CloudEvent<string>
+        tracecontext(): CloudEvent<string>
         /**
         @return mime type of content
         */

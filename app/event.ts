@@ -39,7 +39,7 @@ export default express.service(function (app) {
                 //TODO: loopback detect
             }
             Object.assign(ce, <typeof ce>{
-                id: req.cloudevent().id,
+                id: req.tracecontext().id,
             });
             app.emit('event', ce);
             app.emit(ce.type, ce);
@@ -50,7 +50,7 @@ export default express.service(function (app) {
                     : status.DROP,
             });
             app.emit('error', Object.assign(e, <typeof e>{
-                context: req.cloudevent(),
+                tracecontext: req.tracecontext(),
             }));
         });
     });

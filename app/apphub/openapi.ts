@@ -20,25 +20,25 @@ export default express.service(function (app) {
             fetch.defaults.httpsAgent?.destroy();
         });
         fetch.interceptors.response.use(function (res) {
-            app.emit('event', res.cloudevent());
+            app.emit('event', res.tracecontext());
             return res;
         });
         fetch.interceptors.request.use(function (req) {
             const now = new Date();
             const method = req.method?.toUpperCase() ?? 'GET';
-            const cloudevent = CloudEvent({
-                ...req.cloudevent,
+            const tracecontext = CloudEvent({
+                ...req.tracecontext,
                 source: req.url,
                 time: now.toISOString(),
                 type: method,
-                id: req.cloudevent?.id,
+                id: req.tracecontext?.id,
             });
             {
-                app.emit('event', cloudevent);
+                app.emit('event', tracecontext);
             }
             return Object.assign(req, <typeof req>{
                 now: now.getTime(),
-                cloudevent,
+                tracecontext,
                 method,
             });
         });

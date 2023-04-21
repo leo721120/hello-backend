@@ -30,7 +30,7 @@ export default express.service(function (app) {
             benchmark: true,
             logging(text, elapse) {
                 app.emit('event', {
-                    ...this.cloudevent as CloudEvent<never>,
+                    ...this.tracecontext as CloudEvent<never>,
                     elapse,
                     text,
                 });
@@ -53,7 +53,7 @@ declare module 'sequelize' {
         /**
         context for tracking
         */
-        readonly cloudevent?: CloudEvent<string>
+        readonly tracecontext?: CloudEvent<string>
     }
 }
 declare global {

@@ -270,7 +270,7 @@ describe('express/req', function () {
     });
     it('.cloudevent', async function () {
         const app = express().get('/abc', async function (req, res) {
-            const e = req.cloudevent();
+            const e = req.tracecontext();
             res.status(200).json({ e });
         });
         const res = await express
