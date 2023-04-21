@@ -296,11 +296,8 @@ Object.assign(express.application, <Application>{
         return prototype.application.handle.call(this, req, res, next ?? done);
     },
     final(err: Error, req, res, next) {
-        Object.assign(err, <typeof err>{
-            tracecontext: req.tracecontext(),
-        });
         res.error(err);
-        this.emit('error', err);
+        this.emit('error', err, req.tracecontext());
     },
     websocket() {
         Object.assign(this, { ws: undefined });
@@ -376,12 +373,10 @@ Object.assign(express.request, <typeof express.request>{
         return origin;
     },
     tracecontext() {
-        const e = CloudEvent({
+        const e = CloudEvent<'HTTP.Message'>({
             // generate new one if not exist
             id: this.header('traceparent'),
             type: this.method.toUpperCase(),
-            //time: this.now.toISOString(),
-            //data: undefined,
             source: this.url,
         });
         this.tracecontext = () => {

@@ -21,9 +21,9 @@ export default environment.define(function ({ step }) {
             {// cannot use `app` directly because of `event.on` throw error if got `error` event
                 watch.emit('event', ...a);
             }
-        }).on('error', function (e) {
+        }).on('error', function (e, ...a) {
             if (process.env.DEBUG) {
-                console.error(e);
+                console.error(e, ...a);
             }
             environment.errors.push(e);
         });

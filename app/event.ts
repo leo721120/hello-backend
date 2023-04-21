@@ -48,12 +48,19 @@ export default express.service(function (app) {
                     ? status.RETRY
                     : status.DROP,
             });
-            app.emit('error', Object.assign(e, <typeof e>{
-                tracecontext: req.tracecontext(),
-            }));
+            app.emit('error', e, req.tracecontext());
         });
-    }).on('event', function(e) {
-        app.emit(e.type as never, e);
+    }).on('event', function (e) {
+        /**
+        dispatch event to subset
+        */
+        for (const cb of app.listeners(e.type)) {
+            Promise.try(function () {
+                return cb(e);
+            }).catch(function (err: Error) {
+                app.emit('error', err, e);
+            });
+        }
     });
 });
 declare global {
@@ -76,5 +83,9 @@ declare global {
         off<K extends string>(event: 'event', cb: (e: CloudEvent<K>) => void): this
         once<K extends string>(event: 'event', cb: (e: CloudEvent<K>) => void): this
         emit<K extends string>(event: 'event', e: CloudEvent<K>): boolean
+        on<K extends string>(event: 'error', cb: (e: Error, a?: CloudEvent<K>) => void): this
+        off<K extends string>(event: 'error', cb: (e: Error, a?: CloudEvent<K>) => void): this
+        once<K extends string>(event: 'error', cb: (e: Error, a?: CloudEvent<K>) => void): this
+        emit<K extends string>(event: 'error', e: Error, a?: CloudEvent<K>): boolean
     }
 }

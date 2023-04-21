@@ -6,15 +6,13 @@ export default express.service(function (app) {
         const tracecontext = req.tracecontext();
 
         ws.on('error', function (e) {
-            app.emit('error', Object.assign(e, <typeof e>{
-                tracecontext,
-            }));
+            app.emit('error', e, tracecontext);
         }).on('close', function () {
-            app.emit('event', CloudEvent({
+            app.emit('event', {
                 ...tracecontext,
                 data: undefined,
                 type: 'WebSocket.Close',
-            }));
+            });
         }).on('message', function (byte) {
             const ev = CloudEvent<'WebSocket.Message'>({
                 ...tracecontext,

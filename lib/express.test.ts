@@ -81,7 +81,7 @@ describe('express', function () {
             ;
         //expect(res.headers['content-type']).toEqual('application/problem+json');
         expect(res.status).toBe(400);
-        expect(res.body).toEqual({
+        expect(res.body).toEqual(<rfc7807>{
             //type: expect.any(String),
             title: 'SyntaxError',
             detail: 'method not found',
@@ -231,7 +231,7 @@ describe('express/res', function () {
             .fetch(app)
             .get('/abc')
             ;
-        expect(res.body).toEqual({
+        expect(res.body).toEqual(<rfc7807>{
             //type: expect.any(String),
             title: '4test',
             status: 402,

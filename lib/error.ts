@@ -9,10 +9,6 @@ declare global {
     }
     interface Error {
         /**
-        used to trace the context of error
-        */
-        readonly tracecontext?: CloudEvent<string>
-        /**
         how long to be wait if retryable, in milliseconds
         */
         readonly retrydelay?: number

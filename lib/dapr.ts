@@ -60,7 +60,7 @@ export function build(config?: Readonly<AxiosRequestConfig<never>>) {
                 url: `/v1.0/invoke/${req.appid}/method/${url}`,
             });
         },
-        publish(ev: CloudEvent<string> & {
+        publish<K extends string>(ev: CloudEvent<K> & {
             readonly pubsubname: string
             /**
             event topic
@@ -113,7 +113,7 @@ export function build(config?: Readonly<AxiosRequestConfig<never>>) {
                 });
             },
         },
-        metadata(options?: AxiosRequestConfig) {
+        metadata(options?: AxiosRequestConfig<unknown>) {
             return fetch.request<Metadata>({
                 ...options,
                 url: '/v1.0/metadata',

@@ -23,10 +23,9 @@ export default Promise.try(async function () {
             ...e,
             at: time,
         });
-    }).on('error', function (e) {// bind before setup to prevent [ERR_UNHANDLED_ERROR]
+    }).on<string>('error', function (e, c) {// bind before setup to prevent [ERR_UNHANDLED_ERROR]
         log.warn({
-            id: e.tracecontext?.id
-                ?? '00-00000000000000000000000000000000-0000000000000000-00',
+            id: c?.id ?? '00-00000000000000000000000000000000-0000000000000000-00',
             type: e.name,
             text: e.message,
             errno: e.errno,

@@ -23,7 +23,7 @@ export function build(options?: Readonly<AxiosRequestConfig<never>>) {
         const req = res.config;
         return Object.assign(res, <typeof res>{
             tracecontext() {
-                const e = CloudEvent({
+                const e = CloudEvent<'Axios.Message'>({
                     id: this.headers?.['traceparent'] ?? req.tracecontext?.id,
                     type: this.status.toString(),
                     time: now.toISOString(),
