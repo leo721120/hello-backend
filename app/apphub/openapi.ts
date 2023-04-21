@@ -8,39 +8,16 @@ export default express.service(function (app) {
         const baseURL = process.env.APPHUB_URL ?? 'http://localhost:9999';
         const timeout = Number.numberify(process.env.APPHUB_TIMEOUT, 5_000);
         const appid = process.env.APPHUB_APPID ?? 'apphub';
-        const fetch = axios({
-            timeout,
+        const dapr = app.service('dapr');
+        const fetch = dapr.axios({
             baseURL,
+            timeout,
             headers: {
                 'dapr-app-id': appid,
             },
         });
         app.once('close', function () {
-            fetch.defaults.httpAgent?.destroy();
-            fetch.defaults.httpsAgent?.destroy();
-        });
-        fetch.interceptors.response.use(function (res) {
-            app.emit('event', res.tracecontext());
-            return res;
-        });
-        fetch.interceptors.request.use(function (req) {
-            const now = new Date();
-            const method = req.method?.toUpperCase() ?? 'GET';
-            const tracecontext = CloudEvent({
-                ...req.tracecontext,
-                source: req.url,
-                time: now.toISOString(),
-                type: method,
-                id: req.tracecontext?.id,
-            });
-            {
-                app.emit('event', tracecontext);
-            }
-            return Object.assign(req, <typeof req>{
-                now: now.getTime(),
-                tracecontext,
-                method,
-            });
+            fetch.close();
         });
         const openapi = axios.openapi(fetch, JSON.schema('apphub/openapi.json',
             JSON.openapi(path.join(__dirname, 'openapi.yml'))

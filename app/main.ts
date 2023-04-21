@@ -4,7 +4,6 @@ import dotenv from 'dotenv'
 import helmet from 'helmet'
 import cors from 'cors'
 import pino from 'pino'
-import '@io/lib/event'
 import '@io/lib/node'
 export default Promise.try(async function () {
     {
@@ -25,11 +24,9 @@ export default Promise.try(async function () {
             at: time,
         });
     }).on('error', function (e) {// bind before setup to prevent [ERR_UNHANDLED_ERROR]
-        const ce = e.tracecontext ?? CloudEvent({
-            id: null,
-        });
         log.warn({
-            id: ce.id,
+            id: e.tracecontext?.id
+                ?? '00-00000000000000000000000000000000-0000000000000000-00',
             type: e.name,
             text: e.message,
             errno: e.errno,

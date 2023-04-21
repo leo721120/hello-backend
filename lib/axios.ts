@@ -8,12 +8,15 @@ import mime from 'mime'
 import '@io/lib/event'
 import '@io/lib/error'
 import '@io/lib/json'
-export function build(config?: Readonly<AxiosRequestConfig>) {
+export function build(options?: Readonly<AxiosRequestConfig<never>>) {
+    const httpsAgent = new https.Agent(options?.connection);
+    const httpAgent = new http.Agent(options?.connection);
     const fetch = axios.create({
-        httpsAgent: new https.Agent({ keepAlive: true, keepAliveMsecs: 30_000 }),
-        httpAgent: new http.Agent({ keepAlive: true, keepAliveMsecs: 30_000 }),
+        httpsAgent,
+        httpAgent,
         baseURL: 'http://localhost',
-        ...config,
+        timeout: 60_000,
+        ...options,
     });
     fetch.interceptors.response.use(function (res) {
         const now = new Date();
@@ -24,7 +27,7 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
                     id: this.headers?.['traceparent'] ?? req.tracecontext?.id,
                     type: this.status.toString(),
                     time: now.toISOString(),
-                    source: req.url,
+                    source: req.url ?? '/',
                     elapse: this.elapse(),
                 });
                 this.tracecontext = () => {
@@ -93,7 +96,24 @@ export function build(config?: Readonly<AxiosRequestConfig>) {
             },
         });
     });
-    return fetch;
+    return Object.assign(options?.intercepte?.(fetch) ?? fetch, {
+        /**
+        create new instance with merged options
+        */
+        axios(params: Readonly<AxiosRequestConfig<never>>) {
+            return build({
+                ...options,
+                ...params,
+            });
+        },
+        /**
+        release connection pools
+        */
+        close() {
+            fetch.defaults.httpsAgent?.destroy();
+            fetch.defaults.httpAgent?.destroy();
+        },
+    });
 };
 export default Object.assign(build, {
     /**
@@ -160,6 +180,14 @@ export default Object.assign(build, {
 });
 declare module 'axios' {
     interface AxiosRequestConfig {
+        /**
+        used to setup http(s).Agent at creation, no use for request
+        */
+        readonly connection?: https.AgentOptions
+        /**
+        used to setup interceptors at creation, no use for request
+        */
+        intercepte?(axios: AxiosInstance): typeof axios
         /**
         inject tracecontext to header
         */

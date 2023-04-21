@@ -1,8 +1,10 @@
 import type { AxiosError, AxiosRequestConfig } from 'axios'
 import axios from '@io/lib/axios'
-export function build(config?: Readonly<AxiosRequestConfig>) {
-    const fetch = axios(config);
-    //
+export function build(config?: Readonly<AxiosRequestConfig<never>>) {
+    const fetch = axios({
+        baseURL: 'http://localhost:3500',
+        ...config,
+    });
     return Object.assign(fetch, {
         config(req: Omit<AxiosRequestConfig<never>, 'baseURL' | 'url' | 'method' | 'data' | 'params'> & {
             /**

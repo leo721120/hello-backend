@@ -8,6 +8,7 @@ export default express.service(async function (app) {
     app.once('close', function () {
         srv.stop();
     }).emit('event', CloudEvent({
+        source: '/mock/mongodb',
         type: 'mock.mongodb',
         id: null,
     }));

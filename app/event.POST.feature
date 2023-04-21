@@ -72,3 +72,27 @@ Feature: POST
             | ABC001 | 1.0         |            | Test.Only | 2022-11-25T14:06:53Z |
             | ABC001 | 1.0         | /test/only |           | 2022-11-25T14:06:53Z |
             | ABC001 | 1.0         | /test/only | Test.Only |                      |
+
+    Scenario: /events, on('event')
+
+        Given url /events
+        Given json
+            """
+            {
+                "id": "ABC001",
+                "specversion": "1.0",
+                "source": "/test/only",
+                "type": "Test.Only",
+                "time": "2022-11-25T14:06:53Z",
+                "data": {
+                    "a": 2
+                }
+            }
+            """
+        When method POST
+        Then expect status should be 200
+        Then expect events should be
+            | type      | source     |
+            | POST      | /events    |
+            | Test.Only | /test/only |
+            | 200       | /events    |

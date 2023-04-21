@@ -19,7 +19,7 @@ export default express.service(function (app) {
             const ev = CloudEvent<'WebSocket.Message'>({
                 ...tracecontext,
                 type: 'WebSocket.Message',
-                data: <CloudEvents['WebSocket.Message']>{
+                data: {
                     byte() {
                         return byte as Buffer;
                     },
@@ -30,7 +30,7 @@ export default express.service(function (app) {
                         return JSON.parse(this.text());
                     },
                     error(e) {
-                        return this.reply(<rfc7807>{
+                        return this.reply<rfc7807>({
                             title: e.name,
                             status: e.status ?? 500,
                             detail: e.message,
@@ -47,7 +47,6 @@ export default express.service(function (app) {
                 },
             });
             app.emit('event', ev);
-            app.emit(ev.type, ev);
         });
     }).on('WebSocket.Message', function (ce) {
         /*Promise.try(function () {

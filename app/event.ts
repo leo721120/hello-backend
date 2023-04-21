@@ -42,7 +42,6 @@ export default express.service(function (app) {
                 id: req.tracecontext().id,
             });
             app.emit('event', ce);
-            app.emit(ce.type, ce);
         }).catch(function (e: Error) {
             res.status(299).json({
                 status: e.retrydelay
@@ -53,6 +52,8 @@ export default express.service(function (app) {
                 tracecontext: req.tracecontext(),
             }));
         });
+    }).on('event', function(e) {
+        app.emit(e.type as never, e);
     });
 });
 declare global {
