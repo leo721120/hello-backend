@@ -283,3 +283,10 @@ describe('ArrayBuffer', function () {
         }));
     });
 });
+describe('Buffer', function () {
+    it('.md5', async function () {
+        const b = Buffer.from('abc123');
+        expect(b.md5('hex')).toBe('e99a18c428cb38d5f260853678922e03');
+        expect(b.md5('base64')).toBe('6ZoYxCjLONXyYIU2eJIuAw==');
+    });
+});

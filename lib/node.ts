@@ -128,6 +128,9 @@ declare global {
         */
         narrow(min: number, max: number): number
     }
+    interface Buffer {
+        md5(encoding: 'base64' | 'hex'): string
+    }
     interface Array<T> {
         /**
         force convert element type to V
@@ -346,5 +349,14 @@ Object.assign(Number.prototype, <typeof Number.prototype>{
 Object.assign(ArrayBuffer.prototype, <ArrayBuffer>{
     toJSON() {
         return Buffer.from(this).toString('base64');
+    },
+});
+Object.assign(Buffer.prototype, <Buffer>{
+    md5(encoding = 'hex') {
+        return crypto
+            .createHash('md5')
+            .update(this)
+            .digest(encoding)
+            ;
     },
 });
