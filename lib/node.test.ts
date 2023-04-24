@@ -204,6 +204,13 @@ describe('Array', function () {
             1, 43, 'ab',
         ]);
     });
+    it('.intersection, readonly', async function () {
+        const a = [1, 4, 687, 43, 'ab'];
+        const b = [1, 43, 89, 'ab'] as const;
+        expect(a.intersection(b)).toEqual([
+            1, 43, 'ab',
+        ]);
+    });
 });
 describe('Date', function () {
     it('iso8601', async function () {

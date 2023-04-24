@@ -11,7 +11,6 @@ import type { BelongsToManyAddAssociationMixin } from '@io/lib/sequelize'
 import type { HasOneCreateAssociationMixin } from '@io/lib/sequelize'
 import type { HasOneGetAssociationMixin } from '@io/lib/sequelize'
 import type { HasOneSetAssociationMixin } from '@io/lib/sequelize'
-import type { ScopeOptions } from '@io/lib/sequelize'
 import type { SyncOptions } from '@io/lib/sequelize'
 import type { FindOptions } from '@io/lib/sequelize'
 import type { Association } from '@io/lib/sequelize'
@@ -31,69 +30,40 @@ export interface Tag {
 export default express.service(function (app) {
     app.service('tag/model', function () {
         const db = app.service('db');
-
-        Model.init(
-            {
-                id: {
-                    type: db.DataTypes.TEXT,
-                    primaryKey: true,
-                    allowNull: false,
-                },
-                name: {
-                    type: db.DataTypes.TEXT,
-                    allowNull: false,
-                },
-            },
-            {
-                comment: 'basic informations of tag',
-                modelName: 'tag',
-                sequelize: db,
-                scopes: {
-                    resource(type?: unknown) {
-                        return {
-                            include: [{
-                                association: Model.associations.resource,
-                                attributes: { exclude: ['tag'] },
-                                where: {
-                                    ...(type ? {
-                                        type,
-                                    } : {
-                                    }),
-                                },
-                            }],
-                        };
+        {// main
+            Model.init(
+                {
+                    id: {
+                        type: db.DataTypes.TEXT,
+                        primaryKey: true,
+                        allowNull: false,
                     },
-                    parents() {
-                        return {
-                            include: [{
-                                association: Model.associations.parents,
-                                through: { attributes: [] },
-                            }],
-                        };
-                    },
-                    query(o?: Readonly<FindOptions>) {
-                        return {
-                            ...o,
-                        };
-                    },
-                    where(o?: Readonly<object>) {
-                        return {
-                            where: {
-                                ...o,
-                            },
-                        };
-                    },
-                    field(a?: string[]) {
-                        return {
-                            attributes: a?.intersection(attributes),
-                        };
+                    name: {
+                        type: db.DataTypes.TEXT,
+                        allowNull: false,
                     },
                 },
-            },
-        );
-        const attributes = Object.keys(
-            Model.getAttributes()
-        );
+                {
+                    comment: 'basic informations of tag',
+                    modelName: 'tag',
+                    sequelize: db,
+                    defaultScope: {
+                        attributes: ['id'],
+                    },
+                    scopes: {
+                        query(m: Model, a: FindOptions<Tag>) {
+                            const p = m as {
+                                readonly _scope?: object
+                            };
+                            return {
+                                ...p._scope,
+                                ...a,
+                            };
+                        },
+                    },
+                },
+            );
+        }
         {// submodel
             RelationModel.init(
                 {
@@ -136,36 +106,45 @@ export default express.service(function (app) {
                 as: 'resource',// field name for Model
             });
         }
-        Model.addHook('beforeBulkDestroy', 'auto-sync', async function (options) {
-            await Model.autosync(options);
-        }).addHook('beforeBulkRestore', 'auto-sync', async function (options) {
-            await Model.autosync(options);
-        }).addHook('beforeBulkUpdate', 'auto-sync', async function (options) {
-            await Model.autosync(options);
-        }).addHook('beforeBulkCreate', 'auto-sync', async function (instances, options) {
-            await Model.autosync(options);
-        }).addHook('beforeBulkSync', 'auto-sync', async function (options) {
-            await Model.autosync(options);
-        }).addHook('beforeDestroy', 'auto-sync', async function (instance, options) {
-            await Model.autosync(options);
-        }).addHook('beforeRestore', 'auto-sync', async function (instance, options) {
-            await Model.autosync(options);
-        }).addHook('beforeUpdate', 'auto-sync', async function (instance, options) {
-            await Model.autosync(options);
-        }).addHook('beforeCreate', 'auto-sync', async function (instance, options) {
-            await Model.autosync(options);
-        }).addHook('beforeUpsert', 'auto-sync', async function (instance, options) {
-            await Model.autosync(options);
-        }).addHook('beforeCount', 'auto-sync', async function (options) {
-            await Model.autosync(options);
-        }).addHook('beforeSave', 'auto-sync', async function (instance, options) {
-            await Model.autosync(options);
-        }).addHook('beforeFind', 'auto-sync', async function (options) {
-            await Model.autosync(options);
-        }).addHook('afterSync', 'auto-sync', async function (options) {
-            Model.autosync = async function () {
-                // reset to empty
+        function autosync(options: SyncOptions) {
+            const lock = autosync as {
+                job?: Promise<unknown>
             };
+            lock.job ??= Promise.resolve().then(async function () {
+                await Model.sync(options);
+            }).catch(function (e) {
+                lock.job = undefined;// reset for retry
+                throw e;
+            });
+            return lock.job;
+        }
+        Model.addHook('beforeBulkDestroy', 'auto-sync', async function (options) {
+            await autosync(options);
+        }).addHook('beforeBulkRestore', 'auto-sync', async function (options) {
+            await autosync(options);
+        }).addHook('beforeBulkUpdate', 'auto-sync', async function (options) {
+            await autosync(options);
+        }).addHook('beforeBulkCreate', 'auto-sync', async function (instances, options) {
+            await autosync(options);
+        }).addHook('beforeBulkSync', 'auto-sync', async function (options) {
+            await autosync(options);
+        }).addHook('beforeDestroy', 'auto-sync', async function (instance, options) {
+            await autosync(options);
+        }).addHook('beforeRestore', 'auto-sync', async function (instance, options) {
+            await autosync(options);
+        }).addHook('beforeUpdate', 'auto-sync', async function (instance, options) {
+            await autosync(options);
+        }).addHook('beforeCreate', 'auto-sync', async function (instance, options) {
+            await autosync(options);
+        }).addHook('beforeUpsert', 'auto-sync', async function (instance, options) {
+            await autosync(options);
+        }).addHook('beforeCount', 'auto-sync', async function (options) {
+            await autosync(options);
+        }).addHook('beforeSave', 'auto-sync', async function (instance, options) {
+            await autosync(options);
+        }).addHook('beforeFind', 'auto-sync', async function (options) {
+            await autosync(options);
+        }).addHook('afterSync', 'auto-sync', async function (options) {
             await ResourceModel.sync(options);
             await RelationModel.sync(options);
         });
@@ -201,18 +180,6 @@ class Model extends Table<Tag> {
     declare static associations: {
         readonly resource: Association<Model, ResourceModel>
         readonly parents: Association<Model, RelationModel>
-    }
-    static async autosync(options: SyncOptions) {
-        const autosync = this.autosync as {
-            job?: Promise<unknown>
-        };
-        autosync.job ??= Promise.resolve().then(async function () {
-            await Model.sync(options);
-        }).catch(function (e) {
-            autosync.job = undefined;// reset for retry
-            throw e;
-        });
-        return autosync.job;
     }
     /**
     return all childs under this node
@@ -267,52 +234,60 @@ class Model extends Table<Tag> {
             model: Model,
         });
     }
-    static query(options?: FindOptions<never>) {
-        interface Query<V extends Tag> {
-            select(...fields: readonly (keyof V)[]): Promise<readonly Model[]>
-            where(n: 'id', v: V['id']): this
-            where(n: 'id', v: readonly V['id'][]): this
-            where(n: 'type', v: Resource['type']): this
-            //where(n: 'type', v: readonly Resource['type'][]): this
-        }
-        const scopes: ScopeOptions[] = [
-            { method: ['query', options] },
-        ];
-        return <Query<Tag>>{
-            where(n, v) {
-                if (v === undefined) {
-                    return this;
-                }
-                if (n === 'type') {
-                    scopes.push({
-                        method: ['resource', v],
-                    });
-                    return this;
-                }
-                scopes.push({
-                    method: ['where', { [n]: v }],
-                });
-                return this;
-            },
-            async select(...n) {
-                scopes.push({
-                    method: ['field', n],
-                });
-                if (n.includes('parents')) {
-                    scopes.push({
-                        method: ['parents'],
-                    });
-                }
-                if (n.includes('resource')) {
-                    scopes.push({
-                        method: ['resource'],
-                    });
-                }
-                return Model
-                    .scope(scopes)
-                    .findAll()
-                    ;
-            },
+    static query(options: FindOptions<never>) {
+        return this.scope({
+            method: ['query', this, options],
+        }) as typeof this;
+    }
+    static where(params: {
+        //readonly resource?: readonly Resource['id'][]
+        //readonly parent?: readonly Tag['id'][]
+        readonly type?: readonly Resource['type'][]
+        readonly id?: readonly Tag['id'][]
+    }) {
+        const o = <FindOptions<Tag>>{
+            include: [],
         };
+        if (params.id?.length) {
+            o.where = {
+                ...o.where,
+                id: params.id,
+            };
+        };
+        if (params.type?.length) {
+            o.include = [...o.include as [], {
+                association: Model.associations.resource,
+                attributes: [],
+                where: { type: params.type },
+            }];
+        };
+        return this.scope({
+            method: ['query', this, o],
+        }) as typeof this;
+    }
+    static select(fields: (keyof Tag)[]) {
+        const attrs = Object.keys(this.getAttributes()) as [];
+        const all = !fields.length;
+        const o = <FindOptions<never>>{
+            include: [],
+            attributes: all
+                ? attrs
+                : fields.intersection(attrs).concat('id'),
+        };
+        if (all || fields.includes('parents')) {
+            o.include = [...o.include as [], {
+                association: Model.associations.parents,
+                through: { attributes: [] },
+            }];
+        }
+        if (all || fields.includes('resource')) {
+            o.include = [...o.include as [], {
+                association: Model.associations.resource,
+                attributes: { exclude: ['tag'] },
+            }];
+        }
+        return this.findAll({
+            ...o,
+        });
     }
 }

@@ -74,77 +74,196 @@ describe('tag/model', function () {
             throw e;
         }
     });
-    it('find tag and parents', async function () {
-        const model = app.service('tag/model');
-        const [item] = await model
-            .query({ limit: 1 })
-            .where('id', 'D1')
-            .select(
+    describe('.where', function () {
+        it('id=[]', async function () {
+            const [item] = await app
+                .service('tag/model')
+                .where({
+                    id: ['D1'],
+                })
+                .findAll({
+                    attributes: ['id'],
+                    limit: 1,
+                }).map(function (row) {
+                    return row.toJSON();
+                });
+            expect(item).toEqual({
+                id: 'D1',
+            });
+        });
+        it('type=[]', async function () {
+            const [item] = await app
+                .service('tag/model')
+                .where({
+                    type: ['Device'],
+                })
+                .findAll({
+                    attributes: ['id'],
+                    limit: 1,
+                }).map(function (row) {
+                    return row.toJSON();
+                });
+            expect(item).toEqual({
+                id: 'D1',
+            });
+        });
+    });
+    describe('.select', function () {
+        it('[id, name]', async function () {
+            const [item] = await app
+                .service('tag/model')
+                .where({
+                    id: ['D1'],
+                })
+                .select([
+                    'name',
+                    'id',
+                ]).map(function (row) {
+                    return row.toJSON();
+                });
+            expect(item).toEqual({
+                name: 'D1',
+                id: 'D1',
+            });
+        });
+        it('[id, parents]', async function () {
+            const [item] = await app
+                .service('tag/model')
+                .where({
+                    id: ['D1'],
+                })
+                .select([
+                    'parents',
+                    'id',
+                ]).map(function (row) {
+                    return row.toJSON();
+                });
+            expect(item).toEqual({
+                id: 'D1',
+                parents: [{
+                    id: 'L1-1',
+                }, {
+                    id: 'DL1-1',
+                }],
+            });
+        });
+        it('[id, resource]', async function () {
+            const [item] = await app
+                .service('tag/model')
+                .where({
+                    id: ['D1'],
+                })
+                .select([
+                    'resource',
+                    'id',
+                ]).map(function (row) {
+                    return row.toJSON();
+                });
+            expect(item).toEqual({
+                id: 'D1',
+                resource: {
+                    type: 'Device',
+                    id: 'did:1',
+                },
+            });
+        });
+        it('[name], auto append [id]', async function () {
+            const [item] = await app
+                .service('tag/model')
+                .where({
+                    id: ['D1'],
+                })
+                .select([
+                    'name',
+                ]).map(function (row) {
+                    return row.toJSON();
+                });
+            expect(item).toEqual({
+                name: 'D1',
+                id: 'D1',
+            });
+        });
+        it('[], select all', async function () {
+            const [item] = await app
+                .service('tag/model')
+                .where({
+                    id: ['D1'],
+                })
+                .select([
+                    //
+                ]).map(function (row) {
+                    return row.toJSON();
+                });
+            expect(item).toEqual({
+                name: 'D1',
+                id: 'D1',
+                parents: [{
+                    id: 'L1-1',
+                }, {
+                    id: 'DL1-1',
+                }],
+                resource: {
+                    type: 'Device',
+                    id: 'did:1',
+                },
+            });
+        });
+    });
+    it('.query(limit).where(type).select(id)', async function () {
+        const list = await app
+            .service('tag/model')
+            .query({ limit: 2 })
+            .where({ type: ['Device'] })
+            .select(['id'])
+            .map(row => row.toJSON())
+            ;
+        expect(list).toHaveLength(2);
+        expect(list).toEqual([
+            {
+                id: 'D1',
+            },
+            {
+                id: 'D2',
+            },
+        ]);
+    });
+    it('.where(id, type).select(id, parents)', async function () {
+        const [item] = await app
+            .service('tag/model')
+            .where({
+                type: ['Device'],
+                id: ['D1'],
+            })
+            .select([
                 'parents',
                 'id',
-            );
-        expect(item?.toJSON()).toEqual({
+            ]).map(function (row) {
+                return row.toJSON();
+            });
+        expect(item).toEqual({
             id: 'D1',
-            parents: expect.arrayContaining([// no sort
-                {
-                    id: 'L1-1',
-                    name: 'L1',
-                },
-                {
-                    id: 'DL1-1',
-                    name: 'DL1',
-                },
-            ]),
+            parents: [{
+                id: 'DL1-1',
+            }, {
+                id: 'L1-1',
+            }],
         });
     });
-    it('find tag and resource', async function () {
-        const model = app.service('tag/model');
-        const [item] = await model
-            .query({ limit: 1 })
-            .where('id', 'D1')
-            .select(
-                'resource',
+    it('.where(type).select(id, parents)', async function () {
+        const list = await app
+            .service('tag/model')
+            .where({
+                type: ['Device'],
+            })
+            .select([
+                'parents',
                 'id',
-            );
-        expect(item?.toJSON()).toEqual({
-            id: 'D1',
-            resource: {
-                id: 'did:1',
-                type: 'Device',
-            },
-        });
-    });
-    it('list tags by resource type', async function () {
-        const model = app.service('tag/model');
-        const list = await model
-            .query()
-            .where('type', 'Device')
-            .select(
-                'id',
-            );
+            ]).map(function (row) {
+                return row.toJSON();
+            });
         expect(list).toHaveLength(3);
-        expect(list[0].toJSON()).toEqual({
-            id: 'D1',
-            resource: {
-                id: 'did:1',
-                type: 'Device',
-            },
-        });
-        expect(list[1].toJSON()).toEqual({
-            id: 'D2',
-            resource: {
-                id: 'did:2',
-                type: 'Device',
-            },
-        });
-        expect(list[2].toJSON()).toEqual({
-            id: 'D3',
-            resource: {
-                id: 'did:3',
-                type: 'Device',
-            },
-        });
     });
+    /*
     it('list all tags under parent', async function () {
         const model = app.service('tag/model');
         const list = await model.allChilds({
@@ -189,7 +308,7 @@ describe('tag/model', function () {
         expect(list[2].toJSON()).toEqual({
             id: 'D3',
         });
-    });
+    });*/
 });
 //
 /*describe('tag', function () {

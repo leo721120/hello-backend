@@ -141,7 +141,7 @@ declare global {
         @return intersection of two arrays
         */
         intersection<A extends T>(a: Array<A>): Array<T>
-        //intersection<A extends T>(a: ReadonlyArray<A>): Array<T>
+        intersection<A extends T>(a: ReadonlyArray<A>): Array<T>
     }
     interface Date {
         /**
