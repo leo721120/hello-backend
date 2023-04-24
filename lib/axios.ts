@@ -56,9 +56,9 @@ export function build(options?: Readonly<AxiosRequestConfig<never>>) {
             status: res?.status ?? 504,
             reason: res?.data,
             params: e.params ?? {
-                method: req.method,
-                url: req.url,
-                query: req.params,
+                method: req?.method,
+                url: req?.url,
+                query: req?.params,
             },
         });
     });
@@ -71,13 +71,11 @@ export function build(options?: Readonly<AxiosRequestConfig<never>>) {
             type: method,
             id: req.tracecontext?.id,// or generate new one
         });
-        const headers = {
-            ...req.headers,
-            traceparent: tracecontext.id,
-        };
+        {
+            req.headers.set('traceparent', tracecontext.id);
+        }
         return Object.assign(req, <typeof req>{
             tracecontext,
-            headers,
             method,
             now,
         });
@@ -90,9 +88,9 @@ export function build(options?: Readonly<AxiosRequestConfig<never>>) {
             errno: e.errno,
             status: res?.status ?? 504,
             params: e.params ?? {
-                method: req.method,
-                url: req.url,
-                query: req.params,
+                method: req?.method,
+                url: req?.url,
+                query: req?.params,
             },
         });
     });
