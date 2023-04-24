@@ -4,10 +4,11 @@
     "transpileOnly": true
   },
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2022",
     "module": "CommonJS",
     "esModuleInterop": true,
     "removeComments": true,
+    "importHelpers": true,
     "declaration": false,
     "sourceMap": true,
     "strict": true,
@@ -25,6 +26,7 @@
     "strictPropertyInitialization": true,
     "forceConsistentCasingInFileNames": true,
     "lib": [
+      "ES2022",
       "DOM"
     ]
   },
