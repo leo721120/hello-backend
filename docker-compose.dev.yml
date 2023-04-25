@@ -6,6 +6,15 @@ networks:
 
 services:
   #---------------------------------------
+  verdaccio:
+    image: verdaccio/verdaccio:nightly-master
+    #
+    ports:
+      - '4873:4873'
+    volumes:
+      - './cnf/verdaccio:/verdaccio/storage'
+      - './cnf/verdaccio:/verdaccio/conf'
+  #---------------------------------------
   zipkin:
     #
     extends:

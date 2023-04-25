@@ -65,7 +65,6 @@
   },
   "dependencies": {
     "@io/app": "file:app",
-    "@io/ctx": "file:ctx",
     "@io/lib": "file:lib",
     "ajv": "^8.10.0",
     "ajv-formats": "^2.1.1",
