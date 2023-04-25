@@ -3,17 +3,18 @@ version: '3'
 networks:
   backend: {}
   dapr: {}
+  dev: {}
 
 services:
   #---------------------------------------
   verdaccio:
-    image: verdaccio/verdaccio:nightly-master
+    image: verdaccio/verdaccio:5.24.1
     #
-    ports:
-      - '4873:4873'
+    networks:
+      - dev
     volumes:
-      - './cnf/verdaccio:/verdaccio/storage'
-      - './cnf/verdaccio:/verdaccio/conf'
+      - ./cnf/verdaccio:/verdaccio/storage
+      - ./cnf/verdaccio:/verdaccio/conf:ro
   #---------------------------------------
   zipkin:
     #
@@ -47,3 +48,50 @@ services:
     ports:
       # export for dev
       - 5432:5432
+  #---------------------------------------
+  postgrest:
+    # https://postgrest.org/en/stable/
+    image: postgrest/postgrest:latest
+    #
+    networks:
+      - backend
+      - dev
+    depends_on:
+      - postgres
+    environment:
+      # The standard connection URI format, documented at
+      # https://www.postgresql.org/docs/current/static/libpq-connect.html#LIBPQ-CONNSTRING
+      PGRST_DB_URI: postgres://${POSTGRESQL_USERNAME}:${POSTGRESQL_PASSWORD}@postgres:5432/${POSTGRESQL_DATABASE}
+      # The name of which database schema to expose to REST clients
+      PGRST_DB_SCHEMA: public
+      # The database role to use when no client authentication is provided
+      PGRST_DB_ANON_ROLE: ${POSTGRESQL_USERNAME}
+      # Overrides the base URL used within the OpenAPI self-documentation hosted at the API root path
+      #- PGRST_OPENAPI_SERVER_PROXY_URI=http://localhost:3000
+      # support image binary via Http Header: Accept
+      PGRST_RAW_MEDIA_TYPES: image/jpeg, image/png
+  #---------------------------------------
+  caddy:
+    # to install modules (godaddy, ...etc)
+    build: ./cnf/caddy
+    #
+    ports:
+      #- 80:8080
+      #- 443:8443
+      #- 443:8443/udp
+      # verdaccio
+      - 8873:8873
+      # postgrest
+      - 8432:8432
+    depends_on:
+      - verdaccio
+      - postgrest
+    networks:
+      - dev
+    volumes:
+      - ./cnf:/data
+      - ./cnf:/config
+      - ./cnf/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+    environment:
+      # https://developer.godaddy.com/keys
+      GODADDY_TOKEN: ${GODADDYAPI_KEY}:${GODADDYAPI_SECRET}

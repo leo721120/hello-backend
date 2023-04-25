@@ -1,0 +1,22 @@
+# https://caddyserver.com/docs/caddyfile/options
+{
+	debug
+	#auto_https off
+	acme_dns godaddy {$GODADDY_TOKEN}
+}
+*.goppa.app:8873 {
+	encode gzip
+	reverse_proxy /* verdaccio:4873
+}
+*.goppa.app:8432 {
+	encode gzip
+	reverse_proxy /* postgrest:3000
+}
+http://localhost:4873 {
+	encode gzip
+	reverse_proxy /* verdaccio:4873
+}
+http://localhost:3000 {
+	encode gzip
+	reverse_proxy /* postgrest:3000
+}
