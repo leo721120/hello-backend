@@ -278,6 +278,7 @@ describe('express/req', function () {
             .get('/abc?q=124')
             ;
         expect(res.body.e).toEqual({
+            specversion: '1.0',
             id: expect.any(String),
             source: '/abc?q=124',
             //time: expect.any(String),

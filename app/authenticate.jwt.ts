@@ -22,11 +22,10 @@ export default express.service(async function (app) {
                 .export({ type: 'pkcs1', format: 'pem' })
                 .toString()
                 ;
-            app.emit('event', CloudEvent({
+            app.emit('event', {
                 source: '/authenticate',
                 type: 'auto.generate.jwt.keys',
-                id: null,
-            }));
+            });
             return {
                 JWT_SECRET,
                 JWT_PUBLIC,
@@ -38,11 +37,10 @@ export default express.service(async function (app) {
                 .export({ type: 'pkcs1', format: 'pem' })
                 .toString()
                 ;
-            app.emit('event', CloudEvent({
+            app.emit('event', {
                 source: '/authenticate',
                 type: 'auto.generate.jwt.key.public',
-                id: null,
-            }));
+            });
             return {
                 JWT_SECRET,
                 JWT_PUBLIC,

@@ -373,11 +373,13 @@ Object.assign(express.request, <typeof express.request>{
         return origin;
     },
     tracecontext() {
-        const e = CloudEvent<'HTTP.Message'>({
+        const e = CloudEvent({
             // generate new one if not exist
-            id: this.header('traceparent'),
+            id: this.header('traceparent') ?? CloudEvent.id(),
             type: this.method.toUpperCase(),
+            data: undefined,
             source: this.url,
+            specversion: '1.0',
         });
         this.tracecontext = () => {
             return e;

@@ -38,11 +38,13 @@ describe('axios', function () {
             url: '/testcase/abc',
         });
         expect(res.tracecontext()).toEqual({
+            specversion: '1.0',
             elapse: expect.any(Number),
             id: expect.any(String),
             source: '/testcase/abc',
-            time: expect.any(String),
+            //time: expect.any(String),
             type: '200',
+            data: undefined,
         });
     });
 });

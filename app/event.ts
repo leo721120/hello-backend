@@ -78,11 +78,15 @@ declare global {
         on<K extends keyof CloudEvents>(event: K, cb: (e: CloudEvent<K>) => void): this
         off<K extends keyof CloudEvents>(event: K, cb: (e: CloudEvent<K>) => void): this
         once<K extends keyof CloudEvents>(event: K, cb: (e: CloudEvent<K>) => void): this
-        emit<K extends keyof CloudEvents>(event: K, e: CloudEvent<K>): boolean
+        //emit<K extends keyof CloudEvents>(event: K, e: CloudEvent<K>): boolean
         on<K extends string>(event: 'event', cb: (e: CloudEvent<K>) => void): this
         off<K extends string>(event: 'event', cb: (e: CloudEvent<K>) => void): this
         once<K extends string>(event: 'event', cb: (e: CloudEvent<K>) => void): this
         emit<K extends string>(event: 'event', e: CloudEvent<K>): boolean
+        /**
+        internal events
+        */
+        emit<K extends string>(event: 'event', e: Pick<CloudEvent<K>, 'source' | 'type'>): boolean
         on<K extends string>(event: 'error', cb: (e: Error, a?: CloudEvent<K>) => void): this
         off<K extends string>(event: 'error', cb: (e: Error, a?: CloudEvent<K>) => void): this
         once<K extends string>(event: 'error', cb: (e: Error, a?: CloudEvent<K>) => void): this

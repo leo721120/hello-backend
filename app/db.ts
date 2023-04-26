@@ -11,11 +11,10 @@ export default express.service(function (app) {
             Object.assign(uri, <typeof uri>{// omit sensitive information
                 password: '',
             });
-            app.emit('event', CloudEvent({
+            app.emit('event', {
                 source: uri.toString(),
                 type: 'db',
-                id: null,
-            }));
+            });
         });
         Sequelize.afterInit('init-db', function (db) {
             app.once('close', function () {

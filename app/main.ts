@@ -15,13 +15,12 @@ export default Promise.try(async function () {
         base: { appid: process.env.APP_ID },
         messageKey: 'text',
     });
-    app.on('event', function ({ id, type, source, time, data, ...e }) {
+    app.on('event', function ({ id, type, source, time, data, specversion, datacontenttype, ...e }) {
         log.info({
             id,
             type,
             source,
             ...e,
-            at: time,
         });
     }).on<string>('error', function (e, c) {// bind before setup to prevent [ERR_UNHANDLED_ERROR]
         log.warn({

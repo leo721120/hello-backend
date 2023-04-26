@@ -23,12 +23,14 @@ export function build(options?: Readonly<AxiosRequestConfig<never>>) {
         const req = res.config;
         return Object.assign(res, <typeof res>{
             tracecontext() {
-                const e = CloudEvent<'Axios.Message'>({
+                const e = CloudEvent({
                     id: this.headers?.['traceparent'] ?? req.tracecontext?.id,
+                    data: undefined,
                     type: this.status.toString(),
-                    time: now.toISOString(),
+                    //time: now.toISOString(),
                     source: req.url ?? '/',
                     elapse: this.elapse(),
+                    specversion: '1.0',
                 });
                 this.tracecontext = () => {
                     return e;
@@ -65,14 +67,14 @@ export function build(options?: Readonly<AxiosRequestConfig<never>>) {
     fetch.interceptors.request.use(function (req) {
         const now = req.now ?? Date.now();
         const method = req.method?.toUpperCase() ?? 'GET';
-        const tracecontext = CloudEvent({
-            ...req.tracecontext,
+        const tracecontext = <typeof req.tracecontext>{
             source: req.url ?? '/',
             type: method,
-            id: req.tracecontext?.id,// or generate new one
-        });
+            // or generate new one
+            id: req.tracecontext?.id ?? CloudEvent.id(),
+        };
         {
-            req.headers.set('traceparent', tracecontext.id);
+            req.headers.set('traceparent', tracecontext!.id);
         }
         return Object.assign(req, <typeof req>{
             tracecontext,

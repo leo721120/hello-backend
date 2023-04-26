@@ -10,13 +10,16 @@ export default express.service(function (app) {
         }).on('close', function () {
             app.emit('event', {
                 ...tracecontext,
-                data: undefined,
                 type: 'WebSocket.Close',
+                time: undefined,
+                data: undefined,
             });
         }).on('message', function (byte) {
             const ev = CloudEvent<'WebSocket.Message'>({
                 ...tracecontext,
+                //
                 type: 'WebSocket.Message',
+                time: undefined,
                 data: {
                     byte() {
                         return byte as Buffer;

@@ -25,13 +25,14 @@ export default express.service(function (app) {
                 axios.interceptors.request.use(function (req) {
                     const now = new Date();
                     const method = req.method?.toUpperCase() ?? 'GET';
-                    const tracecontext = CloudEvent({
-                        ...req.tracecontext,
-                        id: req.tracecontext?.id,
+                    const tracecontext = {
+                        specversion: '1.0',
                         source: req.url ?? '/',
                         //time: now.toISOString(),
+                        data: undefined,
                         type: method,
-                    });
+                        id: req.tracecontext?.id ?? CloudEvent.id(),
+                    };
                     {
                         app.emit('event', tracecontext);
                     }

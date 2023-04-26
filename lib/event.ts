@@ -1,33 +1,28 @@
-import type { CloudEventV1, CloudEventV1Attributes } from 'cloudevents'
+import type { CloudEventV1 } from 'cloudevents'
 import TraceParent from 'traceparent'
 export default Object.assign(globalThis, <typeof globalThis>{
-    CloudEvent({ id, ...params }: CloudEvent<string>) {
-        if (id === null) {
-            return {
-                id: '00-00000000000000000000000000000000-0000000000000000-00',
-                ...params,
-            };
-        } else if (id === undefined) {
-            const id = TraceParent.startOrResume(null, {
-                transactionSampleRate: 1,
-            });
-            return {
-                id: id.toString(),
-                ...params,
-            };
-        } else {
-            return {
-                id: TraceParent.fromString(id).toString(),
-                ...params,
-            };
-        }
+    CloudEvent({ id, ...e }: CloudEvent<string>) {
+        return {
+            id: TraceParent.fromString(id).toString(),
+            ...e,
+        };
     },
 });
+Object.assign(CloudEvent, <typeof CloudEvent>{
+    id() {
+        const id = TraceParent.startOrResume(null, {
+            transactionSampleRate: 1,
+        });
+        return id.toString();
+    },
+});
+
 declare global {
     interface CloudEvents {
         // use declare to append event
     }
     interface CloudEvent<K extends string> extends CloudEventV1<unknown> {
+        readonly specversion: '1.0'
         readonly datacontenttype?:
         | 'application/json'
         readonly type: K
@@ -36,28 +31,11 @@ declare global {
         : unknown
     }
     var CloudEvent: {
-        <K extends keyof CloudEvents>(params: CloudEventV1Attributes<unknown> & {
-            readonly id:
-            //
-            | CloudEvent<K>['id']
-            // 00-00000000000000000000000000000000-0000000000000000-00
-            | null
-            // generate new one
-            | undefined
-
-            readonly type: K
-            readonly data: K extends keyof CloudEvents
-            ? CloudEvents[K]
-            : unknown
-        }): CloudEvent<K>
-        <K extends string>(params: CloudEventV1Attributes<unknown> & {
-            readonly id:
-            //
-            | CloudEvent<K>['id']
-            // 00-00000000000000000000000000000000-0000000000000000-00
-            | null
-            // generate new one
-            | undefined
-        }): CloudEvent<K>
+        <K extends keyof CloudEvents>(e: CloudEvent<K>): CloudEvent<K>
+        <K extends string>(e: CloudEvent<K>): CloudEvent<K>
+        /**
+        gererate new id
+        */
+        id(): string
     }
 }
