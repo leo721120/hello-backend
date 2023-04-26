@@ -1,120 +1,134 @@
+import type { KeyObject } from 'node:crypto'
 import jsonwebtoken from 'jsonwebtoken'
+import manifest from '@io/lib/manifest'
 import express from '@io/lib/express'
 import crypto from 'node:crypto'
 import '@io/lib/event'
 import '@io/lib/error'
 import '@io/lib/node'
-import manifest from '@io/lib/manifest'
 export default express.service(async function (app) {
-    const JWT_ISSUER = process.env.JWT_ISSUER
-        ?? manifest.name
-        ;
-    const { JWT_SECRET, JWT_PUBLIC } = await Promise.try(function () {
-        if (!process.env.JWT_SECRET) {
-            const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
-                modulusLength: 2048,
-            });
-            const JWT_SECRET = privateKey
-                .export({ type: 'pkcs1', format: 'pem' })
-                .toString()
-                ;
-            const JWT_PUBLIC = publicKey
-                .export({ type: 'pkcs1', format: 'pem' })
-                .toString()
-                ;
-            app.emit('event', {
-                source: '/authenticate',
-                type: 'auto.generate.jwt.keys',
-            });
-            return {
-                JWT_SECRET,
-                JWT_PUBLIC,
-            };
-        } else if (!process.env.JWT_PUBLIC) {
-            const JWT_SECRET = process.env.JWT_SECRET.decode('base64');
-            const JWT_PUBLIC = crypto
-                .createPublicKey(JWT_SECRET)
-                .export({ type: 'pkcs1', format: 'pem' })
-                .toString()
-                ;
-            app.emit('event', {
-                source: '/authenticate',
-                type: 'auto.generate.jwt.key.public',
-            });
-            return {
-                JWT_SECRET,
-                JWT_PUBLIC,
-            };
-        } else {
-            return {
-                JWT_SECRET: process.env.JWT_SECRET.decode('base64'),
-                JWT_PUBLIC: process.env.JWT_PUBLIC.decode('base64'),
-            };
-        }
-    });
     app.authenticate('jwt', async function (req) {
-        try {
-            const [, token] = req.authorization();
-
-            return jsonwebtoken.verify(token, JWT_PUBLIC, {
-                algorithms: ['RS256'],
-            });
-        } catch (e) {
-            if (e instanceof jsonwebtoken.TokenExpiredError) {
-                throw Error.build({
-                    message: e.message,
-                    name: 'TokenExpired',
-                    status: 401,
-                    reason: e,
-                });
-            }
-            if (e instanceof Error) {
-                throw Error.build({
-                    message: e.message,
-                    name: 'InvalidToken',
-                    status: 401,
-                    reason: e,
-                });
-            }
-            throw Error.build({
-                message: 'fail to verify token',
-                name: 'UnexpectedError',
-                status: 500,
-                reason: e,
-            });
-        }
+        const [, token] = req.authorization();
+        const jwt = app.service('jwt');
+        return jwt.decode(token);
     }).use(function (req, res, next) {
         Object.assign(req, <typeof req>{
             async jsonwebtoken(info, options?) {
-                return jsonwebtoken.sign(info, JWT_SECRET, {
-                    algorithm: 'RS256',
-                    issuer: JWT_ISSUER,
-                    expiresIn: '1h',
-                    ...options,
-                });
+                const jwt = app.service('jwt');
+                return jwt.encode(info, options);
             },
         });
         return next();
+    }).service<Crypto>('jwt', function () {
+        return {
+            async secret() {
+                const key = await Promise.try(function () {
+                    const { privateKey } = crypto.generateKeyPairSync('rsa', {
+                        modulusLength: 2048,
+                    });
+                    app.emit('event', {
+                        source: '/authenticate',
+                        type: 'auto.generate.jwt.keys',
+                    });
+                    return privateKey;
+                });
+                this.secret = async () => {
+                    return key;
+                };
+                return key;
+            },
+            async public() {
+                const secret = await this.secret();
+                const key = await Promise.try(function () {
+                    const publicKey = crypto
+                        .createPublicKey(secret)
+                        ;
+                    app.emit('event', {
+                        source: '/authenticate',
+                        type: 'auto.generate.jwt.key.public',
+                    });
+                    return publicKey;
+                });
+                this.public = async () => {
+                    return key;
+                };
+                return key;
+            },
+            issuer() {
+                return process.env.JWT_ISSUER
+                    ?? manifest.name
+                    ;
+            },
+            expire() {
+                return process.env.JWT_EXPIRE
+                    ?? '5min'
+                    ;
+            },
+            async decode(token, options) {
+                try {
+                    const key = await this.public();
+                    const info = jsonwebtoken.verify(token, key, {
+                        algorithms: ['RS256'],
+                        issuer: this.issuer(),
+                        ...options,
+                    });
+                    if (!info) {
+                        throw Error.build({
+                            message: 'fail to decoded token',
+                            name: 'InvalidToken',
+                            status: 401,
+                        });
+                    }
+                    return info as never;
+                } catch (e) {
+                    if (e instanceof jsonwebtoken.TokenExpiredError) {
+                        throw Error.build({
+                            message: e.message,
+                            name: 'TokenExpired',
+                            status: 401,
+                            reason: e,
+                        });
+                    }
+                    if (e instanceof jsonwebtoken.JsonWebTokenError) {
+                        throw Error.build({
+                            message: e.message,
+                            name: 'InvalidToken',
+                            status: 401,
+                            reason: e,
+                        });
+                    }
+                    throw e;
+                }
+            },
+            async encode(info, options) {
+                const key = await this.secret();
+                return jsonwebtoken.sign(info, key, {
+                    algorithm: 'RS256',
+                    issuer: this.issuer(),
+                    expiresIn: this.expire(),
+                    ...options,
+                });
+            },
+        };
     });
 });
 declare global {
     namespace NodeJS {
         interface ProcessEnv {
             /**
-            private key in PKCS1 PEM base64 format
-            */
-            readonly JWT_SECRET?: string
-            /**
-            public key in PKCS1 PEM base64 format
-            */
-            readonly JWT_PUBLIC?: string
-            /**
             @default manifest.name
             */
             readonly JWT_ISSUER?: string
+            /**
+            @default 5min
+            */
+            readonly JWT_EXPIRE?: string
         }
     }
     namespace Express {
+        interface Application {
+            service(name: 'jwt'): Crypto
+        }
         interface Request {
             /**
             sign a jsonwebtoken
@@ -122,4 +136,15 @@ declare global {
             jsonwebtoken<A extends object>(info: A, options?: jsonwebtoken.SignOptions): Promise<string>
         }
     }
+}
+interface Crypto {
+    secret(): Promise<KeyObject>
+    public(): Promise<KeyObject>
+    issuer(): string
+    /**
+    default value of expire
+    */
+    expire(): string
+    decode<V extends object>(token: string, options?: jsonwebtoken.VerifyOptions): Promise<V>
+    encode<V extends object>(info: V, options?: jsonwebtoken.SignOptions): Promise<string>
 }
