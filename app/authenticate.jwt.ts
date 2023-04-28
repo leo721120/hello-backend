@@ -6,7 +6,7 @@ import crypto from 'node:crypto'
 import '@io/lib/event'
 import '@io/lib/error'
 import '@io/lib/node'
-export default express.service(async function (app) {
+export default express.service(function (app) {
     app.authenticate('jwt', async function (req) {
         const [, token] = req.authorization();
         const jwt = app.service('jwt');
