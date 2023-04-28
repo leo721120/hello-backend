@@ -289,4 +289,14 @@ describe('Buffer', function () {
         expect(b.md5('hex')).toBe('e99a18c428cb38d5f260853678922e03');
         expect(b.md5('base64')).toBe('6ZoYxCjLONXyYIU2eJIuAw==');
     });
+    it('.sha1', async function () {
+        const b = Buffer.from('abc123');
+        expect(b.sha1('hex')).toBe('6367c48dd193d56ea7b0baad25b19455e529f5ee');
+        expect(b.sha1('base64')).toBe('Y2fEjdGT1W6nsLqtJbGUVeUp9e4=');
+    });
+    it('.sha256', async function () {
+        const b = Buffer.from('abc123');
+        expect(b.sha256('hex')).toBe('6ca13d52ca70c883e0f0bb101e425a89e8624de51db2d2392593af6a84118090');
+        expect(b.sha256('base64')).toBe('bKE9UspwyIPg8LsQHkJaiehiTeUdstI5JZOvaoQRgJA=');
+    });
 });

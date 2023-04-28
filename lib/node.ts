@@ -129,6 +129,8 @@ declare global {
         narrow(min: number, max: number): number
     }
     interface Buffer {
+        sha256(encoding: 'base64' | 'hex'): string
+        sha1(encoding: 'base64' | 'hex'): string
         md5(encoding: 'base64' | 'hex'): string
     }
     interface Array<T> {
@@ -352,6 +354,20 @@ Object.assign(ArrayBuffer.prototype, <ArrayBuffer>{
     },
 });
 Object.assign(Buffer.prototype, <Buffer>{
+    sha256(encoding = 'hex') {
+        return crypto
+            .createHash('sha256')
+            .update(this)
+            .digest(encoding)
+            ;
+    },
+    sha1(encoding = 'hex') {
+        return crypto
+            .createHash('sha1')
+            .update(this)
+            .digest(encoding)
+            ;
+    },
     md5(encoding = 'hex') {
         return crypto
             .createHash('md5')
