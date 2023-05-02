@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>HLS Stream in Three.js</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.1.4/dist/hls.min.js"></script>
+    <script>
+        // Create the scene, camera, and renderer
+        const scene = new THREE.Scene();
+        //const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
+        const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+        {
+            // Create a video element
+            const video = document.createElement('video');
+            video.crossOrigin = 'anonymous';
+            video.muted = false;
+            video.autoplay = true;
+            video.playsinline = true; // Add playsinline attribute to enable autoplay on mobile devices
+            document.body.appendChild(video);
+            //videoContainer.appendChild(video);
+
+            // Create a new Hls object
+            const hls = new Hls();
+
+            // Attach the Hls object to the video element
+            hls.attachMedia(video);
+
+            // Set the source URL for the video stream
+            const url = 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8';
+            hls.loadSource(url);
+
+            // Create a three.js texture from the video element
+            const texture = new THREE.VideoTexture(video);
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+
+            // Create a plane mesh and apply the video texture
+            const geometry = new THREE.PlaneBufferGeometry(2, 2);
+            const material = new THREE.MeshBasicMaterial({ map: texture });
+            const mesh = new THREE.Mesh(geometry, material);
+
+            // Add the mesh to the scene
+            scene.add(mesh);
+
+            video.play()?.catch((e) => {
+                console.error(e.name, e);
+
+                if (e.name === 'NotAllowedError') {
+                    // Inform the user that autoplay is not allowed.
+
+                    // https://admx.help/?Category=ChromeOS&Policy=Google.Policies.ChromeOS::AutoplayAllowed&Language=zh-tw
+                }
+            });
+        }
+
+        // Get the video stream from the webcam
+        /*navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+            // Create a video element and set its source to the webcam stream
+            const video = document.createElement('video');
+            video.srcObject = stream;
+            video.play();
+
+            // Create a three.js texture from the video element
+            const texture = new THREE.VideoTexture(video);
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+
+            // Create a plane mesh and apply the video texture
+            const geometry = new THREE.PlaneBufferGeometry(2, 2);
+            const material = new THREE.MeshBasicMaterial({ map: texture });
+            const mesh = new THREE.Mesh(geometry, material);
+
+            // Add the mesh to the scene
+            scene.add(mesh);
+        }).catch((error) => {
+            console.error('Error accessing media devices.', error);
+        });*/
+
+        // Set the camera position and rotation
+        camera.position.z = 5;
+
+        // Render the scene
+        const animate = function () {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        };
+        animate();
+    </script>
+</body>
+
+</html>
