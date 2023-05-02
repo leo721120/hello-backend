@@ -75,7 +75,7 @@ export default express.service(function (app) {
         return {
             async challenge(name, options) {
                 const displayName = name;
-                const id = name.sha1();
+                const id = name.sha1('hex');
                 const result = await f2l.attestationOptions({
                 });
                 const challenge = Buffer
@@ -101,7 +101,7 @@ export default express.service(function (app) {
                 };
             },
             async attestation(name, result) {
-                const id = name.sha1();
+                const id = name.sha1('hex');
                 const expect = attestations.pop(id);
                 {
                     result.id = arraybufferify(result.id);
@@ -124,7 +124,7 @@ export default express.service(function (app) {
                 return attestation;
             },
             async authenticate(name, options) {
-                const id = name.sha1();
+                const id = name.sha1('hex');
                 const attestation = authentications.find(id);
                 const result = await f2l.assertionOptions({
                 });
@@ -152,7 +152,7 @@ export default express.service(function (app) {
                 };
             },
             async assertion(name, result) {
-                const id = name.sha1();
+                const id = name.sha1('hex');
                 const expect = assertions.pop(id);
                 {
                     result.id = arraybufferify(result.id);

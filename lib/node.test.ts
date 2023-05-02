@@ -30,7 +30,12 @@ describe('String', function () {
     });
     it('.sha1', async function () {
         const s = 'abc012';
-        expect(s.sha1()).toBe('b5e0438b897040e4333ec5050b5204a9df4e9fea');
+        expect(s.sha1('hex')).toBe('b5e0438b897040e4333ec5050b5204a9df4e9fea');
+        expect(s.sha1('base64')).toBe('teBDi4lwQOQzPsUFC1IEqd9On+o=');
+    });
+    it('.base58', async function () {
+        const id = String.base58(16);
+        expect(id.length).toBe(16);
     });
 });
 describe('Object', function () {

@@ -25,6 +25,12 @@ declare global {
     }
     interface StringConstructor {
         nanoid(size: number): string
+        /**
+        random string with length to base58 encoding
+        
+        @link https://zh.wikipedia.org/zh-tw/Base58
+        */
+        base58(size: number): string
     }
     interface ObjectConstructor {
         copy<V extends object>(o: V): V
@@ -120,7 +126,7 @@ declare global {
         base64(from?: BufferEncoding): string
         /**
         */
-        sha1(): string
+        sha1(encoding: 'base64' | 'hex'): string
     }
     interface Number {
         /**
@@ -182,6 +188,7 @@ Object.assign(Number, <NumberConstructor>{
 });
 Object.assign(String, <StringConstructor>{
     nanoid: nanoid.customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'),
+    base58: nanoid.customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'),
 });
 Object.assign(String.prototype, <String>{
     numberify(defaultvalue = NaN) {
@@ -199,11 +206,11 @@ Object.assign(String.prototype, <String>{
     base64(from) {
         return this.encode('base64', from);
     },
-    sha1() {
+    sha1(encoding) {
         return crypto
             .createHash('sha1')
             .update(this as string)
-            .digest('hex')
+            .digest(encoding)
             ;
     },
 });
