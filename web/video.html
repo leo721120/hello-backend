@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <title>HLS Stream in Three.js</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.1.4/dist/hls.min.js"></script>
     <style>
         body {
             margin: 0;
@@ -19,90 +21,73 @@
 </head>
 
 <body>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.1.4/dist/hls.min.js"></script>
+    <canvas></canvas>
     <script>
         // Create the scene, camera, and renderer
         const scene = new THREE.Scene();
-        //const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
         const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const renderer = new THREE.WebGLRenderer({ canvas: document.querySelector('canvas') });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
         {
             // Create a video element
             const video = document.createElement('video');
-            video.crossOrigin = 'anonymous';
             video.muted = false;
             video.autoplay = true;
             video.playsinline = true; // Add playsinline attribute to enable autoplay on mobile devices
-            document.body.appendChild(video);
-            //videoContainer.appendChild(video);
+            {
+                //const url = 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8';
+                const url = 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel-hevc.ism/.m3u8';
+                //const url = 'https://amssamples.streaming.mediaservices.windows.net/634cd01c-6822-4630-8444-8dd6279f94c6/CaminandesLlamaDrama4K.ism/QualityLevels(18586168)/Fragments(video=200000000,format=m3u8-aapl)';
+                //const url = 'https://www.demolandia.ovh/downloads/brands/uhd/lg/lg-uhd-the-story-of-earth-in-ultra-hd-(www.demolandia.net).mkv';
+                const hls = new Hls();
+                hls.attachMedia(video);
+                hls.loadSource(url);
+                hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                    video.play()?.catch((e) => {
+                        console.error(e.name, e);
 
-            // Create a new Hls object
-            const hls = new Hls();
+                        if (e.name === 'NotAllowedError') {
+                            // Inform the user that autoplay is not allowed.
 
-            // Attach the Hls object to the video element
-            hls.attachMedia(video);
+                            // https://admx.help/?Category=ChromeOS&Policy=Google.Policies.ChromeOS::AutoplayAllowed&Language=zh-tw
+                        }
+                    });
+                });
+            }
+            /*{
+                video.src = 'https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4';
+                video.play()?.catch((e) => {
+                    console.error(e.name, e);
 
-            // Set the source URL for the video stream
-            const url = 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8';
-            hls.loadSource(url);
+                    if (e.name === 'NotAllowedError') {
+                        // Inform the user that autoplay is not allowed.
 
-            // Create a three.js texture from the video element
-            const texture = new THREE.VideoTexture(video);
-            texture.minFilter = THREE.LinearFilter;
-            texture.magFilter = THREE.LinearFilter;
-
-            // Create a plane mesh and apply the video texture
-            const geometry = new THREE.PlaneBufferGeometry(2, 2);
-            const material = new THREE.MeshBasicMaterial({ map: texture });
-            const mesh = new THREE.Mesh(geometry, material);
-
-            // Add the mesh to the scene
-            scene.add(mesh);
-
-            video.play()?.catch((e) => {
-                console.error(e.name, e);
-
-                if (e.name === 'NotAllowedError') {
-                    // Inform the user that autoplay is not allowed.
-
-                    // https://admx.help/?Category=ChromeOS&Policy=Google.Policies.ChromeOS::AutoplayAllowed&Language=zh-tw
-                }
-            });
+                        // https://admx.help/?Category=ChromeOS&Policy=Google.Policies.ChromeOS::AutoplayAllowed&Language=zh-tw
+                    }
+                });
+            }*/
+            {
+                // Create a three.js texture from the video element
+                const texture = new THREE.VideoTexture(video);
+                //texture.minFilter = THREE.LinearFilter;
+                //texture.magFilter = THREE.LinearFilter;
+                // Create a plane mesh and apply the video texture
+                const geometry = new THREE.PlaneBufferGeometry(2, 2);
+                const material = new THREE.MeshBasicMaterial({ map: texture });
+                const mesh = new THREE.Mesh(geometry, material);
+                // Add the mesh to the scene
+                scene.add(mesh);
+            }
         }
 
-        // Get the video stream from the webcam
-        /*navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
-            // Create a video element and set its source to the webcam stream
-            const video = document.createElement('video');
-            video.srcObject = stream;
-            video.play();
-
-            // Create a three.js texture from the video element
-            const texture = new THREE.VideoTexture(video);
-            texture.minFilter = THREE.LinearFilter;
-            texture.magFilter = THREE.LinearFilter;
-
-            // Create a plane mesh and apply the video texture
-            const geometry = new THREE.PlaneBufferGeometry(2, 2);
-            const material = new THREE.MeshBasicMaterial({ map: texture });
-            const mesh = new THREE.Mesh(geometry, material);
-
-            // Add the mesh to the scene
-            scene.add(mesh);
-        }).catch((error) => {
-            console.error('Error accessing media devices.', error);
-        });*/
-
-        // Set the camera position and rotation
+        // Set the camera position
         camera.position.z = 5;
 
         // Render the scene
         const animate = function () {
             requestAnimationFrame(animate);
             renderer.render(scene, camera);
+            //document.querySelector('iframe').src = renderer.domElement.toDataURL();
         };
         animate();
     </script>
