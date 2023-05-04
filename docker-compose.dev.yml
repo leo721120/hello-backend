@@ -1,4 +1,4 @@
-version: '3'
+version: '3.9'
 
 networks:
   backend: {}
@@ -95,3 +95,24 @@ services:
     environment:
       # https://developer.godaddy.com/keys
       GODADDY_TOKEN: ${GODADDYAPI_KEY}:${GODADDYAPI_SECRET}
+  #---------------------------------------
+  redis-stack:
+    #
+    image: redis/redis-stack-server:6.2.6-v7
+    profiles: [ fixme ]
+  #---------------------------------------
+  autogpt:
+    #
+    image: significantgravitas/auto-gpt:v0.3.0
+    profiles: [ fixme ]
+    #
+    depends_on:
+      - redis-stack
+    environment:
+      #ALLOWLISTED_PLUGINS:
+      MEMORY_BACKEND: redis
+      REDIS_HOST: redis-stack
+    volumes:
+      #- ./.autogpt:/app/auto_gpt_workspace
+      #- ./.autogpt:/app/data
+      - ./.autogpt:/app/logs
