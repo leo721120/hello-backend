@@ -22,6 +22,9 @@ Feature: POST
             """
         When method POST
         Then expect status should be 200
+        Then expect headers should contain
+            | name         | value            |
+            | content-type | application/json |
         Then expect body should be json
             """
             {
@@ -34,6 +37,9 @@ Feature: POST
         Given url /events
         When method POST
         Then expect status should be 299
+        Then expect headers should contain
+            | name         | value            |
+            | content-type | application/json |
         Then expect body should be json
             """
             {
@@ -59,6 +65,9 @@ Feature: POST
             """
         When method POST
         Then expect status should be 299
+        Then expect headers should contain
+            | name         | value            |
+            | content-type | application/json |
         Then expect body should be json
             """
             {

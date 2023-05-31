@@ -19,8 +19,8 @@ Feature: GET
         When method GET
         Then expect status should be 400
         Then expect headers should contain
-            | name         | value            |
-            | content-type | application/json |
+            | name         | value                    |
+            | content-type | application/problem+json |
 
     Scenario: /not/exist, on('event')
 

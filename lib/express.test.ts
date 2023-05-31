@@ -231,6 +231,8 @@ describe('express/res', function () {
             .fetch(app)
             .get('/abc')
             ;
+        expect(res.headers['content-type']).toMatch('application/problem+json');
+        expect(res.status).toBe(402);
         expect(res.body).toEqual(<rfc7807>{
             //type: expect.any(String),
             title: '4test',

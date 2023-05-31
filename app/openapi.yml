@@ -183,7 +183,7 @@ paths:
           description: |
             User cannot be identified.
           content:
-            application/json:
+            application/problem+json:
               schema:
                 allOf:
                   - $ref: "#/components/schemas/error"
@@ -191,7 +191,7 @@ paths:
           description: |
             Invalid request.
           content:
-            application/json:
+            application/problem+json:
               schema:
                 allOf:
                   - $ref: "#/components/schemas/error"

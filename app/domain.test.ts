@@ -92,9 +92,14 @@ export default environment.define(function ({ step }) {
         await environment.res?.expect(+status);
     });
     step(/^expect headers should contain$/, async function (list: readonly Header[]) {
-        await list.reduce(function (res, item) {
-            return res?.expect(item.name, RegExp(item.value));
-        }, environment.res);
+        const res = await environment.res;
+
+        for (const item of list) {
+            expect(res?.headers).toHaveProperty(
+                item.name.toLowerCase(),
+                expect.stringContaining(item.value),
+            );
+        }
     });
     step(/^expect body schema should be$/, async function (list: readonly Record<'openapi', string>[]) {
         const openapi = JSON.schema('openapi.json');

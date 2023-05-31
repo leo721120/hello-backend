@@ -340,6 +340,7 @@ Object.assign(express.response, <typeof express.response>{
             this.set('Retry-After', delay.toString());
         }
 
+        this.type('application/problem+json');
         this.status(e.status ?? 500);
         this.json(<rfc7807>{
             title: e.name,

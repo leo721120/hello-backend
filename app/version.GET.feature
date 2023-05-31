@@ -10,6 +10,9 @@ Feature: GET /versions
         Given url /versions
         When method GET
         Then expect status should be 200
+        Then expect headers should contain
+            | name         | value            |
+            | content-type | application/json |
         Then expect body schema should be
             | openapi          |
             | paths            |
