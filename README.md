@@ -5,6 +5,7 @@ Template for backend service.
 ## Prerequisite
 
 * [node.js](https://nodejs.org/en/)
+  * runtime
 * [Docker](https://docs.docker.com/)
 * [husky](https://www.npmjs.com/package/husky)
   * used to auto check commit
@@ -39,8 +40,8 @@ npm run cmake -- rebuild
 # run test
 npm test
 
-# (optional) launch containers for e2e (db, mq, ...)
-docker-compose -f docker-compose.e2e.yml up
+# (optional) launch containers for develop (db, mq, ...)
+docker-compose -f docker-compose.dev.yml up
 
 # (optional) launch mock service if you don't have real service
 npm run mock/apphub

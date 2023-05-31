@@ -31,6 +31,19 @@ info:
     }
     ```
 
+    # Mock Server
+
+    You can use the mock server to test the API. The mock server is only for development and testing, and the data is not persistent.
+
+    - [Prism](https://docs.stoplight.io/docs/prism/674b27b261c3c-prism-overview)
+    - [Docker](https://hub.docker.com/r/stoplight/prism)
+
+    ```bash
+    # download the openapi.yml to $(pwd)/app/
+
+    docker run --init --rm -v $(pwd)/app:/app -p 4010:4010 stoplight/prism:4.12.0 mock -h 0.0.0.0 "/app/openapi.yml"
+    ```
+
 tags:
   - name: System
     description: |
@@ -79,6 +92,7 @@ paths:
   /versions:
     get:
       summary: ListVersions
+      security: []
       description: |
         Can be used to view system version information.
       tags:
@@ -99,6 +113,7 @@ paths:
   /time:
     get:
       summary: Time
+      security: []
       description: |
         Can be used to view system time information.
       tags:
@@ -139,6 +154,7 @@ paths:
   /events:
     post:
       summary: NotifyEvent
+      security: []
       description: |
         Used to notify the system that an event has occurred.
       tags:
@@ -171,6 +187,7 @@ paths:
   /token:
     get:
       summary: IssueToken
+      security: []
       description: |
         Used to issue a token for access resources.
       tags:
@@ -267,6 +284,7 @@ paths:
           example: user007
     post:
       summary: Register
+      security: []
       description: |
         Used to register a new credential with user.
       tags:
@@ -291,6 +309,7 @@ paths:
               type: object
     get:
       summary: Attestation
+      security: []
       description: |
         Used to retrieve challenge for registration.
       tags:
@@ -323,6 +342,7 @@ paths:
           example: user007
     post:
       summary: Authenticate
+      security: []
       description: |
         Used to authenticate user with credential.
       tags:
@@ -347,6 +367,7 @@ paths:
               type: object
     get:
       summary: Assertion
+      security: []
       description: |
         Used to retrieve challenge for authentication.
       tags:
@@ -368,6 +389,7 @@ paths:
   /webauthn/demo:
     get:
       summary: Demo
+      security: []
       description: |
         Demo page to show how to use webauthn.
       tags:
