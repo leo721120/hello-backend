@@ -1,6 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package",
   "name": "@io/backend",
+  "type": "commonjs",
   "version": "0.0.0",
   "license": "MIT",
   "description": "template for backend service",
@@ -121,6 +122,9 @@
     }
   },
   "pkg": {
+    "scripts": [
+      "./node_modules/axios/dist/node/axios.cjs"
+    ],
     "assets": [
       "./app/openapi.html",
       "./app/openapi.yml",
