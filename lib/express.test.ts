@@ -69,9 +69,7 @@ describe('express', function () {
         expect(service.foo()).toBe(true);
     });
     it('.final, rfc7807', async function () {
-        const app = express().once('error', function () {
-            //
-        }).use(function (req, res, next) {
+        const app = express().use(function (req, res, next) {
             // force mixin express req/res prototypes
             next();
         });
@@ -143,8 +141,6 @@ describe('express', function () {
             res.status(200).json({
                 id,
             });
-        }).on('error', function () {
-            // eat
         });
         const url = `/foo/${'a'.repeat(9 + 1)}`;
         const res = await express

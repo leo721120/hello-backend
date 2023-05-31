@@ -307,7 +307,6 @@ Object.assign(express.application, <Application>{
     },
     final(err: Error, req, res, next) {
         res.error(err);
-        this.emit('error', err, req.tracecontext());
     },
     websocket() {
         Object.assign(this, { ws: undefined });
@@ -358,6 +357,9 @@ Object.assign(express.response, <typeof express.response>{
             detail: e.message,
             instance: e.resource ?? this.req.path,
         });
+        if (this.app.listeners('error').length) {
+            this.app.emit('error', e, this.req.tracecontext());
+        }
     },
     range(params) {
         const ranges = [params.start, params.end]

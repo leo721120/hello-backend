@@ -46,7 +46,7 @@ export default Promise.try(async function () {
         }
     }
     const srv = app.listen(process.env.APP_PORT, function () {
-        //
+        app.emit('ready');
     }).once('listening', function () {
         log.info(srv.address());
     }).once('close', function () {
@@ -54,11 +54,18 @@ export default Promise.try(async function () {
     }).on('error', function (e) {
         app.emit('error', e);
     });
-    process.once('exit', function (code) {
-        log.info({ exit: code });
+    process.once('SIGTERM', function (signal) {
+        log.info({ signal });
+        srv.close();
     }).once('SIGINT', function (signal) {
         log.info({ signal });
         srv.close();
+    }).once('exit', function (code) {
+        log.info({ exit: code });
+    }).on('error', function (e) {
+        app.emit('error', e);
+    }).on('warning', function (e) {
+        app.emit('error', e);
     });
     return srv;
 });

@@ -91,5 +91,12 @@ declare global {
         off<K extends string>(event: 'error', cb: (e: Error, a?: CloudEvent<K>) => void): this
         once<K extends string>(event: 'error', cb: (e: Error, a?: CloudEvent<K>) => void): this
         emit<K extends string>(event: 'error', e: Error, a?: CloudEvent<K>): boolean
+        /**
+        emit when app is ready
+        */
+        on(event: 'ready', cb: () => void): this
+        off(event: 'ready', cb: () => void): this
+        once(event: 'ready', cb: () => void): this
+        emit(event: 'ready'): boolean
     }
 }

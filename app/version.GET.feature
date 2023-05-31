@@ -23,11 +23,3 @@ Feature: GET /versions
             | content          |
             | application/json |
             | schema           |
-        Then expect body should be json
-            """
-            {
-                "backend": "0.0.0",
-                "platform": "win32",
-                "os": "Windows 10 Enterprise"
-            }
-            """
