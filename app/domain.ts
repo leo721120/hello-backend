@@ -12,6 +12,7 @@ export default express.service(async function (app) {
     await app.setup(await import('@io/app/health'));
     await app.setup(await import('@io/app/event'));
     await app.setup(await import('@io/app/token'));
+    await app.setup(await import('@io/app/time'));
     // -----------------------------------------------
     await app.setup(await import('@io/app/apphub/openapi'));
     // -----------------------------------------------

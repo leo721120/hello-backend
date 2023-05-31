@@ -34,7 +34,7 @@ info:
 tags:
   - name: System
     description: |
-      
+
   - name: Event
     description: |
       Used to describe the events that the system will send.
@@ -95,6 +95,46 @@ paths:
               schema:
                 allOf:
                   - $ref: "#/components/schemas/versions"
+
+  /time:
+    get:
+      summary: Time
+      description: |
+        Can be used to view system time information.
+      tags:
+        - System
+      responses:
+        default:
+          description: |
+            Operation failed.
+        200:
+          description: |
+            Operation success.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  now:
+                    description: |
+                      The current time in this system.
+                    type: string
+                    format: date-time
+                    example: 2021-01-01T00:00:00Z
+                  name:
+                    description: |
+                      The name of the time zone in IANA format.
+                    type: string
+                    minLength: 1
+                    maxLength: 99
+                    example: Asia/Taipei
+                  offset:
+                    description: |
+                      The offset from UTC in minutes.
+                    type: integer
+                    minimum: -720
+                    maximum: 840
+                    example: -480
 
   /events:
     post:

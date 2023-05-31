@@ -17,11 +17,28 @@ declare global {
     interface BufferConstructor {
         random(size: number): Buffer
     }
+    interface ArrayBuffer {
+        /**
+        ArrayBuffer cannot be serialized by JSON.stringify by default
+        */
+        toJSON?(): unknown
+    }
+    interface Buffer {
+        sha256(encoding: 'base64' | 'hex'): string
+        sha1(encoding: 'base64' | 'hex'): string
+        md5(encoding: 'base64' | 'hex'): string
+    }
     interface NumberConstructor {
         /**
         @returns converted number or default value if NaN
         */
         numberify(maybe: unknown, defaultvalue: number): number
+    }
+    interface Number {
+        /**
+        narrow range (min <= this <= max)
+        */
+        narrow(min: number, max: number): number
     }
     interface StringConstructor {
         nanoid(size: number): string
@@ -31,66 +48,6 @@ declare global {
         @link https://zh.wikipedia.org/zh-tw/Base58
         */
         base58(size: number): string
-    }
-    interface ObjectConstructor {
-        copy<V extends object>(o: V): V
-        omit<V extends object, K extends keyof V>(o: V, ...a: readonly K[]): Omit<V, K>
-        pick<V extends object, K extends keyof V>(o: V, ...a: readonly K[]): Pick<V, K>
-    }
-    interface PromiseConstructor {
-        /**
-        deferred execution promise
-        */
-        defer<R>(cb: () => R | PromiseLike<R>): Promise<R>
-        /**
-        create new promise just like Promise.resolve().then(done)
-        */
-        try<R>(cb: () => R | PromiseLike<R>): Promise<R>
-        /**
-        */
-        timeout<R>(ms: number, cb: () => R | PromiseLike<R>): Promise<R> & AbortController
-        /**
-        */
-        sleep(ms: number): Promise<void> & AbortController
-        /**
-        a promise can be resolve/reject later by pass value/error to
-        */
-        result<T>(defaultvalue?: T): Promise<T> & {
-            /**
-            set promise as rejected with error
-            */
-            err<E extends Error>(e: E): void
-            /**
-            set promise as resolved with value
-            */
-            ok<A extends T>(a: A): void
-        }
-    }
-    interface DateConstructor {
-        timezone(): {
-            /**
-            IANA timezone name
-            */
-            name(): string
-            /**
-            in minutes
-            */
-            offset(): number
-        }
-    }
-    interface Promise<T> {
-        /**
-        Calls a defined callback function on each element of an array, and returns an array that contains the results.
-        */
-        map<R>(cb: (v: T extends readonly (infer E)[] ? E : T) => R): Promise<T extends readonly unknown[] ? readonly R[] : R>
-        map<R>(cb: (v: T extends (infer E)[] ? E : T) => R): Promise<T extends unknown[] ? R[] : R>
-        /**
-        */
-        filter(cb: (v: T extends readonly (infer E)[] ? E : T) => boolean): Promise<T extends readonly (infer E)[] ? readonly E[] : (T | undefined)>
-        filter(cb: (v: T extends (infer E)[] ? E : T) => boolean): Promise<T extends (infer E)[] ? E[] : (T | undefined)>
-    }
-    interface Object {
-        toJSON?<R>(): R
     }
     interface String {
         /**
@@ -128,16 +85,74 @@ declare global {
         */
         sha1(encoding: 'base64' | 'hex'): string
     }
-    interface Number {
+    interface ObjectConstructor {
         /**
-        narrow range (min <= this <= max)
+        deep copy
         */
-        narrow(min: number, max: number): number
+        copy<V extends object>(o: V): V
+        omit<V extends object, K extends keyof V>(o: V, ...a: readonly K[]): Omit<V, K>
+        pick<V extends object, K extends keyof V>(o: V, ...a: readonly K[]): Pick<V, K>
     }
-    interface Buffer {
-        sha256(encoding: 'base64' | 'hex'): string
-        sha1(encoding: 'base64' | 'hex'): string
-        md5(encoding: 'base64' | 'hex'): string
+    interface Object {
+        toJSON?<R>(): R
+    }
+    interface PromiseConstructor {
+        /**
+        deferred execution promise
+        */
+        defer<R>(cb: () => R | PromiseLike<R>): Promise<R>
+        /**
+        create new promise just like Promise.resolve().then(done)
+        */
+        try<R>(cb: () => R | PromiseLike<R>): Promise<R>
+        /**
+        */
+        timeout<R>(ms: number, cb: () => R | PromiseLike<R>): Promise<R> & AbortController
+        /**
+        */
+        sleep(ms: number): Promise<void> & AbortController
+        /**
+        a promise can be resolve/reject later by pass value/error to
+        */
+        result<T>(defaultvalue?: T): Promise<T> & {
+            /**
+            set promise as rejected with error
+            */
+            err<E extends Error>(e: E): void
+            /**
+            set promise as resolved with value
+            */
+            ok<A extends T>(a: A): void
+        }
+    }
+    interface Promise<T> {
+        /**
+        Calls a defined callback function on each element of an array, and returns an array that contains the results.
+        */
+        map<R>(cb: (v: T extends readonly (infer E)[] ? E : T) => R): Promise<T extends readonly unknown[] ? readonly R[] : R>
+        map<R>(cb: (v: T extends (infer E)[] ? E : T) => R): Promise<T extends unknown[] ? R[] : R>
+        /**
+        */
+        filter(cb: (v: T extends readonly (infer E)[] ? E : T) => boolean): Promise<T extends readonly (infer E)[] ? readonly E[] : (T | undefined)>
+        filter(cb: (v: T extends (infer E)[] ? E : T) => boolean): Promise<T extends (infer E)[] ? E[] : (T | undefined)>
+    }
+    interface DateConstructor {
+        timezone(): {
+            /**
+            IANA timezone name
+            */
+            name(): string
+            /**
+            in minutes
+            */
+            offset(): number
+        }
+    }
+    interface Date {
+        /**
+        @return result of isNaN(this.valueOf())
+        */
+        invalid(): boolean
     }
     interface Array<T> {
         /**
@@ -153,18 +168,6 @@ declare global {
         */
         intersection<A extends T>(a: Array<A>): Array<T>
         intersection<A extends T>(a: ReadonlyArray<A>): Array<T>
-    }
-    interface Date {
-        /**
-        @return result of isNaN(this.valueOf())
-        */
-        invalid(): boolean
-    }
-    interface ArrayBuffer {
-        /**
-        ArrayBuffer cannot be serialized by JSON.stringify by default
-        */
-        toJSON?(): unknown
     }
 }
 Object.assign(Function, <FunctionConstructor>{

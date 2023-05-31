@@ -7,10 +7,18 @@ export default environment.define(function ({ step }) {
     afterEach(function () {
         environment.app.emit('close');// stop mock services
     });
+    afterEach(function () {
+        jest.useRealTimers();
+    });
     interface Header {
         readonly name: string
         readonly value: string
     }
+    step(/^datetime is (.*)$/, async function (datetime: string) {
+        jest.useFakeTimers()
+            .setSystemTime(new Date(datetime))
+            ;
+    });
     step(/^new environment$/, async function (list?: readonly Record<'service', string>[]) {
         const events = await import('node:events');
         const watch = new events.EventEmitter();
