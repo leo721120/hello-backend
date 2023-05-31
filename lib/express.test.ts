@@ -270,6 +270,22 @@ describe('express/req', function () {
             ;
         expect(res.body.e).toMatch(RegExp('http(s)?://127.0.0.1:\\d+'));
     });
+    it('.router', async function () {
+        const document = JSON.schema('abc.yml',
+            JSON.openapi(`${__dirname}/json.test.yml`)
+        );
+        const app = express().use(
+            express.openapi(document)
+        ).get('/foo/:id', function (req, res) {
+            const e = req.router();
+            res.status(200).json({ e });
+        });
+        const res = await express
+            .fetch(app)
+            .get('/foo/123')
+            ;
+        expect(res.body.e).toBe('/foo/{id}');
+    });
     it('.cloudevent', async function () {
         const app = express().get('/abc', async function (req, res) {
             const e = req.tracecontext();

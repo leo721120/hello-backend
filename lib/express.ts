@@ -41,7 +41,7 @@ export default Object.assign(builder, express, {
             function queryfield<V>(field: string, value: V | undefined): typeof value {
                 const node = openapi.node(
                     'paths',
-                    JSON.pointer.escape(req.route.path),
+                    JSON.pointer.escape(req.router()),
                     req.method.toLowerCase(),
                     'parameters',
                 ).find(function (node) {
@@ -59,6 +59,17 @@ export default Object.assign(builder, express, {
                 return value;
             }
             Object.assign(req, <typeof req>{
+                router() {
+                    const path = Object
+                        .keys(req.params)
+                        .reduce(function (p, name) {
+                            return p.replace(`:${name}`, `{${name}}`);
+                        }, req.route.path as string);
+                    this.router = () => {
+                        return path;
+                    };
+                    return path;
+                },
                 querystrings(name) {
                     const value = express.request.querystrings.call(this, name);
                     return queryfield(name, value);
@@ -73,17 +84,10 @@ export default Object.assign(builder, express, {
                 },
                 parameter(name) {
                     const value = this.params[name];
-                    const field = () => {// convert express `path` to openapi `path`
-                        return Object
-                            .keys(this.params)
-                            .reduce(function (p, name) {
-                                return p.replace(`:${name}`, `{${name}}`);
-                            }, req.route.path as string);
-                    };
                     {
                         openapi.node(
                             'paths',
-                            JSON.pointer.escape(field()),
+                            JSON.pointer.escape(req.router()),
                             //req.method.toLowerCase(),
                             'parameters',
                         ).find(function (node) {
@@ -98,7 +102,7 @@ export default Object.assign(builder, express, {
                 content(type: string = 'application/json') {
                     return openapi.node(
                         'paths',
-                        JSON.pointer.escape(req.route.path),
+                        JSON.pointer.escape(req.router()),
                         req.method.toLowerCase(),
                         'requestBody',
                         'content',
@@ -110,7 +114,7 @@ export default Object.assign(builder, express, {
                     const value = express.request.header.call(this, name);
                     const node = openapi.node(
                         'paths',
-                        JSON.pointer.escape(req.route.path),
+                        JSON.pointer.escape(req.router()),
                         req.method.toLowerCase(),
                         'parameters',
                     ).find(function (node) {
@@ -185,6 +189,12 @@ declare global {
             /**
             */
             origin(): string | 'http://localhost:8080'
+            /**
+            useful to convert express `path` to openapi `path`
+            
+            @default req.route.path
+            */
+            router(): string | '/path/to/route'
             /**
             extract tracecontext from header
             */
@@ -372,6 +382,9 @@ Object.assign(express.request, <typeof express.request>{
         const origin = url.origin;
         this.origin = () => origin;
         return origin;
+    },
+    router() {
+        return this.route.path;
     },
     tracecontext() {
         const e = CloudEvent({
