@@ -1,17 +1,27 @@
 #pragma warning(push)
-#pragma warning(disable:4819)
-#include <nan.h>
+//#pragma warning(disable:4819)
+#include <napi.h>
 #pragma warning(pop)
 
-void Init(v8::Local<v8::Object> exports) {
-  v8::Local<v8::Context> context = exports->CreationContext();
-  exports->Set(context, Nan::New("hello").ToLocalChecked(), Nan::New<v8::FunctionTemplate>([](const Nan::FunctionCallbackInfo<v8::Value>& info) {
-#if defined(_DEBUG)
-    info.GetReturnValue().Set(Nan::New("world (DEBUG)").ToLocalChecked());
-#else
-    info.GetReturnValue().Set(Nan::New("world").ToLocalChecked());
-#endif
-  })->GetFunction(context).ToLocalChecked());
+namespace Module {
+
+  Napi::Value Hello(const Napi::CallbackInfo &info)
+  {
+    const auto env = info.Env();
+
+    const auto name = info[0].ToString().Utf8Value();
+
+    const auto reply = "hello " + name;
+
+    return Napi::String::New(env, reply);
+  }
 }
 
-NODE_MODULE(hello, Init)
+Napi::Object Init(Napi::Env env, Napi::Object exports)
+{
+  exports.Set(Napi::String::New(env, "hello"), Napi::Function::New(env, Module::Hello));
+
+  return exports;
+}
+
+NODE_API_MODULE(addon, Init)

@@ -1,3 +1,3 @@
 export default require(`${__dirname}/addon.node`) as {
-    hello(): string
+    hello(name: string): string
 }

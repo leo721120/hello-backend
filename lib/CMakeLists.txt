@@ -10,6 +10,14 @@ add_library(addon SHARED
 target_link_libraries(addon
     ${CMAKE_JS_LIB}
 )
+target_include_directories(addon
+	PUBLIC
+	${CMAKE_JS_INC}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../node_modules/node-addon-api
+)
+target_compile_definitions(addon
+    PRIVATE
+)
 set_target_properties(addon PROPERTIES
     PREFIX "" SUFFIX ".node"
     RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}"
