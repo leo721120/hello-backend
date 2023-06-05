@@ -33,6 +33,7 @@ export default express.service(function (app) {
         Object.assign(res, <typeof res>{
             send: Function.monkeypatch(res.send, function (cb) {
                 return function (...a) {
+                    res.setHeader('TraceParent', req.tracecontext().id);
                     res.setHeader('X-Elapsed-Time', res.elapse());
                     return cb.call(res, ...a);
                 };
