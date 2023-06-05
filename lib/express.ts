@@ -265,7 +265,7 @@ Object.assign(express.application, <Application>{
         };
         const set = () => {
             return this.set(key, () => {
-                const v = factory();
+                const v = factory() as unknown;
                 this.set(key, () => v);
                 return v;
             });
