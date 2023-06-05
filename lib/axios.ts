@@ -9,8 +9,14 @@ import '@io/lib/event'
 import '@io/lib/error'
 import '@io/lib/json'
 export function build(options?: Readonly<AxiosRequestConfig<never>>) {
-    const httpsAgent = new https.Agent(options?.connection);
-    const httpAgent = new http.Agent(options?.connection);
+    const httpsAgent = options?.connection
+        ? new https.Agent(options.connection)
+        : undefined
+        ;
+    const httpAgent = options?.connection
+        ? new http.Agent(options.connection)
+        : undefined
+        ;
     const fetch = axios.create({
         httpsAgent,
         httpAgent,
@@ -110,8 +116,8 @@ export function build(options?: Readonly<AxiosRequestConfig<never>>) {
         release connection pools
         */
         close() {
-            fetch.defaults.httpsAgent?.destroy();
-            fetch.defaults.httpAgent?.destroy();
+            httpsAgent?.destroy();
+            httpAgent?.destroy();
         },
     });
 };
