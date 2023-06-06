@@ -95,8 +95,8 @@
   },
   "jest": {
     "preset": "ts-jest",
-    "maxWorkers": "50%",
-    "testTimeout": 60000,
+    "maxWorkers": "33%",
+    "testTimeout": 30000,
     "logHeapUsage": true,
     "slowTestThreshold": 5,
     "testEnvironment": "node",

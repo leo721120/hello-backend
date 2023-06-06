@@ -22,6 +22,7 @@ declare global {
         // use declare to append event
     }
     interface CloudEvent<K extends string> extends CloudEventV1<unknown> {
+        servertiming?(metric: string): void
         readonly specversion: '1.0'
         readonly datacontenttype?:
         | 'application/json'

@@ -186,6 +186,23 @@ describe('express/ws', function () {
     });
 });
 describe('express/res', function () {
+    it('.servertiming', async function () {
+        const app = express().get('/abc', function (req, res) {
+            res.servertiming('db-05')
+                .status(200)
+                .json({ ok: true })
+                ;
+        });
+        const res = await express
+            .fetch(app)
+            .get('/abc')
+            ;
+        expect(res.headers).toEqual(
+            expect.objectContaining({
+                'servertiming': expect.stringMatching(/^0;desc=db-05;dur=\d+$/),
+            })
+        );
+    });
     it('.robotstag, noindex', async function () {
         const app = express().get('/abc', async function (req, res) {
             res.robotstag('noindex')

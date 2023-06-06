@@ -158,6 +158,10 @@ declare global {
         }
         interface Response {
             /**
+            @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server-Timing
+            */
+            servertiming(metric: string): this
+            /**
             https://developers.google.com/search/docs/advanced/robots/robots_meta_tag?hl=zh-tw#xrobotstag
             */
             robotstag(value: 'noindex' | 'none'): this
@@ -252,6 +256,21 @@ interface Setup<V> {
 }
 namespace prototype {
     export const application = { ...express.application };
+    export const response = { ...express.response };
+}
+namespace internal {
+    export interface TimingMetric {
+        readonly desc: string
+        readonly dur: number
+    }
+    export interface Response extends express.Response {
+        servertimings?: {
+            send(): Response
+            stringify(): string
+            metrics: Array<TimingMetric>
+            time: Date
+        }
+    }
 }
 Object.assign(express.application, <Application>{
     express,
@@ -337,6 +356,30 @@ Object.assign(express.application, <Application>{
     },
 });
 Object.assign(express.response, <typeof express.response>{
+    servertiming(metric) {
+        const self = this as internal.Response;
+        self.servertimings ??= {
+            time: this.req.now,
+            metrics: [],
+            stringify() {
+                delete self.servertimings;
+                return this.metrics.map(function (metric, idx) {
+                    return `${idx};desc=${metric.desc};dur=${metric.dur}`;
+                }).join(',');
+            },
+            send() {
+                return self.setHeader('ServerTiming', this.stringify());
+            },
+        };
+
+        const metrics = self.servertimings.metrics;
+        const prev = self.servertimings.time;
+        const now = new Date();
+        const dur = now.getTime() - prev.getTime();
+        metrics.push({ desc: metric, dur });
+        self.servertimings.time = now;
+        return this;
+    },
     robotstag(value) {
         return this.setHeader('X-Robots-Tag', value);
     },
@@ -372,6 +415,13 @@ Object.assign(express.response, <typeof express.response>{
         return this.setHeader('Content-Range',
             `${params.unit} ${range}/${params.size}`
         );
+    },
+    send(...a) {
+        const self = this as internal.Response;
+        self.servertimings?.send();
+        this.setHeader('TraceParent', this.req.tracecontext().id);
+        this.setHeader('X-Elapsed-Time', this.elapse());
+        return prototype.response.send.call(this, ...a);
     },
 });
 Object.assign(express.request, <typeof express.request>{

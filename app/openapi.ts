@@ -1,6 +1,5 @@
 import express from '@io/lib/express'
 import path from 'node:path'
-import '@io/lib/node'
 import '@io/lib/json'
 export default express.service(function (app) {
     const openapi = JSON.schema('openapi.json',
@@ -29,15 +28,6 @@ export default express.service(function (app) {
                 time: undefined,// useless
                 data: undefined,// omit
             });
-        });
-        Object.assign(res, <typeof res>{
-            send: Function.monkeypatch(res.send, function (cb) {
-                return function (...a) {
-                    res.setHeader('TraceParent', req.tracecontext().id);
-                    res.setHeader('X-Elapsed-Time', res.elapse());
-                    return cb.call(res, ...a);
-                };
-            }),
         });
         next();
     }).use(express.openapi(openapi));

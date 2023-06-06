@@ -24,4 +24,20 @@ describe('event', function () {
             data: { foo: 'bar' },
         });
     });
+    it('.servertiming', async function () {
+        const e = [] as unknown[];
+        const o = <CloudEvent<string>['servertiming']>function (a) {
+            e.push(a);
+        };
+        const c = CloudEvent({
+            servertiming: o,
+            specversion: '1.0',
+            source: '/testonly',
+            type: 'testonly/event',
+            data: { foo: 'bar' },
+            id: '00',
+        });
+        c.servertiming?.('testonly');
+        expect(e).toHaveLength(1);
+    });
 });
