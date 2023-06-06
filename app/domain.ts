@@ -18,15 +18,3 @@ export default express.service(async function (app) {
     // -----------------------------------------------
     await app.setup(await import('@io/app/tag/model'));
 });
-declare global {
-    namespace NodeJS {
-        interface ProcessEnv {
-            /**
-            filter level
-            */
-            readonly LOG_LEVEL?:
-            | 'silent'
-            | 'info'
-        }
-    }
-}

@@ -1,49 +1,47 @@
+import logstream from '@io/app/main.log'
 import express from '@io/lib/express'
 import compress from 'compression'
 import dotenv from 'dotenv'
 import helmet from 'helmet'
+import debug from 'debug'
 import cors from 'cors'
-import pino from 'pino'
 import '@io/lib/node'
 export default Promise.try(async function () {
     {
         dotenv.config();
     }
+    const err = debug('app:main');
     const app = express();
-    const log = pino({
-        level: process.env.LOG_LEVEL ?? 'info',
-        base: { appid: process.env.APP_ID },
-        messageKey: 'text',
-    });
-    app.on('event', function ({ id, type, source, time, data, specversion, datacontenttype, ...e }) {
-        log.info({
-            id,
-            type,
-            source,
-            ...e,
-        });
-    }).on<string>('error', function (e, c) {// bind before setup to prevent [ERR_UNHANDLED_ERROR]
-        log.warn({
-            id: c?.id ?? '00-00000000000000000000000000000000-0000000000000000-00',
-            type: e.name,
-            text: e.message,
-            errno: e.errno,
-            params: e.params,
-            reason: e.reason,
-        });
-        if (process.env.DEBUG) {
-            console.error(e.stack);
-        }
-    }).once('close', function () {
-        log.info({ text: 'close' });
-    });
+    const log = logstream();
     {
-        app.use(compress());
-        app.use(helmet({ contentSecurityPolicy: false }));// disable for apidoc
-        app.use(cors());
-        {
-            await app.setup(await import('@io/app/domain'));
-        }
+        app.on('event', function ({ id, type, source, time, data, specversion, datacontenttype, ...e }) {
+            log.info({
+                id,
+                type,
+                source,
+                ...e,
+            });
+        }).on<string>('error', function (e, c) {// bind before setup to prevent [ERR_UNHANDLED_ERROR]
+            log.warn({
+                id: c?.id ?? '00-00000000000000000000000000000000-0000000000000000-00',
+                type: e.name,
+                text: e.message,
+                errno: e.errno,
+                params: e.params,
+                reason: e.reason,
+            });
+            if (process.env.DEBUG) {
+                err(e.stack);
+            }
+        }).once('close', function () {
+            log.info({ text: 'close' });
+        });
+    }
+    app.use(compress());
+    app.use(helmet({ contentSecurityPolicy: false }));// disable for apidoc
+    app.use(cors());
+    {
+        await app.setup(await import('@io/app/domain'));
     }
     const srv = app.listen(process.env.APP_PORT, function () {
         app.emit('ready');
