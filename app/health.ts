@@ -9,7 +9,7 @@ export default express.service(function (app) {
         res.status(204).end();
     }).get('/health/metrics', async function (req, res) {
         const unit = 1;// TODO:
-        
+
         // https://stackoverflow.com/questions/12023359/what-do-the-return-values-of-node-js-process-memoryusage-stand-for
 
         const mem = process.memoryUsage();
@@ -22,7 +22,7 @@ export default express.service(function (app) {
             totalheap: mem.heapTotal / unit,
             usedheap: mem.heapUsed / unit,
         };
-        res.status(200).json({
+        res.servertiming('collect').status(200).json({
             sys_freemem: sys.freemem,
             sys_totalmem: sys.totalmem,
             app_rss: app.rss,

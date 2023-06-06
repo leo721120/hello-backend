@@ -368,7 +368,7 @@ Object.assign(express.response, <typeof express.response>{
                 }).join(',');
             },
             send() {
-                return self.setHeader('ServerTiming', this.stringify());
+                return self.setHeader('Server-Timing', this.stringify());
             },
         };
 

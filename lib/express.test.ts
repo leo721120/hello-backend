@@ -199,7 +199,7 @@ describe('express/res', function () {
             ;
         expect(res.headers).toEqual(
             expect.objectContaining({
-                'servertiming': expect.stringMatching(/^0;desc=db-05;dur=\d+$/),
+                'server-timing': expect.stringMatching(/^0;desc=db-05;dur=\d+$/),
             })
         );
     });
