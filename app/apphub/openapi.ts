@@ -4,7 +4,7 @@ import path from 'node:path'
 import '@io/lib/node'
 import '@io/lib/json'
 export default express.service(function (app) {
-    app.service('apphub/openapi', function () {
+    app.service<Service>('apphub/openapi', function () {
         const baseURL = process.env.APPHUB_URL ?? 'http://localhost:9999';
         const timeout = Number.numberify(process.env.APPHUB_TIMEOUT, 5_000);
         const appid = process.env.APPHUB_APPID ?? 'apphub';
@@ -22,17 +22,22 @@ export default express.service(function (app) {
         const openapi = axios.openapi(fetch, JSON.schema('apphub/openapi.json',
             JSON.openapi(path.join(__dirname, 'openapi.yml'))
         ));
-        return <Service>{
-            async login() {
-                const res = await openapi<Response<Cert>>({
-                    openapi: '/login',
-                    method: 'post',
-                    data: {
-                        username: process.env.APPHUB_USERNAME ?? 'admin',
-                        password: process.env.APPHUB_PASSWORD ?? 'admin',
+        return {
+            invoke(params) {
+                return {
+                    async login() {
+                        const res = await openapi<Response<Cert>>({
+                            tracecontext: params.tracecontext,
+                            openapi: '/login',
+                            method: 'post',
+                            data: {
+                                username: process.env.APPHUB_USERNAME ?? 'admin',
+                                password: process.env.APPHUB_PASSWORD ?? 'admin',
+                            },
+                        });
+                        return res.data;
                     },
-                });
-                return res.data;
+                }
             },
         };
     });
@@ -73,9 +78,15 @@ declare global {
 type Response<V extends object> = V & {
     readonly status: 'CHANGED' | 'CONTENT'
 };
-interface Service {
-    login(): Promise<Response<Cert>>
-}
 interface Cert {
     readonly token: string
+}
+interface Query {
+    readonly tracecontext?: CloudEvent<string>
+}
+interface Control {
+    login(): Promise<Response<Cert>>
+}
+interface Service {
+    invoke(params: Query): Control
 }

@@ -27,6 +27,9 @@ export function build(options?: Readonly<AxiosRequestConfig<never>>) {
     fetch.interceptors.response.use(function (res) {
         const now = new Date();
         const req = res.config;
+        {
+            req.tracecontext?.servertiming?.('fetch');
+        }
         return Object.assign(res, <typeof res>{
             tracecontext() {
                 const e = CloudEvent({
@@ -37,6 +40,7 @@ export function build(options?: Readonly<AxiosRequestConfig<never>>) {
                     source: req.url ?? '/',
                     elapse: this.elapse(),
                     specversion: '1.0',
+                    servertiming: req.tracecontext?.servertiming,
                 });
                 this.tracecontext = () => {
                     return e;
@@ -74,6 +78,7 @@ export function build(options?: Readonly<AxiosRequestConfig<never>>) {
         const now = req.now ?? Date.now();
         const method = req.method?.toUpperCase() ?? 'GET';
         const tracecontext = <typeof req.tracecontext>{
+            servertiming: req.tracecontext?.servertiming,
             source: req.url ?? '/',
             type: method,
             // or generate new one

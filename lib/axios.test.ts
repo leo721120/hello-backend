@@ -102,4 +102,36 @@ describe('axios/openapi', function () {
         expect(e.message).toBe('must NOT have additional properties');
         expect(e.name).toBe(SyntaxError.name);
     });
+    it('ANY, servertiming', async function () {
+        {
+            mock.get('/foo/123?q1=xyz').reply(200, {
+                id: 'abc',
+                a: '0123',
+            });
+        }
+        const ev = [];
+        const ce = CloudEvent({
+            specversion: '1.0',
+            id: CloudEvent.id(),
+            type: 'test.only',
+            source: 'test.only',
+            data: {},
+        });
+        ce.servertiming = function (a) {
+            ev.push(a);
+        };
+        const res = await fetch({
+            tracecontext: ce,
+            openapi: '/foo/{id}',
+            method: 'get',
+            params: {
+                id: 123,
+            },
+            query: {
+                q1: 'xyz',
+            },
+        });
+        expect(res.status).toBe(200);
+        expect(ev.length).toBe(1);
+    });
 });

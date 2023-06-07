@@ -24,6 +24,7 @@ describe('engine/openapi', function () {
         it('200, success', async function () {
             const res = await app
                 .service('apphub/openapi')
+                .invoke({})
                 .login()
                 ;
             expect(res).toEqual({
