@@ -1,29 +1,33 @@
 import type { AxiosRequestConfig } from 'axios'
 import type { AxiosResponse } from 'axios'
+import type { AxiosInstance } from 'axios'
 import type { AxiosError } from 'axios'
-import https from 'node:https'
-import http from 'node:http'
 import axios from 'axios'
 import mime from 'mime'
 import '@io/lib/event'
 import '@io/lib/error'
 import '@io/lib/json'
-export function build(options?: Readonly<AxiosRequestConfig<never>>) {
-    const httpsAgent = options?.connection
-        ? new https.Agent(options.connection)
-        : undefined
-        ;
-    const httpAgent = options?.connection
-        ? new http.Agent(options.connection)
-        : undefined
-        ;
-    const fetch = axios.create({
-        httpsAgent,
-        httpAgent,
+export function build(options?: Readonly<AxiosRequestConfig<never> & {
+    /**
+    interceptor for response
+    */
+    onres?(fetch: AxiosInstance): typeof fetch
+    /**
+    interceptor for request
+    */
+    onreq?(fetch: AxiosInstance): typeof fetch
+}>) {
+    const onres = options?.onres ?? function (a) {
+        return a;
+    };
+    const onreq = options?.onreq ?? function (a) {
+        return a;
+    };
+    const fetch = onreq(axios.create({
         baseURL: 'http://localhost',
         timeout: 60_000,
         ...options,
-    });
+    }));
     fetch.interceptors.response.use(function (res) {
         const now = new Date();
         const req = res.config;
@@ -107,22 +111,12 @@ export function build(options?: Readonly<AxiosRequestConfig<never>>) {
             },
         });
     });
-    return Object.assign(options?.intercepte?.(fetch) ?? fetch, {
-        /**
-        create new instance with merged options
-        */
-        axios(params: Readonly<AxiosRequestConfig<never>>) {
+    return Object.assign(onres(fetch), {
+        axios(params: typeof options) {
             return build({
                 ...options,
                 ...params,
             });
-        },
-        /**
-        release connection pools
-        */
-        close() {
-            httpsAgent?.destroy();
-            httpAgent?.destroy();
         },
     });
 };
@@ -191,14 +185,6 @@ export default Object.assign(build, {
 });
 declare module 'axios' {
     interface AxiosRequestConfig {
-        /**
-        used to setup http(s).Agent at creation, no use for request
-        */
-        readonly connection?: https.AgentOptions
-        /**
-        used to setup interceptors at creation, no use for request
-        */
-        intercepte?(axios: AxiosInstance): typeof axios
         /**
         inject tracecontext to header
         */

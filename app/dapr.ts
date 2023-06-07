@@ -12,41 +12,20 @@ export default express.service(function (app) {
             // sidecar should be localhost
             baseURL: `http://localhost:${port}`,
             timeout,
-            connection: {
-                keepAliveMsecs: 30_000,
-                keepAlive: true,
-                maxSockets: 6,
-            },
-            intercepte(axios) {
+            onres(axios) {
                 axios.interceptors.response.use(function (res) {
                     app.emit('event', res.tracecontext());
                     return res;
                 });
+                return axios;
+            },
+            onreq(axios) {
                 axios.interceptors.request.use(function (req) {
-                    const now = new Date();
-                    const method = req.method?.toUpperCase() ?? 'GET';
-                    const tracecontext = {
-                        specversion: '1.0',
-                        source: req.url ?? '/',
-                        //time: now.toISOString(),
-                        data: undefined,
-                        type: method,
-                        id: req.tracecontext?.id ?? CloudEvent.id(),
-                    };
-                    {
-                        app.emit('event', tracecontext);
-                    }
-                    return Object.assign(req, <typeof req>{
-                        now: now.getTime(),
-                        tracecontext,
-                        method,
-                    });
+                    app.emit('event', req.tracecontext!);
+                    return req;
                 });
                 return axios;
             },
-        });
-        app.once('close', function () {
-            fetch.close();
         });
         return fetch;
     }).get('/dapr/config', function (req, res) {

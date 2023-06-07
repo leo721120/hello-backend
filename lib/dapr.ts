@@ -1,6 +1,6 @@
 import type { AxiosError, AxiosRequestConfig } from 'axios'
 import axios from '@io/lib/axios'
-export function build(config?: Readonly<AxiosRequestConfig<never>>) {
+export function build(config?: Parameters<typeof axios>[0]) {
     const fetch = axios({
         baseURL: 'http://localhost:3500',
         ...config,

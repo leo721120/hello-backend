@@ -1,7 +1,8 @@
 import axios from '@io/lib/axios'
 //
 describe('axios', function () {
-    const fetch = axios();
+    const fetch = axios({
+    });
     const mock = axios.mock(fetch);
     {
         mock.persist(true)

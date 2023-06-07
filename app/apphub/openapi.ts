@@ -16,9 +16,6 @@ export default express.service(function (app) {
                 'dapr-app-id': appid,
             },
         });
-        app.once('close', function () {
-            fetch.close();
-        });
         const openapi = axios.openapi(fetch, JSON.schema('apphub/openapi.json',
             JSON.openapi(path.join(__dirname, 'openapi.yml'))
         ));
