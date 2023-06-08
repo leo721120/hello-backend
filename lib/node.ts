@@ -16,6 +16,8 @@ declare global {
     }
     interface BufferConstructor {
         random(size: number): Buffer
+
+        read(stream: NodeJS.ReadableStream): Promise<Buffer>
     }
     interface ArrayBuffer {
         /**
@@ -178,7 +180,15 @@ Object.assign(Function, <FunctionConstructor>{
 Object.assign(Buffer, <BufferConstructor>{
     random(size) {
         return crypto.randomBytes(size);
-    }
+    },
+    async read(stream) {
+        const chunks = [];
+
+        for await (const chunk of stream) {
+            chunks.push(chunk);
+        }
+        return Buffer.concat(chunks as []);
+    },
 });
 Object.assign(Number, <NumberConstructor>{
     numberify(maybe, defaultvalue) {

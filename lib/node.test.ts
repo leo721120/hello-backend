@@ -304,4 +304,11 @@ describe('Buffer', function () {
         expect(b.sha256('hex')).toBe('6ca13d52ca70c883e0f0bb101e425a89e8624de51db2d2392593af6a84118090');
         expect(b.sha256('base64')).toBe('bKE9UspwyIPg8LsQHkJaiehiTeUdstI5JZOvaoQRgJA=');
     });
+    it('.read', async function () {
+        const { Readable } = await import('node:stream');
+        const stream = Readable.from(Buffer.from('abc123'));
+        const b = await Buffer.read(stream);
+        expect(b).toBeInstanceOf(Buffer);
+        expect(b.toString()).toBe('abc123');
+    });
 });

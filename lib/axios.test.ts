@@ -33,6 +33,7 @@ describe('axios', function () {
         });
         expect(err).toEqual(Error('4test'));
         expect(Object.keys(err!).length).toBeLessThan(9);
+        //expect(err?.reason).toBe('');
     });
     it('.cloudevent', async function () {
         const res = await fetch.request({

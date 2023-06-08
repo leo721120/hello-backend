@@ -2,6 +2,7 @@ import type { AxiosRequestConfig } from 'axios'
 import type { AxiosResponse } from 'axios'
 import type { AxiosInstance } from 'axios'
 import type { AxiosError } from 'axios'
+import streams from 'node:stream'
 import axios from 'axios'
 import mime from 'mime'
 import '@io/lib/event'
@@ -62,15 +63,27 @@ export function build(options?: Readonly<AxiosRequestConfig<never> & {
                     : -1;
             },
         });
-    }, function (e: Readonly<AxiosError>) {
+    }, function (e: Readonly<AxiosError<Buffer | NodeJS.ReadableStream>>) {
         const res = e.response;
         const req = e.config;
+        const body = function <V>(data: V | undefined): unknown | undefined {
+            if (!data) {
+                return undefined;
+            }
+            if (data instanceof streams.Readable) {
+                return '<stream>';
+            }
+            if (data instanceof Buffer) {
+                return '<buffer>'
+            }
+            return data;
+        };
         throw Error.build({
             message: e.message,
             name: e.code ?? res?.statusText ?? e.name,
             errno: e.errno,
             status: res?.status ?? 504,
-            reason: res?.data,
+            reason: body(res?.data),
             params: e.params ?? {
                 method: req?.method,
                 url: req?.url,
