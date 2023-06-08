@@ -37,6 +37,11 @@ export default Promise.try(async function () {
             log.info({ text: 'close' });
         });
     }
+    if (process.env.API_PREFIX) {
+        app.use(process.env.API_PREFIX, function (req, res, next) {
+            app.handle(req, res, next);
+        });
+    }
     app.use(compress());
     app.use(helmet({ contentSecurityPolicy: false }));// disable for apidoc
     app.use(cors());
@@ -67,3 +72,10 @@ export default Promise.try(async function () {
     });
     return srv;
 });
+declare global {
+    namespace NodeJS {
+        interface ProcessEnv {
+            readonly API_PREFIX?: string | '/api/v1'
+        }
+    }
+}
