@@ -89,6 +89,7 @@
     "node-apk": "^1.2.1",
     "pg": "^8.11.0",
     "pino": "^8.14.1",
+    "protobufjs": "^7.2.3",
     "rotating-file-stream": "^3.1.0",
     "sequelize": "^6.32.0",
     "traceparent": "^1.0.0",

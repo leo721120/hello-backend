@@ -1,0 +1,7 @@
+package example;
+
+syntax = "proto3";
+
+message SampleMessage {
+    optional string name = 1;
+}
