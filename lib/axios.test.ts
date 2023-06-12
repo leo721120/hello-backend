@@ -10,6 +10,9 @@ describe('axios', function () {
             .get('/testcase/abc').reply(200, {
                 abc: 'test',
             })
+            .post('/testcase/formdata').reply(200, {
+                abc: 'test-formdata',
+            })
             ;
     }
     it('.request', async function () {
@@ -34,6 +37,18 @@ describe('axios', function () {
         expect(err).toEqual(Error('4test'));
         expect(Object.keys(err!).length).toBeLessThan(9);
         //expect(err?.reason).toBe('');
+    });
+    it('.request, formdata', async function () {
+        const res = await fetch.postForm('/testcase/formdata', {
+            a: '1',
+            b: Buffer.from('2'),
+        });
+        expect(res.mimetype()).toContain('json');
+        expect(res.elapse()).toBeLessThan(100);
+        expect(res.status).toBe(200);
+        expect(res.data).toEqual({
+            abc: 'test-formdata',
+        });
     });
     it('.cloudevent', async function () {
         const res = await fetch.request({

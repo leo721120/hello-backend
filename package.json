@@ -18,6 +18,7 @@
     "init": "dapr uninstall && dapr init",
     "dapr": "dapr run -a devapp -H 3500 -p 58088 -c ./cnf/dapr/config.yml -- ts-node app/main",
     "test": "jest",
+    "node": "ts-node",
     "mock": "prism mock",
     "mock/app": "prism mock ./app/openapi.yml",
     "mock/apphub": "prism mock ./app/apphub/openapi.yml"
@@ -78,7 +79,6 @@
     "express": "^4.17.3",
     "express-ws": "^5.0.2",
     "fido2-lib": "^3.3.5",
-    "form-data": "^4.0.0",
     "fs-extra": "^11.1.1",
     "hash-wasm": "^4.9.0",
     "helmet": "^5.1.1",
