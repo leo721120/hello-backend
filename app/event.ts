@@ -86,6 +86,7 @@ declare global {
         /**
         internal events
         */
+        emit<K extends string>(event: 'event', e: Pick<CloudEvent<K>, 'source' | 'type' | 'data'>): boolean
         emit<K extends string>(event: 'event', e: Pick<CloudEvent<K>, 'source' | 'type'>): boolean
         on<K extends string>(event: 'error', cb: (e: Error, a?: CloudEvent<K>) => void): this
         off<K extends string>(event: 'error', cb: (e: Error, a?: CloudEvent<K>) => void): this
