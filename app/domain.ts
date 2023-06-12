@@ -18,5 +18,8 @@ export default express.service(async function (app) {
     await app.setup(await import('@io/app/apphub/openapi'));
     await app.setup(await import('@io/app/apphub/controller'));
     // -----------------------------------------------
+    await app.setup(await import('@io/app/inference/openapi'));
+    await app.setup(await import('@io/app/inference/controller'));
+    // -----------------------------------------------
     await app.setup(await import('@io/app/tag/model'));
 });

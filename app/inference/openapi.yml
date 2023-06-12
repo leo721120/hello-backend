@@ -1,0 +1,407 @@
+openapi: 3.0.3
+
+info:
+  version: 0.1.a
+  title: Inference Engine Management API
+  description: |
+    Welcome to the reference for the Inference Engine Management API.
+
+    > click [here](https://docs.google.com/document/d/1H77NayVlTGGGcZNo0upPXkFHge8d4LvAsRboFHrvzIc/edit) for more information.
+
+tags: []
+
+servers:
+  - url: http://{hostname}:{port}
+    description: |
+      Only for develop.
+    variables:
+      hostname:
+        description: |
+          Hostname to server.
+        default: localhost
+      port:
+        description: |
+          Port to listen.
+        default: "8012"
+
+security: []
+
+paths:
+  /pic/{mid}/{label}:
+    parameters:
+      - name: mid
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/model/properties/mid"
+      - name: label
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/model/properties/labels/items/properties/id"
+    get:
+      responses:
+        default:
+          description: |
+            Operation failed.
+        204:
+          description: |
+            Picture is not exist or fail to get.
+        200:
+          description: |
+            Operation success.
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+
+  /api/service/info:
+    get:
+      responses:
+        default:
+          description: |
+            Operation failed.
+        200:
+          description: |
+            Operation success.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - title: success # name for example
+                    allOf:
+                      - $ref: "#/components/schemas/success"
+                      - required:
+                          - version
+                          - startup_time
+                        properties:
+                          version:
+                            type: string
+                            minLength: 1
+                            maxLength: 99
+                            example: 1.0.0.0
+                          startup_time:
+                            type: string
+                            minLength: 1
+                            maxLength: 99
+                            example: 2023/02/23 10:00:30
+                  - $ref: "#/components/schemas/fail"
+
+  /api/model/add:
+    post:
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/authentication"
+                - required:
+                    - uploadedfile
+                  properties:
+                    uploadedfile:
+                      description: |
+
+                      type: string
+                      format: binary
+      responses:
+        default:
+          description: |
+            Operation failed.
+        200:
+          description: |
+            Operation success.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - title: success # name for example
+                    allOf:
+                      - $ref: "#/components/schemas/success"
+                  - $ref: "#/components/schemas/fail"
+
+  /api/model/info:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/authentication"
+                - required:
+                    - mid
+                  properties:
+                    mid:
+                      $ref: "#/components/schemas/model/properties/mid"
+      responses:
+        default:
+          description: |
+            Operation failed.
+        200:
+          description: |
+            Operation success.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - title: success # name for example
+                    allOf:
+                      - $ref: "#/components/schemas/success"
+                      - required:
+                          - model
+                        properties:
+                          model:
+                            allOf:
+                              - $ref: "#/components/schemas/model"
+                              - required:
+                                  - mid
+                                  - name
+                                  - description
+                                  #- version
+                                  - format
+                                  - ref_pics
+                                  - input_width
+                                  - input_height
+                                  - labels
+                  - $ref: "#/components/schemas/fail"
+
+  /api/model/list:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/authentication"
+      responses:
+        default:
+          description: |
+            Operation failed.
+        200:
+          description: |
+            Operation success.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - title: success # name for example
+                    allOf:
+                      - $ref: "#/components/schemas/success"
+                      - required:
+                          - models
+                        properties:
+                          models:
+                            type: array
+                            minItems: 0
+                            maxItems: 999
+                            items:
+                              allOf:
+                                - $ref: "#/components/schemas/model"
+                                - required:
+                                    - mid
+                                    - name
+                                    - description
+                                    - format
+                                    - ref_pics
+                                    - input_width
+                                    - input_height
+                                    - labels
+                  - $ref: "#/components/schemas/fail"
+
+  /api/model/delete:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/authentication"
+                - required:
+                    - mid
+                  properties:
+                    mid:
+                      $ref: "#/components/schemas/model/properties/mid"
+      responses:
+        default:
+          description: |
+            Operation failed.
+        200:
+          description: |
+            Operation success.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - title: success # name for example
+                    allOf:
+                      - $ref: "#/components/schemas/success"
+                  - $ref: "#/components/schemas/fail"
+
+  /api/errorlist:
+    get:
+      responses:
+        default:
+          description: |
+            Operation failed.
+        200:
+          description: |
+            Operation success.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - title: success # name for example
+                    allOf:
+                      - $ref: "#/components/schemas/success"
+                      - required:
+                          - errors
+                        properties:
+                          errors:
+                            type: array
+                            minItems: 0
+                            maxItems: 99
+                            items:
+                              type: object
+                              required:
+                                - code
+                                - descr
+                              properties:
+                                code:
+                                  $ref: "#/components/schemas/fail/properties/error_code"
+                                descr:
+                                  $ref: "#/components/schemas/fail/properties/error_message"
+                  - $ref: "#/components/schemas/fail"
+
+x-webhooks: {}
+
+components:
+  schemas:
+    fail:
+      maxProperties: 9
+      type: object
+      description: |
+
+      properties:
+        status:
+          description: |
+
+          type: integer
+          enum:
+            - 0
+        error_code:
+          description: |
+
+          type: integer
+          minimum: 0
+          maximum: 999999
+          example: 1001
+        error_message:
+          description: |
+
+          type: string
+          minLength: 0
+          maxLength: 999
+          example: Internal error
+
+    success:
+      maxProperties: 9
+      type: object
+      description: |
+
+      properties:
+        status:
+          description: |
+
+          type: integer
+          enum:
+            - 1
+
+    authentication:
+      maxProperties: 9
+      type: object
+      description: |
+
+      required:
+        - access_key
+      properties:
+        access_key:
+          description: |
+
+          type: string
+          minLength: 1
+          maxLength: 99
+          example: i_am_good_key
+
+    model:
+      maxProperties: 9
+      type: object
+      description: |
+
+      properties:
+        mid:
+          description: |
+            Id of model
+          type: string
+          minLength: 1
+          maxLength: 99
+          example: QRmPG9kJ
+        name:
+          type: string
+          minLength: 0
+          maxLength: 99
+          example: person detect
+        description:
+          type: string
+          minLength: 0
+          maxLength: 999
+          example: detect person
+        version:
+          type: string
+          minLength: 1
+          maxLength: 99
+          example: "20230202001"
+        format:
+          type: string
+          minLength: 1
+          maxLength: 99
+          example: yolo
+        ref_pics:
+          type: integer
+          minimum: 0
+          maximum: 9999
+          example: 2
+        input_width:
+          type: integer
+          minimum: 0
+          maximum: 9999
+          example: 512
+        input_height:
+          type: integer
+          minimum: 0
+          maximum: 9999
+          example: 512
+        labels:
+          type: array
+          minItems: 0
+          maxItems: 9999
+          items:
+            maxProperties: 9
+            type: object
+            properties:
+              id:
+                description: |
+                  Index of label from DNN model.
+                type: integer
+                minimum: 0
+                maximum: 999999999
+                example: 1
+              code:
+                type: string
+                minLength: 0
+                maxLength: 99
+                example: xxxxxx
+              name:
+                type: string
+                minLength: 0
+                maxLength: 99
+                example: person
