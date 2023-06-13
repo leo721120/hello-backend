@@ -212,7 +212,7 @@ declare global {
             */
             querystring<K extends string>(name: string): K | undefined
             /**
-            @return from querystring, but convert to number or NaN
+            @return from querystring, but convert to number or undefined if NaN
             */
             querynumber<K extends number>(name: string): K | undefined
             /**
