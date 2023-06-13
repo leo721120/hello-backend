@@ -14,10 +14,20 @@ Template for backend service.
 * [CMake](https://cmake.org/)
   * Windows
     * [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/zh-hant/visual-cpp-build-tools/)
+    * [vcpkg](https://vcpkg.io/en/getting-started.html)
   * Unix
     * GCC
 
 ## Develop
+
+```sh
+#
+cd <vcpkg>
+
+# (for Windows) install c++ dependencies for addon
+./vcpkg install boost:x64-windows-static
+
+```
 
 ```powershell
 # forward localhost traffic to WSL docker daemon
