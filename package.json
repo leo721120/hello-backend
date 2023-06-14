@@ -36,6 +36,7 @@
     "@types/jsonwebtoken": "^9.0.2",
     "@types/node": "^18.16.16",
     "@types/node-forge": "^1.3.2",
+    "@types/node-windows": "^0.1.2",
     "@types/pg": "^8.10.2",
     "@types/supertest": "^2.0.11",
     "@types/traceparent": "^1.0.0",
@@ -87,6 +88,7 @@
     "mongodb": "^5.6.0",
     "nanoid": "^3.3.4",
     "node-apk": "^1.2.1",
+    "node-windows": "^1.0.0-beta.8",
     "pg": "^8.11.0",
     "pino": "^8.14.1",
     "protobufjs": "^7.2.3",
@@ -128,6 +130,7 @@
       "./node_modules/axios/dist/node/axios.cjs"
     ],
     "assets": [
+      "./node_modules/node-windows/bin/elevate/*",
       "./app/openapi.html",
       "./app/openapi.yml",
       "./logo.ico"
