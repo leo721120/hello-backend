@@ -4,10 +4,12 @@
   "exclude": [
     "./lib/wasm/*.ts",
     "**/*.test.ts",
-    "**/*.spec.ts"
+    "**/*.spec.ts",
+    "**/*.example.ts"
   ],
   "compilerOptions": {
     // some library conflicts with lib/error
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "sourceMap": false
   }
 }
