@@ -16,11 +16,15 @@ Object.assign(CloudEvent, <typeof CloudEvent>{
         return id.toString();
     },
 });
-
 declare global {
     interface CloudEvents {
         // use declare to append event
     }
+    /**
+    CloudEvents is a specification for describing event data in a common way.
+    
+    @link https://github.com/cloudevents/spec/blob/main/cloudevents/formats/json-format.md
+    */
     interface CloudEvent<K extends string> extends CloudEventV1<unknown> {
         servertiming?(metric: string): void
         readonly specversion: '1.0'
