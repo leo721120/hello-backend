@@ -212,7 +212,7 @@ declare global {
             */
             querystring<K extends string>(name: string): K | undefined
             /**
-            @return from querystring, but convert to number or undefined if NaN
+            @return from querystring, but convert to number
             */
             querynumber<K extends number>(name: string): K | undefined
             /**
@@ -464,7 +464,7 @@ Object.assign(express.request, <typeof express.request>{
         return this.query[name];
     },
     querynumber(name) {
-        return this.query[name]?.toString().numberify();
+        return this.query[name]?.toString().numberify(NaN);
     },
     parameter(name) {
         return this.params[name];

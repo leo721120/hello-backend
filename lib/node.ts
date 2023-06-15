@@ -35,6 +35,10 @@ declare global {
         @returns converted number or default value if NaN
         */
         numberify(maybe: unknown, defaultvalue: number): number
+        /**
+        @returns converted number or undefined if NaN
+        */
+        numberify(maybe: unknown): number | undefined
     }
     interface Number {
         /**
@@ -57,9 +61,9 @@ declare global {
         */
         numberify(defaultvalue: number): number
         /**
-        @returns convert as number or NaN
+        @returns convert as number or undefined if NaN
         */
-        numberify(): number
+        numberify(): number | undefined
         /**
         convert to buffer
 
@@ -191,7 +195,7 @@ Object.assign(Buffer, <BufferConstructor>{
     },
 });
 Object.assign(Number, <NumberConstructor>{
-    numberify(maybe, defaultvalue) {
+    numberify(maybe, defaultvalue?) {
         const v = Number(maybe);
         return Number.isNaN(v)
             ? defaultvalue
@@ -204,8 +208,8 @@ Object.assign(String, <StringConstructor>{
     base58: nanoid.customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'),
 });
 Object.assign(String.prototype, <String>{
-    numberify(defaultvalue = NaN) {
-        return Number.numberify(this, defaultvalue as number);
+    numberify(defaultvalue?) {
+        return Number.numberify(this) ?? defaultvalue;
     },
     buffer(encoding) {
         return Buffer.from(this, encoding);

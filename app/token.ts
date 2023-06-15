@@ -1,7 +1,7 @@
 import express from '@io/lib/express'
 export default express.service(function (app) {
-    const TOKEN_EXPIRE = process.env.TOKEN_EXPIRE?.numberify().narrow(1, 3600)
-        || 5 * 60// default 5 minutes
+    const TOKEN_EXPIRE = process.env.TOKEN_EXPIRE?.numberify()?.narrow(1, 3600)
+        ?? 5 * 60// default 5 minutes
         ;
     app.delete('/token', async function (req, res) {
         const user = await req.authenticate();
@@ -10,7 +10,7 @@ export default express.service(function (app) {
         }
         res.status(204).end();
     }).get('/token', async function (req, res) {
-        const expire = req.querynumber('expire') || TOKEN_EXPIRE;
+        const expire = req.querynumber('expire') ?? TOKEN_EXPIRE;
         const user = await req.authenticate();
         {
             user;

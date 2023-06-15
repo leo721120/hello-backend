@@ -407,13 +407,13 @@ describe('express/req', function () {
     it('.querynumber, omit if NaN', async function () {
         const app = express().get('/abc', async function (req, res) {
             const qs = req.querynumber('qa');
-            expect(qs).toBeNaN();
+            expect(qs).toBeUndefined();
             res.status(200).json({ qs });
         });
         const res = await express
             .fetch(app)
             .get('/abc?qa=abg')
             ;
-        expect(res.body.qs).toBe(null);
+        expect(res.body.qs).toBeUndefined();
     });
 });

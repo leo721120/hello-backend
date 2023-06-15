@@ -7,11 +7,8 @@ describe('String', function () {
     it('.numberify, default value if NaN', async function () {
         expect('a'.numberify(13)).toBe(13);
     });
-    it('.numberify, NaN if fail', async function () {
-        expect('a'.numberify()).toBeNaN();
-    });
-    it('.numberify, || for NaN', async function () {
-        expect('a'.numberify() || 13).toBe(13);
+    it('.numberify, undefined if NaN', async function () {
+        expect('a'.numberify() ?? 13).toBe(13);
     });
     it('.nanoid', async function () {
         const id = String.nanoid(8);
@@ -259,6 +256,10 @@ describe('Function', function () {
     });
 });
 describe('Number', function () {
+    it('.numberify', async function () {
+        expect(Number.numberify('a')).toBeUndefined();
+        expect(Number.numberify('13')).toBe(13);
+    });
     it('.narrow', async function () {
         const n = 13;
         expect(n.narrow(0, 15)).toBe(13);
@@ -267,9 +268,8 @@ describe('Number', function () {
         expect(n.narrow(18, 99)).toBe(18);
     });
     it('.narrow, NaN', async function () {
-        const n = 'a'.numberify();
-        expect(n.narrow(0, 15)).toBeNaN();
-        expect(n.narrow(20, 35)).toBeNaN();
+        const n = NaN;
+        expect(n.narrow(-13, 15)).toBeNaN();
     });
 });
 describe('ArrayBuffer', function () {
