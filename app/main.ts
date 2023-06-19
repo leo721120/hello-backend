@@ -1,4 +1,5 @@
 import logstream from '@io/app/main.log'
+import manifest from '@io/lib/manifest'
 import express from '@io/lib/express'
 import compress from 'compression'
 import dotenv from 'dotenv'
@@ -14,6 +15,10 @@ export default Promise.try(async function () {
     const app = express();
     const log = logstream();
     {
+        log.info({
+            version: manifest.version,
+            name: manifest.name,
+        });
         app.on('event', function ({ id, type, source, time, data, specversion, datacontenttype, ...e }) {
             log.info({
                 id,
