@@ -57,6 +57,24 @@ docker-compose -f docker-compose.dev.yml up
 npm run mock/apphub
 ```
 
+### Clinic
+
+used to profile application.
+
+```sh
+# clinic cannot profile ts, so we need to compile it first
+npm run build
+
+# profile with doctor
+npm run clinic -- doctor -- node app/main
+
+# (optional) profile with flame
+npm run clinic -- frame -- node app/main
+
+# cleanup
+npm run clean
+```
+
 There are 2 way to launch **Dapr** environment.
 
 * ### Self-Host (for develop)
