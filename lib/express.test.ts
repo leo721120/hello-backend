@@ -155,6 +155,43 @@ describe('express', function () {
             title: 'SyntaxError',
         });
     });
+    it('.slowdown', async function () {
+        const app = express().use(
+            express.slowdown({
+                time: 100,
+                max: 3,
+            })
+        ).get('/foo', function (req, res) {
+            res.status(200).json({
+                good: true,
+            });
+        });
+        await Promise.all(
+            Array(3).fill(0).map(function () {
+                return express
+                    .fetch(app)
+                    .get('/foo')
+                    ;
+            })
+        );
+        const res = await express
+            .fetch(app)
+            .get('/foo')
+            .expect(429)
+            .expect('ratelimit-remaining', '0')
+            //.expect('ratelimit-reset', '1')
+            .expect('ratelimit-limit', '3')
+            .expect({
+                title: 'SlowDown',
+                status: 429,
+                detail: 'too many requests',
+                instance: '/foo'
+            });
+        expect(res.headers).toHaveProperty('ratelimit-reset', expect.any(String));
+        expect(res.headers).toHaveProperty('retry-after', expect.any(String));
+        expect(Number(res.headers['ratelimit-reset'])).toBeGreaterThan(1);
+        expect(Number(res.headers['retry-after'])).toBeGreaterThan(0);
+    });
 });
 describe('express/ws', function () {
     const app = express().ws('/testonly/ws', function (ws, req) {

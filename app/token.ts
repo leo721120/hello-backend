@@ -9,7 +9,10 @@ export default express.service(function (app) {
             user;
         }
         res.status(204).end();
-    }).get('/token', async function (req, res) {
+    }).get('/token', express.slowdown({
+        time: 1 * 60 * 1000,// 1 minute
+        max: 5,
+    }), async function (req, res) {
         const expire = req.querynumber('expire') ?? TOKEN_EXPIRE;
         const user = await req.authenticate();
         {

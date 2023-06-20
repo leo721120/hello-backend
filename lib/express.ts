@@ -134,6 +134,75 @@ export default Object.assign(builder, express, {
             next();
         };
     },
+    slowdown(params: {
+        /**
+        used to generate key for each request
+        */
+        key?(req: express.Request, res: express.Response): string
+        /**
+        time frame for which requests are checked/remembered, in milliseconds
+
+        @default 60_000
+        */
+        readonly time?: number
+        /**
+        @default 60
+        */
+        readonly max?: number
+        readonly map?: Map<string, {
+            /**
+            how many requests have been made in this window
+            */
+            readonly count: number | 0
+            readonly time: Date
+        }>
+    }): express.RequestHandler {
+        const window = <Required<typeof params>>{
+            time: 60_000,// 60 seconds
+            max: 60,
+            map: new Map(),
+            key(req, res) {
+                return req.ip;
+            },
+            ...params,
+        };
+        return function (req, res, next) {
+            const key = window.key(req, res);
+            const prev = window.map.get(key) ?? {
+                time: req.now,
+                count: 0,
+            };
+            const diff = req.now.getTime()
+                - prev.time.getTime()
+                ;
+            if (diff >= window.time) {// move to new window
+                Object.assign(prev, <typeof prev>{
+                    time: req.now,
+                    count: 0,
+                });
+            }
+            {// https://datatracker.ietf.org/doc/draft-ietf-httpapi-ratelimit-headers/
+                const reset = Math.ceil((prev.time.getTime() + window.time) / 1000);
+
+                res.setHeader('RateLimit-Remaining', window.max - prev.count);
+                res.setHeader('RateLimit-Reset', reset);
+                res.setHeader('RateLimit-Limit', window.max);
+            }
+            if (prev.count + 1 > window.max) {
+                throw Error.build({
+                    retrydelay: (prev.time.getTime() + window.time) - Date.now(),
+                    message: 'too many requests',
+                    status: 429,
+                    name: 'SlowDown',
+                });
+            }
+            window.map?.set(key, {
+                count: prev.count + 1,
+                time: prev.time,
+            });
+            return next();
+        };
+    },
 });
 declare module 'ws' {
     interface Server {
@@ -387,8 +456,8 @@ Object.assign(express.response, <typeof express.response>{
         return Date.now() - this.req.now.getTime();
     },
     error(e) {
-        if (e.retrydelay) {
-            const delay = e.retrydelay / 1000;// convert to seconds
+        if (e.retrydelay) {// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After
+            const delay = Math.ceil(e.retrydelay / 1000);// convert to seconds
             this.set('Retry-After', delay.toString());
         }
 
