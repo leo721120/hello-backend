@@ -19,12 +19,14 @@
     "init": "dapr uninstall && dapr init",
     "dapr": "dapr run -a devapp -H 3500 -p 58088 -c ./cnf/dapr/config.yml -- ts-node app/main",
     "test": "jest",
+    "hurl": "hurl",
     "node": "ts-node",
     "mock": "prism mock",
     "mock/app": "prism mock ./app/openapi.yml",
     "mock/apphub": "prism mock ./app/apphub/openapi.yml"
   },
   "devDependencies": {
+    "@orangeopensource/hurl": "^3.0.1",
     "@stoplight/prism-cli": "^4.14.1",
     "@types/amqplib": "^0.10.1",
     "@types/autocannon": "^7.9.0",
