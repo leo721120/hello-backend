@@ -1,5 +1,5 @@
 import { MongoMemoryServer } from 'mongodb-memory-server'
-import express from '@io/lib/express'
+import express from '@io/app/express'
 import '@io/lib/event'
 import '@io/lib/node'
 export default express.service(async function (app) {

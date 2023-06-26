@@ -1,6 +1,6 @@
 import type { AttestationResult } from './authenticate.fido2'
 import type { AssertionResult } from './authenticate.fido2'
-import express from '@io/lib/express'
+import express from '@io/app/express'
 import path from 'node:path'
 import '@io/lib/node'// auto convert arraybuffer to base64 string
 export default express.service(function (app) {

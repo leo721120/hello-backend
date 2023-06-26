@@ -1,5 +1,5 @@
 import sequelize, { Sequelize } from '@io/lib/sequelize'
-import express from '@io/lib/express'
+import express from '@io/app/express'
 import '@io/lib/event'
 import '@io/lib/node'
 import 'pg'// force pkg to include

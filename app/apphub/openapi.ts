@@ -1,4 +1,4 @@
-import express from '@io/lib/express'
+import express from '@io/app/express'
 import axios from '@io/lib/axios'
 import path from 'node:path'
 import '@io/lib/node'

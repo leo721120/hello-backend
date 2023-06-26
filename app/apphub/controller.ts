@@ -1,4 +1,4 @@
-import express from '@io/lib/express'
+import express from '@io/app/express'
 export default express.service(function (app) {
     app.use('/apphub', async function (req, res) {
         const tracecontext = req.tracecontext();

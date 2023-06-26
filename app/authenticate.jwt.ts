@@ -1,7 +1,7 @@
 import type { KeyObject } from 'node:crypto'
 import jsonwebtoken from 'jsonwebtoken'
 import manifest from '@io/lib/manifest'
-import express from '@io/lib/express'
+import express from '@io/app/express'
 import crypto from 'node:crypto'
 import '@io/lib/event'
 import '@io/lib/error'

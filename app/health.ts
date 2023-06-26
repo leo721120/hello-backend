@@ -1,4 +1,4 @@
-import express from '@io/lib/express'
+import express from '@io/app/express'
 import os from 'node:os'
 import '@io/lib/node'
 export default express.service(function (app) {

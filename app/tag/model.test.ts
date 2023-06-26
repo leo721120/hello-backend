@@ -1,4 +1,4 @@
-import express from '@io/lib/express'
+import express from '@io/app/express'
 //
 describe('tag/model', function () {
     const app = express();

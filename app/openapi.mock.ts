@@ -1,5 +1,5 @@
 import type { IPrismHttpServer } from '@stoplight/prism-http-server/dist/types'
-import express from '@io/lib/express'
+import express from '@io/app/express'
 import '@io/lib/node'
 export default express.service(async function (app) {
     const mock = app.service('mock');

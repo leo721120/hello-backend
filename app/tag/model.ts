@@ -15,7 +15,7 @@ import type { SyncOptions } from '@io/lib/sequelize'
 import type { FindOptions } from '@io/lib/sequelize'
 import type { Association } from '@io/lib/sequelize'
 import { Model as Table } from '@io/lib/sequelize'
-import express from '@io/lib/express'
+import express from '@io/app/express'
 export * from '@io/lib/sequelize'
 export interface Resource {
     readonly type: string

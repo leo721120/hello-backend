@@ -1,4 +1,4 @@
-import express from '@io/lib/express'
+import express from '@io/app/express'
 import dapr from '@io/lib/dapr'
 export interface Mock extends ReturnType<typeof dapr.mock> {
 }

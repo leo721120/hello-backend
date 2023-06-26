@@ -1,5 +1,5 @@
 import { MongoClient } from 'mongodb'
-import express from '@io/lib/express'
+import express from '@io/app/express'
 export default express.service(function (app) {
     app.service('mongo', function () {
         const uri = new URL(process.env.MONGODB_HREF ?? 'mongodb://localhost:27017');

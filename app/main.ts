@@ -1,6 +1,6 @@
 import logstream from '@io/app/main.log'
 import manifest from '@io/lib/manifest'
-import express from '@io/lib/express'
+import express from '@io/app/express'
 import compress from 'compression'
 import dotenv from 'dotenv'
 import helmet from 'helmet'

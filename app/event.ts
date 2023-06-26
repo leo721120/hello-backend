@@ -1,4 +1,4 @@
-import express from '@io/lib/express'
+import express from '@io/app/express'
 import '@io/lib/node'
 export default express.service(function (app) {
     const pubsubname = process.env.EVENT_PUBSUB ?? 'pubsub';

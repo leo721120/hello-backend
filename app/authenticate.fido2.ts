@@ -5,7 +5,7 @@ import type { Fido2AssertionResult } from 'fido2-lib'
 import type { AttestationResult } from 'fido2-lib'
 import type { AssertionResult } from 'fido2-lib'
 import { Fido2Lib } from 'fido2-lib'
-import express from '@io/lib/express'
+import express from '@io/app/express'
 import manifest from '@io/lib/manifest'
 import '@io/lib/node'// auto convert arraybuffer to base64 string
 import '@io/lib/error'

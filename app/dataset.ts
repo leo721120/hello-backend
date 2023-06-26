@@ -1,5 +1,5 @@
 import dataset from '@io/lib/dataset'
-import express from '@io/lib/express'
+import express from '@io/app/express'
 import '@io/lib/error'
 import '@io/lib/node'
 export default express.service(function (app) {

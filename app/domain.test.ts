@@ -1,5 +1,5 @@
 import environment from '@io/lib/cucumber'
-import express from '@io/lib/express'
+import express from '@io/app/express'
 import '@io/lib/node'
 import '@io/lib/json'
 //import autocannon from 'autocannon'

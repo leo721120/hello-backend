@@ -1,5 +1,5 @@
 import environment from '@io/app/domain.test'
-import express from '@io/lib/express'
+import express from '@io/app/express'
 export default environment.define(function () {
 });
 if (!require.main) {

@@ -1,4 +1,4 @@
-import express from '@io/lib/express'
+import express from '@io/app/express'
 export default express.service(function (app) {
     const TOKEN_EXPIRE = process.env.TOKEN_EXPIRE?.numberify()?.narrow(1, 3600)
         ?? 5 * 60// default 5 minutes
