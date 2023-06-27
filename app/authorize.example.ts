@@ -1,10 +1,11 @@
-import IAM from '@io/lib/authorization'
+import express from '@io/app/express'
 import '@io/lib/error'
 import '@io/lib/node'
 //
 Promise.try(async function () {
-    const iam = IAM();
-
+    const app = express();
+    await app.setup(await import('@io/app/domain'));
+    const iam = app.service('iam');
     iam.at('list:users', async function (user, auth) {
         user.id;
         auth.items;

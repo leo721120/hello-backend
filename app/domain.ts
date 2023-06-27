@@ -1,6 +1,7 @@
 import express from '@io/app/express'
 export default express.service(async function (app) {
     await app.setup(await import('@io/app/authenticate'));
+    await app.setup(await import('@io/app/authorize'));
     await app.setup(await import('@io/app/dataset'));
     await app.setup(await import('@io/app/openapi'));
     await app.setup(await import('@io/app/mongo'));
