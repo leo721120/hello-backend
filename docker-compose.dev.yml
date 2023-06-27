@@ -151,3 +151,38 @@ services:
             "smtpServerAuthEnabled": true,
             "smtpServerPassword": "passw0rd"
         }
+  #---------------------------------------
+  minio:
+    # https://hub.docker.com/r/bitnami/minio/
+    image: bitnami/minio:2023.6.23
+    #
+    networks:
+      - dev
+    ports:
+      - 9000:9000
+      - 9001:9001
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-passw0rd}
+  
+  #---------------------------------------
+  tusd:
+    # https://hub.docker.com/r/tusproject/tusd
+    image: tusproject/tusd:v1.11.0
+    #
+    command: -verbose -s3-bucket mybucket -s3-endpoint http://minio:9000
+    #
+    volumes:
+      - ./cnf/tusd:/data
+    networks:
+      - dev
+    ports:
+      - 1080:1080
+    depends_on:
+      - minio
+    environment:
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-admin}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-passw0rd}
+      #AZURE_STORAGE_ACCOUNT: ${AZURE_STORAGE_ACCOUNT:-devacc}
+      #AZURE_STORAGE_KEY: ${AZURE_STORAGE_KEY}
