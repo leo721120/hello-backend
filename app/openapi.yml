@@ -422,6 +422,23 @@ x-webhooks:
                 - $ref: "#/components/schemas/cloudevent"
 
 components:
+  parameters:
+    debug:
+      name: debug
+      in: query
+      description: |
+        enable debug mode for development
+      schema:
+        uniqueItems: true
+        type: array
+        items:
+          description: |
+            flag for debug mode
+          type: string
+          enum:
+            - trace
+            - error
+
   schemas:
     error:
       maxProperties: 9

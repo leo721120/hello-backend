@@ -308,6 +308,21 @@ describe('express/res', function () {
     });
 });
 describe('express/req', function () {
+    it('.debug', async function () {
+        const app = express().get('/abc', function (req, res) {
+            const e = req.tracecontext();
+            e.servertiming?.('testonly-002');
+            res.status(200).json({ a: true });
+        });
+        const res = await express
+            .fetch(app)
+            .get('/abc?debug=trace')
+            ;
+        expect(res.body).toEqual({
+            a: true,
+        });
+        expect(res.headers).toHaveProperty('server-timing', expect.stringMatching(/^0;desc=testonly-002;dur=\d+$/));
+    });
     it('.origin', async function () {
         const app = express().get('/abc', async function (req, res) {
             const e = req.origin();

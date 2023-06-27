@@ -15,9 +15,11 @@ export default express.service(function (app) {
         time: 1 * 60 * 1000,// 1 minute
         max: 5,
     }), async function (req, res) {
+        const tracecontext = req.tracecontext();
         const expire = req.querynumber('expire') ?? TOKEN_EXPIRE;
         const user = await req.authenticate();
         {
+            tracecontext.servertiming?.('authenticate');
             user;
         }
         const jwt = app.service('jwt');

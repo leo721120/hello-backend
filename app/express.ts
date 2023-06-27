@@ -7,7 +7,7 @@ import '@io/lib/node'
 import '@io/lib/json'
 {// make router handler can support async-await
     const layer = require('express/lib/router/layer');
-    layer.prototype.handle_request = <express.RequestHandler>function (this: any, req, res, next) {
+    layer.prototype.handle_request = <express.RequestHandler>function (this: typeof layer, req, res, next) {
         const fn = this.handle as express.RequestHandler;
 
         if (fn.length > 3) {
@@ -260,6 +260,12 @@ declare global {
             */
             readonly now: Date
             /**
+            check if querystring with debug flags
+            */
+            debug(flag: 'trace'): boolean
+            debug(flag: 'error'): boolean
+            debug(flag: string): boolean
+            /**
             */
             origin(): string | 'http://localhost:8080'
             /**
@@ -494,6 +500,17 @@ Object.assign(express.response, <typeof express.response>{
     },
 });
 Object.assign(express.request, <typeof express.request>{
+    debug(flag) {
+        /*! side effect from json schema validation
+        return this
+            .querystrings('debug')
+            .includes(flag)
+            ;*/
+        return express.request
+            .querystrings.call(this, 'debug')
+            .includes(flag)
+            ;
+    },
     origin() {
         const port = this.socket.localPort ?? (this.secure ? 443 : 80);
         const url = new URL('http://localhost');
@@ -516,6 +533,15 @@ Object.assign(express.request, <typeof express.request>{
             source: this.url,
             specversion: '1.0',
         });
+        if (this.debug('trace')) {
+            const res = this.res;
+
+            Object.assign(e, <typeof e>{
+                servertiming(metric) {
+                    res?.servertiming(metric);
+                },
+            });
+        }
         this.tracecontext = () => {
             return e;
         };
