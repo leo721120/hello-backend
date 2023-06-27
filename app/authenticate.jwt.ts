@@ -11,14 +11,6 @@ export default express.service(function (app) {
         const [, token] = req.authorization();
         const jwt = app.service('jwt');
         return jwt.decode(token);
-    }).use(function (req, res, next) {
-        Object.assign(req, <typeof req>{
-            async jsonwebtoken(info, options?) {
-                const jwt = app.service('jwt');
-                return jwt.encode(info, options);
-            },
-        });
-        return next();
     }).service<Crypto>('jwt', function () {
         return {
             async secret() {
@@ -28,7 +20,7 @@ export default express.service(function (app) {
                     });
                     app.emit('event', {
                         source: '/authenticate',
-                        type: 'auto.generate.jwt.keys',
+                        type: 'auto.generate.jwt.key.secret',
                     });
                     return privateKey;
                 });
@@ -128,12 +120,6 @@ declare global {
     namespace Express {
         interface Application {
             service(name: 'jwt'): Crypto
-        }
-        interface Request {
-            /**
-            sign a jsonwebtoken
-            */
-            jsonwebtoken<A extends object>(info: A, options?: jsonwebtoken.SignOptions): Promise<string>
         }
     }
 }

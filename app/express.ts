@@ -533,7 +533,7 @@ Object.assign(express.request, <typeof express.request>{
         return this.query[name];
     },
     querynumber(name) {
-        return this.query[name]?.toString().numberify(NaN);
+        return this.query[name]?.toString().numberify();
     },
     parameter(name) {
         return this.params[name];

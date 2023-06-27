@@ -27,8 +27,11 @@ export namespace Value {
 }
 export default express.service(function (app) {
     app.service<Service>('inference/openapi', function () {
-        const timeout = Number.numberify(process.env.INFERENCE_TIMEOUT, 5_000);
         const dapr = app.service('dapr');
+        const timeout = Number
+            .numberify(process.env.INFERENCE_TIMEOUT)
+            .default(5_000)
+            ;
         const appid = process.env.INFERENCE_APPID
             ?? 'inference-engine'
             ;

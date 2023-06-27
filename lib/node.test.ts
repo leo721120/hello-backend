@@ -2,13 +2,9 @@ import '@io/lib/node'
 //
 describe('String', function () {
     it('.numberify', async function () {
+        expect('129.43'.numberify()).toBe(129.43);
         expect('129'.numberify()).toBe(129);
-    });
-    it('.numberify, default value if NaN', async function () {
-        expect('a'.numberify(13)).toBe(13);
-    });
-    it('.numberify, undefined if NaN', async function () {
-        expect('a'.numberify() ?? 13).toBe(13);
+        expect('abc'.numberify()).toBeNaN();
     });
     it('.nanoid', async function () {
         const id = String.nanoid(8);
@@ -18,17 +14,6 @@ describe('String', function () {
         const id = String.nanoid(8);
         expect(id.encode('base64').encode('utf8', 'base64')).toBe(id);
         expect(id.encode('base64').decode('base64')).toBe(id);
-    });
-    it('.base64', async function () {
-        const id = String.nanoid(8);
-        expect(id.base64()).toBe(Buffer.from(id).toString('base64'));
-        expect(id.base64()).toBe(id.encode('base64'));
-        expect(id.base64().decode('base64')).toBe(id);
-    });
-    it('.sha1', async function () {
-        const s = 'abc012';
-        expect(s.sha1('hex')).toBe('b5e0438b897040e4333ec5050b5204a9df4e9fea');
-        expect(s.sha1('base64')).toBe('teBDi4lwQOQzPsUFC1IEqd9On+o=');
     });
     it('.base58', async function () {
         const id = String.base58(16);
@@ -257,8 +242,22 @@ describe('Function', function () {
 });
 describe('Number', function () {
     it('.numberify', async function () {
-        expect(Number.numberify('a')).toBeUndefined();
+        expect(Number.numberify(undefined)).toBeNaN();
+        expect(Number.numberify(null)).toBe(0);
+        expect(Number.numberify('a')).toBeNaN();
+        expect(Number.numberify(['a'])).toBeNaN();
+        expect(Number.numberify([])).toBe(0);
+        expect(Number.numberify([3])).toBe(3);
+        expect(Number.numberify([3, 4])).toBeNaN();
+        expect(Number.numberify({})).toBeNaN();
+        expect(Number.numberify({ a: 2 })).toBeNaN();
+        expect(Number.numberify(true)).toBe(1);
+        expect(Number.numberify(false)).toBe(0);
+        expect(Number.numberify(0)).toBe(0);
+        expect(Number.numberify(-99)).toBe(-99);
         expect(Number.numberify('13')).toBe(13);
+        expect(Number.numberify('13.64')).toBe(13.64);
+        expect(Number.numberify('13.64.78')).toBeNaN();
     });
     it('.narrow', async function () {
         const n = 13;
@@ -270,6 +269,12 @@ describe('Number', function () {
     it('.narrow, NaN', async function () {
         const n = NaN;
         expect(n.narrow(-13, 15)).toBeNaN();
+    });
+    it('.default', async function () {
+        const n = NaN;
+        expect(n.default(15)).toBe(15);
+        const a = 19;
+        expect(a.default(15)).toBe(19);
     });
 });
 describe('ArrayBuffer', function () {
@@ -284,7 +289,7 @@ describe('ArrayBuffer', function () {
             a: 'MDEyMzQ1Njc4OTo7PD0+Pw==',// base64 of '0123456789:;<=>?'
         }));
         expect(JSON.stringify(j)).toBe(JSON.stringify({
-            a: '0123456789:;<=>?'.base64(),
+            a: '0123456789:;<=>?'.encode('base64'),
         }));
     });
 });

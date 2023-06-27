@@ -80,7 +80,7 @@ export default Promise.try(async function () {
 declare global {
     namespace NodeJS {
         interface ProcessEnv {
-            readonly API_PREFIX?: string | '/api/v1'
+            readonly API_PREFIX?: `/${string}` | '/api/v1'
         }
     }
 }

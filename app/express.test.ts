@@ -106,7 +106,7 @@ describe('express', function () {
             ;
         expect(ans).toEqual([
             'basic',
-            'a:b'.base64(),
+            'a:b'.encode('base64'),
         ]);
     });
     it.skip('.openapi', async function () {

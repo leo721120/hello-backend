@@ -1,10 +1,12 @@
-import dataset from '@io/lib/dataset'
-import shadows from '@io/lib/shadow'
+import express from '@io/app/express'
 import '@io/lib/node'
 //
 Promise.try(async function () {
+    const app = express();
+    await app.setup(await import('@io/app/domain'));
+    const shadows = app.service('shadows');
     const down = shadows.down<Record<string, unknown>>({
-        dataset: dataset(),
+        dataset: app.service('dataset'),
 
         async sync(id, data) {
             console.log('sync to device', id, data);

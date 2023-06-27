@@ -1,6 +1,8 @@
 import express from '@io/app/express'
 export default express.service(function (app) {
-    const TOKEN_EXPIRE = process.env.TOKEN_EXPIRE?.numberify()?.narrow(1, 3600)
+    const TOKEN_EXPIRE = process.env.TOKEN_EXPIRE
+        ?.numberify()
+        ?.narrow(1, 3600)
         ?? 5 * 60// default 5 minutes
         ;
     app.delete('/token', async function (req, res) {
@@ -18,7 +20,8 @@ export default express.service(function (app) {
         {
             user;
         }
-        const token = await req.jsonwebtoken(user, {
+        const jwt = app.service('jwt');
+        const token = await jwt.encode(user, {
             expiresIn: expire * 1_000,// to milliseconds
         });
         res.status(200).json({// https://auth0.com/docs/api/authentication#authorization-code-flow44

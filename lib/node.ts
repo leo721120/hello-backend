@@ -22,6 +22,8 @@ declare global {
     interface ArrayBuffer {
         /**
         ArrayBuffer cannot be serialized by JSON.stringify by default
+
+        this function help to convert ArrayBuffer to base64 string when serialize to JSON
         */
         toJSON?(): unknown
     }
@@ -32,19 +34,19 @@ declare global {
     }
     interface NumberConstructor {
         /**
-        @returns converted number or default value if NaN
+        @returns converted number or NaN
         */
-        numberify(maybe: unknown, defaultvalue: number): number
-        /**
-        @returns converted number or undefined if NaN
-        */
-        numberify(maybe: unknown): number | undefined
+        numberify(maybe: unknown): number
     }
     interface Number {
         /**
-        narrow range (min <= this <= max)
+        @returns narrow range (min <= this <= max), or NaN
         */
         narrow(min: number, max: number): number
+        /**
+        @returns default value if this is NaN
+        */
+        default(value: number): number
     }
     interface StringConstructor {
         nanoid(size: number): string
@@ -57,13 +59,9 @@ declare global {
     }
     interface String {
         /**
-        @returns convert as number or default value if NaN
+        @returns convert as number or NaN
         */
-        numberify(defaultvalue: number): number
-        /**
-        @returns convert as number or undefined if NaN
-        */
-        numberify(): number | undefined
+        numberify(): number
         /**
         convert to buffer
 
@@ -82,14 +80,6 @@ declare global {
         @param from default to utf8
         */
         encode(to: BufferEncoding, from?: BufferEncoding): string
-        /**
-        convert encoding to base64
-        @param from default to utf8
-        */
-        base64(from?: BufferEncoding): string
-        /**
-        */
-        sha1(encoding: 'base64' | 'hex'): string
     }
     interface ObjectConstructor {
         /**
@@ -186,7 +176,7 @@ Object.assign(Buffer, <BufferConstructor>{
         return crypto.randomBytes(size);
     },
     async read(stream) {
-        const chunks = [];
+        const chunks = [] as unknown[];
 
         for await (const chunk of stream) {
             chunks.push(chunk);
@@ -194,24 +184,63 @@ Object.assign(Buffer, <BufferConstructor>{
         return Buffer.concat(chunks as []);
     },
 });
-Object.assign(Number, <NumberConstructor>{
-    numberify(maybe, defaultvalue?) {
-        const v = Number(maybe);
-        return Number.isNaN(v)
-            ? defaultvalue
-            : v
+Object.assign(ArrayBuffer.prototype, <ArrayBuffer>{
+    toJSON() {
+        return Buffer.from(this).toString('base64');
+    },
+});
+Object.assign(Buffer.prototype, <Buffer>{
+    sha256(encoding = 'hex') {
+        return crypto
+            .createHash('sha256')
+            .update(this)
+            .digest(encoding)
             ;
-    }
+    },
+    sha1(encoding = 'hex') {
+        return crypto
+            .createHash('sha1')
+            .update(this)
+            .digest(encoding)
+            ;
+    },
+    md5(encoding = 'hex') {
+        return crypto
+            .createHash('md5')
+            .update(this)
+            .digest(encoding)
+            ;
+    },
+});
+Object.assign(Number, <NumberConstructor>{
+    numberify(maybe) {
+        return Number(maybe);
+    },
+});
+Object.assign(Number.prototype, <typeof Number.prototype>{
+    narrow(min, max) {
+        console.assert(min < max, 'min must less than max');
+        return Number.isNaN(this)
+            ? NaN
+            : Math.min(max, Math.max(min, this as number))
+            ;
+    },
+    default(value) {
+        return Number.isNaN(this)
+            ? value
+            : this
+            ;
+    },
 });
 Object.assign(String, <StringConstructor>{
     nanoid: nanoid.customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'),
     base58: nanoid.customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'),
 });
 Object.assign(String.prototype, <String>{
-    numberify(defaultvalue?) {
-        return Number.numberify(this) ?? defaultvalue;
+    numberify() {
+        return Number.numberify(this);
     },
-    buffer(encoding) {
+    buffer(encoding = 'utf8') {
         return Buffer.from(this, encoding);
     },
     decode(from, to = 'utf8') {
@@ -219,16 +248,6 @@ Object.assign(String.prototype, <String>{
     },
     encode(to, from = 'utf8') {
         return this.buffer(from).toString(to);
-    },
-    base64(from) {
-        return this.encode('base64', from);
-    },
-    sha1(encoding) {
-        return crypto
-            .createHash('sha1')
-            .update(this as string)
-            .digest(encoding)
-            ;
     },
 });
 Object.assign(Object, <ObjectConstructor>{
@@ -361,42 +380,5 @@ Object.assign(Date, <DateConstructor>{
 Object.assign(Date.prototype, <typeof Date.prototype>{
     invalid() {
         return isNaN(this.valueOf());
-    },
-});
-Object.assign(Number.prototype, <typeof Number.prototype>{
-    narrow(min, max) {
-        console.assert(min < max, 'min must less than max');
-        return Number.isNaN(this)
-            ? NaN
-            : Math.min(max, Math.max(min, this as number))
-            ;
-    },
-});
-Object.assign(ArrayBuffer.prototype, <ArrayBuffer>{
-    toJSON() {
-        return Buffer.from(this).toString('base64');
-    },
-});
-Object.assign(Buffer.prototype, <Buffer>{
-    sha256(encoding = 'hex') {
-        return crypto
-            .createHash('sha256')
-            .update(this)
-            .digest(encoding)
-            ;
-    },
-    sha1(encoding = 'hex') {
-        return crypto
-            .createHash('sha1')
-            .update(this)
-            .digest(encoding)
-            ;
-    },
-    md5(encoding = 'hex') {
-        return crypto
-            .createHash('md5')
-            .update(this)
-            .digest(encoding)
-            ;
     },
 });

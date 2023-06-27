@@ -14,7 +14,10 @@ export default express.service(function (app) {
     });
     app.authenticate('basic', function (req) {
         const [, credentials] = req.authorization();
-        const [username, password] = credentials.decode('base64').split(':');
+        const [username, password] = credentials
+            .decode('base64')
+            .split(':')
+            ;
         schema.assert([username, password], {
             message: 'invalid credentials for basic authentication',
         });

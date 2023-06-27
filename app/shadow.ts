@@ -1,5 +1,6 @@
-import down from '@io/lib/shadow.down'
-import up from '@io/lib/shadow.up'
+import express from '@io/app/express'
+import down from '@io/app/shadow.down'
+import up from '@io/app/shadow.up'
 export interface Shadow<V extends object> {
     /**
     used to sync data between real and shadow
@@ -19,7 +20,22 @@ export interface Shadow<V extends object> {
     set<K extends keyof V>(field: K, value: V[K]): Promise<void>
     del<K extends keyof V>(field: K): Promise<void>
 }
-export default {
-    down,
-    up,
+export default express.service(function (app) {
+    app.service<Shadows>('shadows', function () {
+        return {
+            down,
+            up,
+        };
+    });
+});
+declare global {
+    namespace Express {
+        interface Application {
+            service(name: 'shadows'): Shadows
+        }
+    }
+}
+interface Shadows {
+    down: typeof down
+    up: typeof up
 }

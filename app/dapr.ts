@@ -6,8 +6,14 @@ export interface Dapr extends ReturnType<typeof dapr> {
 }
 export default express.service(function (app) {
     app.service('dapr', function () {
-        const timeout = Number.numberify(process.env.DAPR_TIMEOUT, 3_000);
-        const port = Number.numberify(process.env.DAPR_HTTP_PORT, 3500);
+        const timeout = Number
+            .numberify(process.env.DAPR_TIMEOUT)
+            .default(3_000)
+            ;
+        const port = Number
+            .numberify(process.env.DAPR_HTTP_PORT)
+            .default(3500)
+            ;
         const fetch = dapr({
             // sidecar should be localhost
             baseURL: `http://localhost:${port}`,

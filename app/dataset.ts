@@ -1,31 +1,94 @@
-import dataset from '@io/lib/dataset'
 import express from '@io/app/express'
 import '@io/lib/error'
 import '@io/lib/node'
+export interface DataSet {
+    /**
+    check if data provider exists
+    */
+    has<K extends string>(key: K): CallableFunction | undefined
+    /**
+    set data provider, called when data is not exists
+    */
+    set<K extends string>(key: K, finder: () => Promise<unknown>): this
+    /**
+    get cache, load from data provider if not exists
+    */
+    get<K extends string>(key: K): Promise<unknown> | undefined
+    /**
+    reset cache
+    */
+    del<K extends string>(key: K): this
+    /**
+    set time to live for a key
+
+    NOTE: stop when expired, set again to restart
+    */
+    ttl<K extends string>(key: K, params: {
+        /**
+        time to live in milliseconds
+        */
+        readonly timeout: number
+    }): this
+}
 export default express.service(function (app) {
     app.service<DataSet>('dataset', function () {
-        const ttl = new Map<string, NodeJS.Timeout>();
-        const set = dataset();
+        const cache = new Map<string, Promise<unknown>>();
+        const timer = new Map<string, NodeJS.Timeout>();
+        const reset = new Map<string, () => void>();
         app.once('close', function () {
-            for (const [, timeout] of ttl) {
+            for (const [, timeout] of timer) {
                 clearTimeout(timeout);
             }
         });
-        return Object.assign(set, <DataSet>{
-            ttl(key, params) {
+        return {
+            has(key: string) {
+                return reset.get(key);
+            },
+            set(key: string, finder: () => unknown) {
+                const cb = () => {
+                    cache.set(key, Promise.defer(() => {
+                        try {
+                            return finder();
+                        } catch (e) {
+                            // reset for next try
+                            this.del(key);
+                            throw e;
+                        }
+                    }));
+                };
                 {
-                    clearTimeout(ttl.get(key));
+                    reset.set(key, cb);
+                    // reset to default
+                    cb();
                 }
-                ttl.set(key, setTimeout(function () {
-                    set.drop(key);
+                return this;
+            },
+            get(key: string) {
+                return cache.get(key);
+            },
+            del(key: string) {
+                // reset cache
+                reset.get(key)?.();
+                return this;
+            },
+            ttl(key, params) {
+                const set = this;
+                {
+                    clearTimeout(timer.get(key));
+                }
+                timer.set(key, setTimeout(function () {
+                    timer.delete(key);
+                    set.del(key);
                     app.emit('event', {
                         source: key,
                         type: 'DataSet.ItemExpired',
                         data: { key },
                     });
                 }, params.timeout));
+
+                return this;
             },
-        });
+        };
     });
 });
 declare global {
@@ -39,17 +102,4 @@ declare global {
             readonly key: string
         }
     }
-}
-interface DataSet extends ReturnType<typeof dataset> {
-    /**
-    set time to live for a key
-
-    NOTE: stop when expired, set again to restart
-    */
-    ttl<K extends string>(key: K, params: {
-        /**
-        time to live in milliseconds
-        */
-        readonly timeout: number
-    }): this
 }

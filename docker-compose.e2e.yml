@@ -128,6 +128,8 @@ services:
       APP_PORT: 58088
       # the id for your application, used for service discovery
       APP_ID: devapp
+      #
+      #API_PREFIX: /api/v1
       # options for sequelize
       SEQUELIZE_HREF: postgres://${POSTGRESQL_USERNAME}:${POSTGRESQL_PASSWORD}@postgres:5432/${POSTGRESQL_DATABASE}
       SEQUELIZE_SCHEMA: ${POSTGRESQL_SCHEMA}

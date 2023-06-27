@@ -24,7 +24,8 @@ describe('authenticate/jwt', function () {
     it('.express', async function () {
         const mock = express.fetch(
             app.get('/testonly/jwt', async function (req, res) {
-                res.json(await req.jsonwebtoken({
+                const jwt = app.service('jwt');
+                res.json(await jwt.encode({
                     a: 2,
                     b: 'yy',
                 }));

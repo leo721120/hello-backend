@@ -6,9 +6,12 @@ import '@io/lib/json'
 export default express.service(function (app) {
     app.service<Service>('apphub/openapi', function () {
         const baseURL = process.env.APPHUB_URL ?? 'http://localhost:9999';
-        const timeout = Number.numberify(process.env.APPHUB_TIMEOUT, 5_000);
         const appid = process.env.APPHUB_APPID ?? 'apphub';
         const dapr = app.service('dapr');
+        const timeout = Number
+            .numberify(process.env.APPHUB_TIMEOUT)
+            .default(5_000)
+            ;
         const fetch = dapr.axios({
             baseURL,
             timeout,
