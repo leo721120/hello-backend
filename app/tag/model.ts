@@ -237,7 +237,7 @@ class Model extends Table<Tag> {
     static query(options: FindOptions<never>) {
         return this.scope({
             method: ['query', this, options],
-        }) as typeof this;
+        }) as typeof Model;
     }
     static where(params: {
         //readonly resource?: readonly Resource['id'][]
@@ -263,7 +263,7 @@ class Model extends Table<Tag> {
         };
         return this.scope({
             method: ['query', this, o],
-        }) as typeof this;
+        }) as typeof Model;
     }
     static select(fields: (keyof Tag)[]) {
         const attrs = Object.keys(this.getAttributes()) as [];
