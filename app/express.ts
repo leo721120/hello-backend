@@ -575,6 +575,7 @@ Object.assign(express.request, <typeof express.request>{
         return authorization;
     },
     async authenticate() {
+        const tracecontext = this.tracecontext();
         const [type] = this.authorization();
         const cb = this.app.authenticate(type) ?? function () {
             throw Error.build({
@@ -584,6 +585,13 @@ Object.assign(express.request, <typeof express.request>{
                 params: { type },
             });
         };
-        return await cb(this);
+        const info = await cb(this);
+        {
+            tracecontext.servertiming?.('authenticate');
+        }
+        this.authenticate = async () => {
+            return info as never;
+        };
+        return info;
     },
 });

@@ -468,4 +468,43 @@ describe('express/req', function () {
             ;
         expect(res.body.qs).toBeUndefined();
     });
+    it('.authenticate', async function () {
+        const app = express().get('/abc', async function (req, res) {
+            const a = await req.authenticate();
+            res.status(200).json({ a });
+        });
+        app.authenticate('basic', async function (req) {
+            return {
+                user: 'u-123',
+            };
+        });
+        const res = await express
+            .fetch(app)
+            .get('/abc')
+            .auth('a', 'b')
+            ;
+        expect(res.body.a).toEqual({
+            user: 'u-123',
+        });
+    });
+    it('.authenticate, server-timing', async function () {
+        const app = express().get('/abc', async function (req, res) {
+            const a = await req.authenticate();
+            res.status(200).json({ a });
+        });
+        app.authenticate('basic', async function (req) {
+            return {
+                user: 'u-123',
+            };
+        });
+        const res = await express
+            .fetch(app)
+            .get('/abc?debug=trace')
+            .auth('a', 'b')
+            ;
+        expect(res.body.a).toEqual({
+            user: 'u-123',
+        });
+        expect(res.headers).toHaveProperty('server-timing', expect.stringMatching(/^0;desc=authenticate;dur=\d+$/));
+    });
 });

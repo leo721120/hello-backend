@@ -28,6 +28,9 @@ export default express.service(function (app) {
             uri: uri.toString(),
             benchmark: true,
             logging(text, elapse) {
+                {
+                    this.tracecontext?.servertiming?.('db');
+                }
                 app.emit('event', {
                     ...this.tracecontext as CloudEvent<never>,
                     elapse,
