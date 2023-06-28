@@ -475,7 +475,7 @@ describe('express/req', function () {
         });
         app.authenticate('basic', async function (req) {
             return {
-                user: 'u-123',
+                id: 'u-123',
             };
         });
         const res = await express
@@ -484,7 +484,7 @@ describe('express/req', function () {
             .auth('a', 'b')
             ;
         expect(res.body.a).toEqual({
-            user: 'u-123',
+            id: 'u-123',
         });
     });
     it('.authenticate, server-timing', async function () {
@@ -494,7 +494,7 @@ describe('express/req', function () {
         });
         app.authenticate('basic', async function (req) {
             return {
-                user: 'u-123',
+                id: 'u-123',
             };
         });
         const res = await express
@@ -503,7 +503,7 @@ describe('express/req', function () {
             .auth('a', 'b')
             ;
         expect(res.body.a).toEqual({
-            user: 'u-123',
+            id: 'u-123',
         });
         expect(res.headers).toHaveProperty('server-timing', expect.stringMatching(/^0;desc=authenticate;dur=\d+$/));
     });

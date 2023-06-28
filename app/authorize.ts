@@ -1,53 +1,38 @@
 import express from '@io/app/express'
 import '@io/lib/error'
 import '@io/lib/node'
-export interface Authorizations {
-    /**
-    use declare to append types
-
-    @example
-    declare module '@io/lib/authorization' {
-        interface Authorizations {
-            readonly 'list:users': User['id']
-        }
-    }
-    */
-}
 export default express.service(function (app) {
     app.service<Authorizer>('iam', function () {
-        const iam = new Map<Action<string>, Handler<string>>();
+        const iam = new Map<string, Authorize>();
 
         return {
-            at(action, handler) {
-                iam.set(action, handler);
+            at(action, authorize) {
+                iam.set(action, authorize);
                 return this;
             },
             is(user) {
-                const map = Object.assign(new Map<Action<string>, Information<string>>(), {
+                const map = Object.assign(new Map<string, Authorization>(), {
                     got(key: string) {
                         const v = map.get(key);
-                        console.assert(v);
+                        console.assert(!!v);
                         return v!;
                     },
                 });
                 return {
                     can(action) {
                         map.set(action, {
-                            condition: {},
                             items: [],
                         });
                         return {
-                            for(...items) {
-                                const info = map.got(action);
-                                Object.assign(info, <Partial<typeof info>>{
-                                    items,
-                                });
-                                return this;
-                            },
                             in(condition) {
                                 const info = map.got(action);
-                                Object.assign(info, <Partial<typeof info>>{
-                                    condition,
+                                Object.assign(info, <typeof info>condition);
+                                return this;
+                            },
+                            for(...items) {
+                                const info = map.got(action);
+                                Object.assign(info, <typeof info>{
+                                    items,
                                 });
                                 return this;
                             },
@@ -55,7 +40,7 @@ export default express.service(function (app) {
                                 return Promise.try(async function () {
                                     const list = [...map.entries()];
 
-                                    for await (const [action, info] of list) {
+                                    for await (const [action, auth] of list) {
                                         const cb = iam.get(action) ?? function () {
                                             throw Error.build({
                                                 message: `${action} not allowed`,
@@ -65,7 +50,31 @@ export default express.service(function (app) {
                                                 reason: 'there is no authorize handler, default is deny',
                                             });
                                         };
-                                        await cb(user, info);
+                                        await cb(user, auth).then(function () {
+                                            app.emit('event', {
+                                                ...auth.tracecontext,
+                                                source: `/iam/authorize/${action}`,
+                                                type: 'Authorize.Allowed',
+                                                data: {
+                                                    action,
+                                                    user,
+                                                    auth,
+                                                },
+                                            });
+                                        }, function (e: Error) {
+                                            app.emit('event', {
+                                                ...auth.tracecontext,
+                                                source: `/iam/authorize/${action}`,
+                                                type: 'Authorize.Denied',
+                                                data: {
+                                                    reason: e,
+                                                    action,
+                                                    user,
+                                                    auth,
+                                                },
+                                            });
+                                            throw e;
+                                        });
                                     }
                                 }).then(done, fail);
                             },
@@ -75,6 +84,17 @@ export default express.service(function (app) {
             },
         };
     });
+    app.get('/authorize', async function (req, res) {
+        const tracecontext = req.tracecontext();
+        const user = await req.authenticate();
+        const iam = app.service('iam');
+        await iam.is(user)
+            .can('list:users')
+            .for('uid-01', 'uid-02')
+            .in({ tracecontext })
+            ;
+        res.status(200).end();
+    });
 });
 declare global {
     namespace Express {
@@ -82,35 +102,39 @@ declare global {
             service(name: 'iam'): Authorizer
         }
     }
-}
-interface Authorizer {
-    at<K extends string>(action: K, handler: Handler<K>): this
-    is(user: Authentication): Authorization
+    interface CloudEvents {
+        'Authorize.Allowed': {
+            readonly action: string
+            readonly user: Authentication
+            readonly auth: Authorization
+        }
+        'Authorize.Denied': {
+            readonly reason: Error
+            readonly action: string
+            readonly user: Authentication
+            readonly auth: Authorization
+        }
+    }
 }
 interface Authentication {
-    /**
-    identity to determine if the user can perform the action
-    */
     readonly id: string
 }
 interface Authorization {
-    can<K extends string>(action: K): Validator<K>
-}
-interface Information<K extends string> {
-    readonly items: ReadonlyArray<Action<K>>
-    readonly condition: object
-}
-interface Validator<K extends string> extends PromiseLike<void> {
-    for<A extends Action<K>>(...a: readonly A[]): this
-    in(condition: Information<K>['condition']): this
-}
-interface Handler<K extends string> {
+    readonly tracecontext?: CloudEvent<string>
     /**
-    used to determine if the user can perform the action in the given context
+    items to be authorized
     */
-    (user: Authentication, auth: Information<K>): Promise<void>
+    readonly items: readonly string[]
 }
-type Action<K extends string> = K extends keyof Authorizations
-    ? Authorizations[K]
-    : string
-    ;
+interface Authorizer {
+    at(action: string, authorize: Authorize): this
+    is(user: Authentication): Pick<Validator, 'can'>
+}
+interface Authorize {
+    (user: Authentication, auth: Authorization): Promise<void>
+}
+interface Validator extends PromiseLike<void> {
+    can(action: string): Pick<this, 'then' | 'for' | 'in'>
+    for(i: string, ...a: readonly string[]): Pick<this, 'then' | 'in'>
+    in(condition: Omit<Authorization, 'items'>): Pick<this, 'then'>
+}

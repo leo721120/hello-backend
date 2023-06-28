@@ -10,7 +10,7 @@ export default express.service(function (app) {
     app.authenticate('jwt', async function (req) {
         const [, token] = req.authorization();
         const jwt = app.service('jwt');
-        return jwt.decode(token);
+        return jwt.decode<never>(token);
     }).service<Crypto>('jwt', function () {
         return {
             async secret() {

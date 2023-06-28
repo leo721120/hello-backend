@@ -25,7 +25,7 @@ export default express.service(function (app) {
             password;
         }
         return {
-            username,
+            id: username,
         };
     });
 });

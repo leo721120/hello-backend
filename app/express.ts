@@ -218,8 +218,8 @@ declare global {
             readonly express: typeof express
             readonly handle: express.RequestHandler
             readonly final: express.ErrorRequestHandler
-            authenticate<U extends object>(type: Lowercase<string>): Authenticate<U> | undefined
-            authenticate<U extends object>(type: Lowercase<string>, cb: Authenticate<U>): this
+            authenticate<U extends Authentication>(type: Lowercase<string>): Authenticate<U> | undefined
+            authenticate<U extends Authentication>(type: Lowercase<string>, cb: Authenticate<U>): this
             websocket(): ReturnType<websocket.Instance['getWss']>
             service<V>(name: string, factory: () => V): this
             service<V>(name: string): V
@@ -307,7 +307,7 @@ declare global {
             /**
             find user object from registered authenticate functions
             */
-            authenticate<U extends object>(): Promise<U>
+            authenticate<U extends Authentication>(): Promise<U>
         }
     }
     interface Application extends Express.Application, ReturnType<typeof express> {
@@ -323,7 +323,10 @@ declare global {
         emit(event: 'close'): boolean
     }
 }
-interface Authenticate<U extends object> {
+interface Authentication {
+    readonly id: string
+}
+interface Authenticate<U extends Authentication> {
     (req: express.Request): PromiseLike<U> | U
 }
 interface Setup<V> {

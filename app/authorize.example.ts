@@ -20,6 +20,10 @@ Promise.try(async function () {
             });
         }
     });
+    {
+        app.on('Authorize.Allowed', console.info);
+        app.on('Authorize.Denied', console.info);
+    }
     await iam.is({ id: 'uid-01' })
         .can('list:users')
         .for('uid-01', 'uid-02')

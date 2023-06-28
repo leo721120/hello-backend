@@ -5,7 +5,7 @@ export default express.service(function (app) {
     const openapi = JSON.schema('openapi.json',
         JSON.openapi(path.join(__dirname, 'openapi.yml'))
     );
-    app.get('/favicon.ico', async function (req, res) {
+    app.get('/favicon.ico', function (req, res) {
         res.sendFile(path.join(__dirname, '../logo.ico'));
     }).get('/openapi', function (req, res) {
         res.format({
