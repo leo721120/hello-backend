@@ -3,8 +3,31 @@ Feature: GET
     Background:
 
         Given new environment
+        Given configs
+            | name   | data    |
+            | cnf-01 | [1,2,7] |
 
     Rule: /configs/:name
+
+        Scenario: 200
+
+            Given url /configs/cnf-01
+            Given authorization
+                | username | password |
+                | tester   | 1234     |
+            When method GET
+            Then expect status should be 200
+            Then expect headers should contain
+                | name         | value            |
+                | content-type | application/json |
+            Then expect body should be json
+                """
+                [
+                    1,
+                    2,
+                    7
+                ]
+                """
 
         Scenario: 401
 
