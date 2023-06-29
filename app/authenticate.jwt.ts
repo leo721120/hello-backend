@@ -67,7 +67,7 @@ export default express.service(function (app) {
                     if (!info) {
                         throw Error.build({
                             message: 'fail to decoded token',
-                            name: 'InvalidToken',
+                            name: Error.Code.InvalidToken,
                             status: 401,
                         });
                     }
@@ -76,7 +76,7 @@ export default express.service(function (app) {
                     if (e instanceof jsonwebtoken.TokenExpiredError) {
                         throw Error.build({
                             message: e.message,
-                            name: 'TokenExpired',
+                            name: Error.Code.TokenExpired,
                             status: 401,
                             reason: e,
                         });
@@ -84,7 +84,7 @@ export default express.service(function (app) {
                     if (e instanceof jsonwebtoken.JsonWebTokenError) {
                         throw Error.build({
                             message: e.message,
-                            name: 'InvalidToken',
+                            name: Error.Code.InvalidToken,
                             status: 401,
                             reason: e,
                         });

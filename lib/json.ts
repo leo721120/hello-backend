@@ -53,7 +53,7 @@ export default Object.assign(JSON, <typeof JSON>{
                         ?? 'schema validation failed'
                         ;
                     throw Error.build({
-                        name: SyntaxError.name,
+                        name: Error.Code.SyntaxError,
                         reason: this.errors,
                         params: data,//! could be a large object
                         status: 400,

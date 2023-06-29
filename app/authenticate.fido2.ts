@@ -17,7 +17,7 @@ export default express.service(function (app) {
             find(key: string, e?: Partial<Error>) {
                 if (!authentications.has(key)) throw Error.build({
                     message: 'authentication not found',
-                    name: 'NotFound',
+                    name: Error.Code.NotFound,
                     status: 401,
                     params: { key },
                     ...e,
@@ -29,7 +29,7 @@ export default express.service(function (app) {
             pop(key: string, e?: Partial<Error>) {
                 if (!attestations.has(key)) throw Error.build({
                     message: 'webauthn attestation not found',
-                    name: 'NotFound',
+                    name: Error.Code.NotFound,
                     status: 400,
                     params: { key },
                     ...e,
@@ -44,7 +44,7 @@ export default express.service(function (app) {
             pop(key: string, e?: Partial<Error>) {
                 if (!assertions.has(key)) throw Error.build({
                     message: 'webauthn assertion not found',
-                    name: 'NotFound',
+                    name: Error.Code.NotFound,
                     status: 400,
                     params: { key },
                     ...e,

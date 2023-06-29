@@ -16,7 +16,7 @@ export default express.service(function (app) {
             where: { name },
             rejectOnEmpty: Error.build({
                 message: 'config not found',
-                name: 'NotFound',
+                name: Error.Code.NotFound,
                 status: 404,
                 params: { name },
             }),

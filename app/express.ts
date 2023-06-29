@@ -193,7 +193,7 @@ export default Object.assign(builder, express, {
                     retrydelay: (prev.time.getTime() + window.time) - Date.now(),
                     message: 'too many requests',
                     status: 429,
-                    name: 'SlowDown',
+                    name: Error.Code.SlowDown,
                 });
             }
             window.map?.set(key, {
@@ -392,7 +392,7 @@ Object.assign(express.application, <Application>{
         const done = (err?: Error) => {
             const e = err ?? Error.build({
                 message: `method not found`,
-                name: SyntaxError.name,
+                name: Error.Code.SyntaxError,
                 status: 400,
             });
             this.final(e, req, res, next);
@@ -598,7 +598,7 @@ Object.assign(express.request, <typeof express.request>{
         const cb = this.app.authenticate(type) ?? function () {
             throw Error.build({
                 message: 'unknown authenticate type',
-                name: 'Unauthorized',
+                name: Error.Code.Unauthorized,
                 status: 401,
                 params: { type },
             });

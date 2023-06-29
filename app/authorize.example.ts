@@ -13,7 +13,7 @@ Promise.try(async function () {
         if (auth.items.includes('uid-03')) {
             throw Error.build({
                 message: `cannot access`,
-                name: 'NotAllowed',
+                name: Error.Code.NotAllowed,
                 params: {
                     items: auth.items,
                 },

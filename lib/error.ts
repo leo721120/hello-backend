@@ -2,10 +2,28 @@ export default Object.assign(Error, <ErrorConstructor>{
     build(e) {
         return Object.assign(Error(e.message), e);
     },
+    Code: {
+        TokenExpired: 'TokenExpired',
+        InvalidToken: 'InvalidToken',
+        Unauthorized: 'Unauthorized',
+        SyntaxError: 'SyntaxError',
+        NotAllowed: 'NotAllowed',
+        SlowDown: 'SlowDown',
+        NotFound: 'NotFound',
+    },
 });
 declare global {
     interface ErrorConstructor {
         build(e: Error): Error
+        readonly Code: {
+            readonly TokenExpired: 'TokenExpired'
+            readonly InvalidToken: 'InvalidToken'
+            readonly Unauthorized: 'Unauthorized'
+            readonly SyntaxError: 'SyntaxError'
+            readonly NotAllowed: 'NotAllowed'
+            readonly SlowDown: 'SlowDown'
+            readonly NotFound: 'NotFound'
+        }
     }
     interface Error {
         /**

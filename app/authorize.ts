@@ -54,7 +54,7 @@ export default express.service(function (app) {
                                         const cb = iam.get(action) ?? function () {
                                             throw Error.build({
                                                 message: `${action} not allowed`,
-                                                name: 'NotAllowed',
+                                                name: Error.Code.NotAllowed,
                                                 status: 403,
                                                 params: { action },
                                                 reason: 'there is no authorize handler, default is deny',

@@ -11,7 +11,7 @@ describe('service/iam', function () {
             if (auth.items.includes('uid-03')) {
                 throw Error.build({
                     message: `cannot access`,
-                    name: 'NotAllowed',
+                    name: Error.Code.NotAllowed,
                     params: {
                         items: auth.items,
                     },
@@ -36,6 +36,6 @@ describe('service/iam', function () {
             .then(null, e => e as Error)
             ;
         expect(e).toBeInstanceOf(Error);
-        expect(e?.name).toBe('NotAllowed');
+        expect(e?.name).toBe(Error.Code.NotAllowed);
     });
 });
