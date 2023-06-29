@@ -64,7 +64,7 @@ export default Object.assign(builder, express, {
                         .keys(req.params)
                         .reduce(function (p, name) {
                             return p.replace(`:${name}`, `{${name}}`);
-                        }, req.route.path as string);
+                        }, express.request.router.call(this));
                     this.router = () => {
                         return path;
                     };
@@ -525,7 +525,8 @@ Object.assign(express.request, <typeof express.request>{
         return origin;
     },
     router() {
-        return this.route.path;
+        // route is not exist if using `use` to register handler
+        return this.route?.path ?? '/<unknown>';
     },
     tracecontext() {
         const e = CloudEvent({
@@ -571,7 +572,21 @@ Object.assign(express.request, <typeof express.request>{
         return this.body;
     },
     authorization() {
-        const header = this.header('authorization') ?? '';
+        const querystring = (type: string) => {
+            const text = this.querystring(type);
+            return text
+                ? `${type} ${text}`
+                : undefined
+                ;
+        };
+        const header = this.header('authorization')
+            // find from querystring for testing from browser (to visualize server-timing)
+            ?? querystring('api-key')
+            ?? querystring('bearer')
+            ?? querystring('basic')
+            ?? querystring('jwt')
+            ?? ''
+            ;
         const [type = '', credentials = ''] = header.split(' ');
         const authorization = [type.toLowerCase(), credentials] as ReturnType<typeof this.authorization>;
         this.authorization = () => authorization;

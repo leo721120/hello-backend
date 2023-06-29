@@ -3,13 +3,10 @@ import { Model as Table } from '@io/lib/sequelize'
 import express from '@io/app/express'
 import '@io/lib/node'
 export default express.service(function (app) {
-    //app.authorize('config', async function(user, auth) {});
-    app.use('/configs/:name', async function (req, res, next) {
-        /*const user = await req.authenticate();
+    app.get('/configs/:name', async function (req, res) {
+        const user = await req.authenticate();
         const iam = app.service('iam');
-        await iam.is(user).can('fullaccess');*/
-        next();
-    }).get('/configs/:name', async function (req, res) {
+        await iam.is(user).can('read:config');
         const tracecontext = req.tracecontext();
         const name = req.parameter('name');
         const Model = app.service('config/model');
@@ -26,6 +23,9 @@ export default express.service(function (app) {
         });
         res.status(200).json(config.get().data);
     }).put('/configs/:name', express.json(), async function (req, res) {
+        const user = await req.authenticate();
+        const iam = app.service('iam');
+        await iam.is(user).can('edit:config');
         const tracecontext = req.tracecontext();
         const name = req.parameter('name');
         const data = req.content('application/json');
@@ -38,6 +38,9 @@ export default express.service(function (app) {
         });
         res.status(204).end();
     }).delete('/configs/:name', async function (req, res) {
+        const user = await req.authenticate();
+        const iam = app.service('iam');
+        await iam.is(user).can('edit:config');
         const tracecontext = req.tracecontext();
         const name = req.parameter('name');
         const Model = app.service('config/model');
@@ -118,6 +121,10 @@ export default express.service(function (app) {
         }).addHook('afterSync', 'auto-sync', async function (options) {
         });
         return Model;
+    }).authorize('read:config', async function (user, auth) {
+        //TODO:
+    }).authorize('edit:config', async function (user, auth) {
+        //TODO:
     });
 });
 declare global {

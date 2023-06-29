@@ -56,6 +56,11 @@ export default environment.define(function ({ step }) {
             url,
         });
     });
+    step(/^authorization$/, function (list: readonly Record<'username' | 'password', string>[]) {
+        Object.assign(environment.req, <typeof environment.req>{
+            auth: list[0],
+        });
+    });
     step(/^headers$/, function (list: readonly Record<'name' | 'value', string>[]) {
         Object.assign(environment.req, <typeof environment.req>{
             headers: list.reduce(function (obj, item) {
@@ -82,6 +87,9 @@ export default environment.define(function ({ step }) {
             }
             if (req.data) {
                 res.send(req.data);
+            }
+            if (req.auth) {
+                res.auth(req.auth.username, req.auth.password);
             }
         }
         Object.assign(environment, <typeof environment>{

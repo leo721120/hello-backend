@@ -84,6 +84,8 @@ export default express.service(function (app) {
                                                 },
                                             });
                                             throw e;
+                                        }).finally(function() {
+                                            auth.tracecontext?.servertiming?.('authorize');
                                         });
                                     }
                                 }).then(done, fail);
