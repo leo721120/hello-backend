@@ -1,8 +1,14 @@
 import express from '@io/app/express'
 export default express.service(async function (app) {
     await app.setup(await import('@io/app/openapi'));
-    await app.setup(await import('@io/app/dapr'));
+    // -----------------------------------------------
+    await app.setup(await import('@io/app/authenticate'));
+    await app.setup(await import('@io/app/authenticate.basic'));
+    await app.setup(await import('@io/app/authenticate.fido2'));
+    await app.setup(await import('@io/app/authenticate.jwt'));
+    await app.setup(await import('@io/app/authorize'));
     await app.setup(await import('@io/app/config'));
+    await app.setup(await import('@io/app/dapr'));
     // -----------------------------------------------
     await app.setup(await import('@io/app/system/version'));
     await app.setup(await import('@io/app/system/health'));
@@ -17,12 +23,6 @@ export default express.service(async function (app) {
     await app.setup(await import('@io/app/db/shadow'));
     await app.setup(await import('@io/app/db/mongo'));
     // -----------------------------------------------
-    await app.setup(await import('@io/app/authenticate/basic'));
-    await app.setup(await import('@io/app/authenticate/fido2'));
-    await app.setup(await import('@io/app/authenticate/jwt'));
-    // -----------------------------------------------
-    await app.setup(await import('@io/app/iam/authenticate'));
-    await app.setup(await import('@io/app/iam/authorize'));
     await app.setup(await import('@io/app/iam/webauthn'));
     await app.setup(await import('@io/app/iam/token'));
     // -----------------------------------------------

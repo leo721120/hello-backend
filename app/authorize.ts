@@ -2,7 +2,17 @@ import express from '@io/app/express'
 import '@io/lib/error'
 import '@io/lib/node'
 export default express.service(function (app) {
-    app.service<Authorizer>('iam', function () {
+    app.get('/authorize', async function (req, res) {
+        const tracecontext = req.tracecontext();
+        const user = await req.authenticate();
+        const iam = app.service('iam');
+        await iam.is(user)
+            .can('list:users')
+            .for('uid-01', 'uid-02')
+            .in({ tracecontext })
+            ;
+        res.status(200).end();
+    }).service<Authorizer>('iam', function () {
         const iam = new Map<string, Authorize>();
 
         return {
@@ -53,7 +63,7 @@ export default express.service(function (app) {
                                         await cb(user, auth).then(function () {
                                             app.emit('event', {
                                                 ...auth.tracecontext,
-                                                source: `/iam/authorize/${action}`,
+                                                source: `/authorize/${action}`,
                                                 type: 'Authorize.Allowed',
                                                 data: {
                                                     action,
@@ -64,7 +74,7 @@ export default express.service(function (app) {
                                         }, function (e: Error) {
                                             app.emit('event', {
                                                 ...auth.tracecontext,
-                                                source: `/iam/authorize/${action}`,
+                                                source: `/authorize/${action}`,
                                                 type: 'Authorize.Denied',
                                                 data: {
                                                     reason: e,
@@ -84,21 +94,17 @@ export default express.service(function (app) {
             },
         };
     });
-    app.get('/authorize', async function (req, res) {
-        const tracecontext = req.tracecontext();
-        const user = await req.authenticate();
-        const iam = app.service('iam');
-        await iam.is(user)
-            .can('list:users')
-            .for('uid-01', 'uid-02')
-            .in({ tracecontext })
-            ;
-        res.status(200).end();
+    Object.assign(app, <typeof app>{
+        authorize(action, cb) {
+            this.service('iam').at(action, cb);
+            return this;
+        },
     });
 });
 declare global {
     namespace Express {
         interface Application {
+            authorize(action: string, cb: Authorize): this
             service(name: 'iam'): Authorizer
         }
     }
