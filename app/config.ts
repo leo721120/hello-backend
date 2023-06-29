@@ -4,10 +4,10 @@ import express from '@io/app/express'
 import '@io/lib/node'
 export default express.service(function (app) {
     app.get('/configs/:name', async function (req, res) {
+        const tracecontext = req.tracecontext();
         const user = await req.authenticate();
         const iam = app.service('iam');
-        await iam.is(user).can('read:config');
-        const tracecontext = req.tracecontext();
+        await iam.is(user).can('read:config').in({ tracecontext });
         const name = req.parameter('name');
         const Model = app.service('config/model');
         const config = await Model.query({
@@ -23,10 +23,10 @@ export default express.service(function (app) {
         });
         res.status(200).json(config.get().data);
     }).put('/configs/:name', express.json(), async function (req, res) {
+        const tracecontext = req.tracecontext();
         const user = await req.authenticate();
         const iam = app.service('iam');
-        await iam.is(user).can('edit:config');
-        const tracecontext = req.tracecontext();
+        await iam.is(user).can('edit:config').in({ tracecontext });
         const name = req.parameter('name');
         const data = req.content('application/json');
         const Model = app.service('config/model');
@@ -38,10 +38,10 @@ export default express.service(function (app) {
         });
         res.status(204).end();
     }).delete('/configs/:name', async function (req, res) {
+        const tracecontext = req.tracecontext();
         const user = await req.authenticate();
         const iam = app.service('iam');
-        await iam.is(user).can('edit:config');
-        const tracecontext = req.tracecontext();
+        await iam.is(user).can('edit:config').in({ tracecontext });
         const name = req.parameter('name');
         const Model = app.service('config/model');
         await Model.query({
