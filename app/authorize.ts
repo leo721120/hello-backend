@@ -2,7 +2,12 @@ import express from '@io/app/express'
 import '@io/lib/error'
 import '@io/lib/node'
 export default express.service(function (app) {
-    app.get('/authorize', async function (req, res) {
+    Object.assign(app, <typeof app>{
+        authorize(action, cb) {
+            this.service('iam').at(action, cb);
+            return this;
+        },
+    }).get('/authorize', async function (req, res) {
         const tracecontext = req.tracecontext();
         const user = await req.authenticate();
         const iam = app.service('iam');
@@ -96,12 +101,6 @@ export default express.service(function (app) {
             },
         };
     });
-    Object.assign(app, <typeof app>{
-        authorize(action, cb) {
-            this.service('iam').at(action, cb);
-            return this;
-        },
-    });
 });
 declare global {
     namespace Express {
@@ -132,7 +131,7 @@ interface Authorization {
     /**
     items to be authorized
     */
-    readonly items: readonly string[]
+    readonly items: readonly unknown[]
 }
 interface Authorizer {
     at(action: string, authorize: Authorize): this
@@ -143,6 +142,6 @@ interface Authorize {
 }
 interface Validator extends PromiseLike<void> {
     can(action: string): Pick<this, 'then' | 'for' | 'in'>
-    for(i: string, ...a: readonly string[]): Pick<this, 'then' | 'in'>
+    for(i: unknown, ...a: readonly unknown[]): Pick<this, 'then' | 'in'>
     in(condition: Omit<Authorization, 'items'>): Pick<this, 'then'>
 }

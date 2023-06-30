@@ -3,11 +3,15 @@ export default Object.assign(Error, <ErrorConstructor>{
         return Object.assign(Error(e.message), e);
     },
     Code: {
+        AlreadyExists: 'AlreadyExists',
+        InternalError: 'InternalError',
+        LimitExceeded: 'LimitExceeded',
         TokenExpired: 'TokenExpired',
         InvalidToken: 'InvalidToken',
         Unauthorized: 'Unauthorized',
         SyntaxError: 'SyntaxError',
         NotAllowed: 'NotAllowed',
+        Forbidden: 'Forbidden',
         SlowDown: 'SlowDown',
         NotFound: 'NotFound',
     },
@@ -16,11 +20,21 @@ declare global {
     interface ErrorConstructor {
         build(e: Error): Error
         readonly Code: {
+            readonly AlreadyExists: 'AlreadyExists'
+            readonly InternalError: 'InternalError'
+            readonly LimitExceeded: 'LimitExceeded'
             readonly TokenExpired: 'TokenExpired'
             readonly InvalidToken: 'InvalidToken'
             readonly Unauthorized: 'Unauthorized'
             readonly SyntaxError: 'SyntaxError'
+            /**
+            default behavior
+            */
             readonly NotAllowed: 'NotAllowed'
+            /**
+            explicit no access
+            */
+            readonly Forbidden: 'Forbidden'
             readonly SlowDown: 'SlowDown'
             readonly NotFound: 'NotFound'
         }

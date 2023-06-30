@@ -1,0 +1,155 @@
+<html>
+
+<head>
+    <style>
+        table,
+        th,
+        td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <button id="start">Start</button>
+    <button id="stop">Stop</button>
+    <button id="send">Send</button>
+    <br><br>
+    <table id="result-table">
+        <thead>
+            <tr>
+                <th>type</th>
+                <th>data</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            if (!window.EventSource) {
+                return alert('this browser does not support EventSource');
+            }
+
+            const subscription = {
+                eventSource: undefined,
+                id: undefined,
+                //
+                async listen() {
+                    if (!!subscription.eventSource) {
+                        return;// already listening
+                    }
+
+                    const subscribe = async function () {
+                        try {
+                            if (!subscription.id?.length) {
+                                throw new Error('subscription id is not set');
+                            }
+                            const res = await fetch(`/sse/${subscription.id}`, {
+                                // test if subscription is still valid
+                                method: 'HEAD',
+                            });
+                            if (res.status === 404) {
+                                throw new Error('subscription id is outdated');
+                            }
+                        } catch (e) {
+                            showEvent('', e.message);
+                            const res = await fetch('/sse', {
+                                method: 'POST',
+                                headers: {
+                                    Authorization: 'basic YTpi',
+                                },
+                            });
+                            const body = await res.json();
+                            showEvent('', body);
+                            subscription.id = body.subscription;
+                        }
+                    };
+
+                    await subscribe();
+
+                    const eventSource = new EventSource(`/sse/${subscription.id}`);
+
+                    eventSource.onmessage = function (e) {
+                        showEvent('message', e.data);
+                    };
+                    eventSource.addEventListener('hello', function (e) {
+                        showEvent('hello', e.data);
+                    });
+                    eventSource.addEventListener('bye', function (e) {
+                        showEvent('bye', e.data);
+                        subscription.close();
+                    });
+                    eventSource.onerror = function (e) {
+                        console.error(e);
+                        subscription.close();
+                    };
+                    subscription.eventSource = eventSource;
+                },
+                async close() {
+                    showEvent('', 'close');
+                    subscription.eventSource?.close();
+                    delete subscription.eventSource;
+                },
+            };
+            const tableBody = document.querySelector('#result-table tbody');
+            const startButton = document.getElementById("start");
+            const stopButton = document.getElementById("stop");
+            const sendButton = document.getElementById("send");
+            const showEvent = function (type, data) {
+                const row = tableBody.insertRow(-1);
+                const typeColunm = row.insertCell(0);
+                const dataColunm = row.insertCell(1);
+                const stringify = function (a) {
+                    if (a === '') {
+                        return a;
+                    }
+                    if (typeof a !== 'string') {
+                        return stringify(JSON.stringify(a));
+                    }
+                    try {
+                        const json = JSON.parse(a);
+                        return JSON.stringify(json, null, 2);
+                    } catch {
+                        return a;
+                    }
+                };
+                typeColunm.innerText = type;
+                dataColunm.innerHTML = `<pre><code>${stringify(data)}</code></pre>`;
+            };
+            startButton.addEventListener('click', async function () {
+                await subscription.listen().catch(console.error);
+            });
+            stopButton.addEventListener('click', async function () {
+                await subscription.close().catch(console.error);
+            });
+            sendButton.addEventListener('click', async function () {
+                const now = new Date();
+                const res = await fetch(`/events`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/cloudevents+json',
+                    },
+                    body: JSON.stringify({
+                        id: now.getTime().toString(),
+                        specversion: '1.0',
+                        time: now.toISOString(),
+                        type: 'hello',
+                        source: '/demo',
+                        data: {
+                            message: 'hello',
+                        },
+                    }),
+                });
+                if (!res.ok) {
+                    return showEvent('error', await res.text());
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

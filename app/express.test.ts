@@ -507,14 +507,14 @@ describe('express/req', function () {
         });
         expect(res.headers).toHaveProperty('server-timing', expect.stringMatching(/^0;desc=authenticate;dur=\d+$/));
     });
-    it('.authenticate, ?basic=', async function () {
+    it('.authenticate, ?token=', async function () {
         const app = express().get('/abc', async function (req, res) {
             const a = await req.authenticate();
             res.status(200).json({ a });
         });
-        app.authenticate('basic', async function (req) {
+        app.authenticate('token', async function (req) {
             const [type, credentials] = req.authorization();
-            expect(type).toEqual('basic');
+            expect(type).toEqual('token');
             expect(credentials).toEqual('a:b'.encode('base64'));
             return {
                 id: 'u-123',
@@ -522,7 +522,7 @@ describe('express/req', function () {
         });
         const res = await express
             .fetch(app)
-            .get(`/abc?basic=${'a:b'.encode('base64')}`)
+            .get(`/abc?token=${'a:b'.encode('base64')}`)
             ;
         expect(res.body.a).toEqual({
             id: 'u-123',

@@ -583,7 +583,7 @@ Object.assign(express.request, <typeof express.request>{
             // find from querystring for testing from browser (to visualize server-timing)
             ?? querystring('api-key')
             ?? querystring('bearer')
-            ?? querystring('basic')
+            ?? querystring('token')
             ?? querystring('jwt')
             ?? ''
             ;

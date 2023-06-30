@@ -38,8 +38,8 @@ export default Promise.try(async function () {
             if (process.env.DEBUG) {
                 err(e.stack);
             }
-        }).once('close', function () {
-            log.info({ text: 'close' });
+        }).once('close', function() {
+            log.info({ text: 'cleanup' });
         });
     }
     if (process.env.API_PREFIX) {
@@ -58,16 +58,20 @@ export default Promise.try(async function () {
     }).once('listening', function () {
         log.info(srv.address());
     }).once('close', function () {
-        app.emit('close');
+        log.info({ text: 'close' });
     }).on('error', function (e) {
         app.emit('error', e);
     });
     process.once('SIGTERM', function (signal) {
         log.info({ signal });
         srv.close();
+        app.emit('close');
+        srv.closeAllConnections();
     }).once('SIGINT', function (signal) {
         log.info({ signal });
         srv.close();
+        app.emit('close');
+        srv.closeAllConnections();
     }).once('exit', function (code) {
         log.info({ exit: code });
     }).on('error', function (e) {

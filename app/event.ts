@@ -61,6 +61,8 @@ export default express.service(function (app) {
                 app.emit('error', err, e);
             });
         }
+    }).authorize('read:event', async function (user, auth) {
+        //TODO:
     });
 });
 declare global {
