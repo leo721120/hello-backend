@@ -23,7 +23,7 @@ describe('main', function () {
         const addr = srv.address() as {
             readonly port: number
         };
-        const res = await axios.get(`http://localhost:${addr.port}/versions`);
+        const res = await axios.get(`http://localhost:${addr.port}/version`);
         expect(res.status).toBe(200);
     });
 });

@@ -89,9 +89,9 @@ servers:
 security: []
 
 paths:
-  /versions:
+  /version:
     get:
-      summary: ListVersions
+      summary: FindVersion
       security: []
       description: |
         Can be used to view system version information.
@@ -108,7 +108,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: "#/components/schemas/versions"
+                  - $ref: "#/components/schemas/version"
 
   /time:
     get:
@@ -527,7 +527,7 @@ components:
           description: |
             The event payload.
 
-    versions:
+    version:
       maxProperties: 9
       type: object
       description: |
@@ -540,13 +540,13 @@ components:
           minLength: 1
           maxLength: 99
           example: 1.0.3-beta
-        platform:
+        hostname:
           description: |
-            A string identifying the operating system platform.
+            Hostname of the system.
           type: string
           minLength: 1
           maxLength: 99
-          example: win32
+          example: PC091008
         os:
           description: |
             A string identifying the operating system.

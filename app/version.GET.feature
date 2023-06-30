@@ -1,4 +1,4 @@
-Feature: GET /versions
+Feature: GET /version
 
     Background:
 
@@ -7,7 +7,7 @@ Feature: GET /versions
 
     Scenario: 200
 
-        Given url /versions
+        Given url /version
         When method GET
         Then expect status should be 200
         Then expect headers should contain
@@ -16,7 +16,7 @@ Feature: GET /versions
         Then expect body schema should be
             | openapi          |
             | paths            |
-            | /versions        |
+            | /version         |
             | get              |
             | responses        |
             | 200              |

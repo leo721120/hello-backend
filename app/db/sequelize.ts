@@ -48,6 +48,18 @@ export default express.service(function (app) {
             hooks: {
             },
         });
+    }).version('db', async function ({ tracecontext }) {
+        const db = app.service('db');
+        const dialect = db.getDialect();
+        const version = await Promise.try(function () {
+            return db.databaseVersion();
+        }).catch(function (e: Error) {
+            app.emit('error', e, tracecontext);
+            return '<unknown>';
+        });
+        return {
+            [dialect]: version,
+        };
     });
 });
 declare module 'sequelize' {

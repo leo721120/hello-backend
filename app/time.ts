@@ -4,7 +4,7 @@ export default express.service(function (app) {
     app.get('/time', function (req, res) {
         const tz = Date.timezone();
         res.status(200).json({
-            now: new Date(),
+            now: req.now,
             name: tz.name(),
             offset: tz.offset(),
         });

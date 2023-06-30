@@ -8,16 +8,16 @@ export default express.service(async function (app) {
     await app.setup(await import('@io/app/authenticate.fido2'));
     await app.setup(await import('@io/app/authenticate.jwt'));
     await app.setup(await import('@io/app/authorize'));
+    await app.setup(await import('@io/app/version'));
     await app.setup(await import('@io/app/config'));
+    await app.setup(await import('@io/app/health'));
     await app.setup(await import('@io/app/event'));
     await app.setup(await import('@io/app/dapr'));
+    await app.setup(await import('@io/app/time'));
     // -----------------------------------------------
     await app.setup(await import('@io/app/serversent'));
     // -----------------------------------------------
-    await app.setup(await import('@io/app/system/version'));
-    await app.setup(await import('@io/app/system/health'));
     await app.setup(await import('@io/app/system/metric'));
-    await app.setup(await import('@io/app/system/time'));
     // -----------------------------------------------
     await app.setup(await import('@io/app/notification/websocket'));
     // -----------------------------------------------
