@@ -3,7 +3,7 @@ import path from 'node:path'
 import pino from 'pino'
 export default function () {
     const destination = process.env.LOG_SINK?.length
-        ? path.resolve(process.env.LOG_SINK)
+        ? path.basename(path.resolve(process.env.LOG_SINK))
         : null
         ;
     return pino(
@@ -26,7 +26,7 @@ declare global {
     namespace NodeJS {
         interface ProcessEnv {
             /**
-            destination of log
+            destination of log, omit to stdout
             */
             readonly LOG_SINK?: string | 'app.log'
             /**
