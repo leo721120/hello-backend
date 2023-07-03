@@ -60,6 +60,13 @@ export default express.service(function (app) {
         return {
             [dialect]: version,
         };
+    }).health('db', async function ({ tracecontext }) {
+        const db = app.service('db');
+        await db.validate({ tracecontext });
+        const dialect = db.getDialect();
+        return {
+            [dialect]: 'connectable',
+        };
     });
 });
 declare module 'sequelize' {
