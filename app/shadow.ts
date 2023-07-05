@@ -1,6 +1,6 @@
 import express from '@io/app/express'
-import down from '@io/app/db/shadow.down'
-import up from '@io/app/db/shadow.up'
+import down from './shadow.down'
+import up from './shadow.up'
 export interface Shadow<V extends object> {
     /**
     used to sync data between real and shadow

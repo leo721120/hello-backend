@@ -1,11 +1,11 @@
-import type { DataSet } from '@io/app/db/dataset'
-import type { Shadow } from '@io/app/db/shadow'
+import type { DataSet } from '@io/app/dataset'
+import type { Shadow } from './shadow'
 export default function <V extends object>(options: {
     readonly dataset: DataSet
     /**
     called when shadow.sync() is called
     */
-    sync<A extends V>(id: string, data: Readonly<A>): Promise<void>
+    sync(id: string): Promise<Readonly<V>>
     /**
     called when shadow.load() is called
     */
@@ -17,12 +17,14 @@ export default function <V extends object>(options: {
 }) {
     return {
         shadow(id: `/${string}`): Shadow<V> {
-            const key = `/shadow/down${id}`;
+            const key = `/shadow/up${id}`;
 
             return {
                 async sync() {
-                    const data = await this.get();
-                    await options.sync(id, data);
+                    options.dataset.del(key);
+                    options.dataset.set(key, async function () {
+                        return options.sync(id);
+                    });
                 },
                 async save() {
                     const data = await this.get();

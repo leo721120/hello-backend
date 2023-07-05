@@ -18,12 +18,12 @@ export default express.service(async function (app) {
     await app.setup(await import('@io/app/time'));
     // -----------------------------------------------
     await app.setup(await import('@io/app/serversent'));
+    await app.setup(await import('@io/app/dataset'));
+    await app.setup(await import('@io/app/shadow'));
     // -----------------------------------------------
     await app.setup(await import('@io/app/notification/websocket'));
     // -----------------------------------------------
     await app.setup(await import('@io/app/db/sequelize'));
-    await app.setup(await import('@io/app/db/dataset'));
-    await app.setup(await import('@io/app/db/shadow'));
     await app.setup(await import('@io/app/db/mongo'));
     // -----------------------------------------------
     await app.setup(await import('@io/app/iam/webauthn'));

@@ -48,6 +48,11 @@ export default express.service(function (app) {
                 const cb = () => {
                     cache.set(key, Promise.defer(() => {
                         try {
+                            app.emit('event', {
+                                source: key,
+                                type: 'DataSet.ItemFilling',
+                                data: { key },
+                            });
                             return finder();
                         } catch (e) {
                             // reset for next try
@@ -98,6 +103,9 @@ declare global {
         }
     }
     interface CloudEvents {
+        'DataSet.ItemFilling': {
+            readonly key: string
+        }
         'DataSet.ItemExpired': {
             readonly key: string
         }
