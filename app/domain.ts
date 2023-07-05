@@ -13,6 +13,7 @@ export default express.service(async function (app) {
     await app.setup(await import('@io/app/health'));
     await app.setup(await import('@io/app/metric'));
     await app.setup(await import('@io/app/event'));
+    await app.setup(await import('@io/app/blob'));
     await app.setup(await import('@io/app/dapr'));
     await app.setup(await import('@io/app/time'));
     // -----------------------------------------------
