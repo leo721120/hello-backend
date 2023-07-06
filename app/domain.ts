@@ -12,6 +12,7 @@ export default express.service(async function (app) {
     await app.setup(await import('@io/app/config'));
     await app.setup(await import('@io/app/health'));
     await app.setup(await import('@io/app/metric'));
+    await app.setup(await import('@io/app/secret'));
     await app.setup(await import('@io/app/event'));
     await app.setup(await import('@io/app/blob'));
     await app.setup(await import('@io/app/dapr'));
@@ -20,6 +21,7 @@ export default express.service(async function (app) {
     await app.setup(await import('@io/app/serversent'));
     await app.setup(await import('@io/app/dataset'));
     await app.setup(await import('@io/app/shadow'));
+    await app.setup(await import('@io/app/token'));
     // -----------------------------------------------
     await app.setup(await import('@io/app/notification/websocket'));
     // -----------------------------------------------
@@ -27,7 +29,6 @@ export default express.service(async function (app) {
     await app.setup(await import('@io/app/db/mongo'));
     // -----------------------------------------------
     await app.setup(await import('@io/app/iam/webauthn'));
-    await app.setup(await import('@io/app/iam/token'));
     // -----------------------------------------------
     await app.setup(await import('@io/app/apphub/openapi'));
     await app.setup(await import('@io/app/apphub/controller'));

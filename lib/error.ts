@@ -6,6 +6,7 @@ export default Object.assign(Error, <ErrorConstructor>{
         AlreadyExists: 'AlreadyExists',
         InternalError: 'InternalError',
         LimitExceeded: 'LimitExceeded',
+        NotSupported: 'NotSupported',
         TokenExpired: 'TokenExpired',
         InvalidToken: 'InvalidToken',
         Unauthorized: 'Unauthorized',
@@ -23,6 +24,7 @@ declare global {
             readonly AlreadyExists: 'AlreadyExists'
             readonly InternalError: 'InternalError'
             readonly LimitExceeded: 'LimitExceeded'
+            readonly NotSupported: 'NotSupported'
             readonly TokenExpired: 'TokenExpired'
             readonly InvalidToken: 'InvalidToken'
             readonly Unauthorized: 'Unauthorized'

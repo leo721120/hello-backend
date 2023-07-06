@@ -12,7 +12,7 @@ export default express.service(function (app) {
         }
         res.status(204).end();
     }).get('/token', express.slowdown({
-        time: 1 * 60 * 1000,// 1 minute
+        time: 60_000,// 1 minute
         max: 5,
     }), async function (req, res) {
         const expire = req.querynumber('expire') ?? TOKEN_EXPIRE;
